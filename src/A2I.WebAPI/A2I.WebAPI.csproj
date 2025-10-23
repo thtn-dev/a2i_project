@@ -16,10 +16,15 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Scalar.AspNetCore" Version="2.9.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\A2I.Infrastructure.Database\A2I.Infrastructure.Database.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Endpoints\V1\" />
     </ItemGroup>
 
 </Project>

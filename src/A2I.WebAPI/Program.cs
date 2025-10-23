@@ -1,4 +1,5 @@
 using A2I.WebAPI.Extensions;
+using Scalar.AspNetCore;
 
 namespace A2I.WebAPI;
 
@@ -20,6 +21,7 @@ public sealed class Program
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
+            app.MapScalarApiReference();
         }
 
         app.UseHttpsRedirection();
