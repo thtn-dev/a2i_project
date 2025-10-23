@@ -1,0 +1,6 @@
+@A2I.WebAPI_HostAddress = http://localhost:5087
+
+GET {{A2I.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
