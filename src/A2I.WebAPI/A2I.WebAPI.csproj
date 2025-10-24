@@ -23,4 +23,8 @@
       <ProjectReference Include="..\A2I.Infrastructure.Database\A2I.Infrastructure.Database.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Endpoints\V1\" />
+    </ItemGroup>
+
 </Project>

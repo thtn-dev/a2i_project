@@ -12,6 +12,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.Infrastructure.Database
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.WebAPI", "src\A2I.WebAPI\A2I.WebAPI.csproj", "{77CF56C5-5CDB-4164-B35D-048157C275E8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.Application", "src\A2I.Application\A2I.Application.csproj", "{A6F78308-DB08-47E4-8706-BCA6390E71EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.Infrastructure", "src\A2I.Infrastructure\A2I.Infrastructure.csproj", "{071A8241-4700-4E92-845B-9602FC3F13BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{77CF56C5-5CDB-4164-B35D-048157C275E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77CF56C5-5CDB-4164-B35D-048157C275E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77CF56C5-5CDB-4164-B35D-048157C275E8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6F78308-DB08-47E4-8706-BCA6390E71EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6F78308-DB08-47E4-8706-BCA6390E71EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6F78308-DB08-47E4-8706-BCA6390E71EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6F78308-DB08-47E4-8706-BCA6390E71EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{071A8241-4700-4E92-845B-9602FC3F13BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{071A8241-4700-4E92-845B-9602FC3F13BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{071A8241-4700-4E92-845B-9602FC3F13BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{071A8241-4700-4E92-845B-9602FC3F13BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
