@@ -85,7 +85,7 @@ public class StripeWebhookController : ControllerBase
                 ct);
             
             // 7. Queue retry if needed
-            if (!result.Success && result.RequiresRetry)
+            if (result is { Success: false, RequiresRetry: true })
             {
                 BackgroundJob.Schedule(
                     () => RetryWebhookAsync(eventId, json, stripeEvent.Type),

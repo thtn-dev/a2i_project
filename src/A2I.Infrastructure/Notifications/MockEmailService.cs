@@ -29,7 +29,7 @@ public class MockEmailService : IEmailService
     }
     
     public Task SendPaymentFailedEmailAsync(
-        Guid customerId, Guid invoiceId, int attemptCount, DateTime? nextRetry, CancellationToken ct = default)
+        Guid customerId, Guid invoiceId, long attemptCount, DateTime? nextRetry, CancellationToken ct = default)
     {
         _logger.LogWarning(
             "📧 [MOCK EMAIL] Payment failed (attempt {Attempt}) for invoice {InvoiceId}. Customer {CustomerId}. Next retry: {NextRetry}",

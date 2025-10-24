@@ -12,6 +12,7 @@ using A2I.Infrastructure.Database;
 using A2I.Infrastructure.Invoices;
 using A2I.Infrastructure.Notifications;
 using A2I.Infrastructure.StripeServices;
+using A2I.Infrastructure.StripeServices.WebhookHandlers;
 using A2I.Infrastructure.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -96,6 +97,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEmailService, MockEmailService>();
         services.AddScoped<ISubscriptionApplicationService, SubscriptionApplicationService>();
         services.AddScoped<IEventIdempotencyStore, DbEventIdempotencyStore>();
+        
+        // Register all webhook handlers
+        services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoicePaidHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoicePaymentFailedHandler>();
+        services.AddScoped<IWebhookEventHandler, SubscriptionUpdatedHandler>();
+        services.AddScoped<IWebhookEventHandler, SubscriptionDeletedHandler>();
+        services.AddScoped<IWebhookEventDispatcher, WebhookEventDispatcher>();
         return services;
     }
 }

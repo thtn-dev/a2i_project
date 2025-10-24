@@ -29,7 +29,7 @@ public class Invoice
     public DateTime PeriodEnd { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? PaidAt { get; set; }
-    public int AttemptCount { get; set; } = 0;
+    public long AttemptCount { get; set; } = 0;
     public DateTime? LastAttemptAt { get; set; }
     public DateTime? NextAttemptAt { get; set; }
 

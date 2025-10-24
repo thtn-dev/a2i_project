@@ -90,7 +90,7 @@ public sealed class InvoiceDetailsResponse
     public DateTime? PaidAt { get; set; }
     public DateTime CreatedAt { get; set; }
     
-    public int AttemptCount { get; set; }
+    public long AttemptCount { get; set; }
     public DateTime? LastAttemptAt { get; set; }
     public DateTime? NextAttemptAt { get; set; }
     
