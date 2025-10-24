@@ -1,4 +1,5 @@
 using A2I.WebAPI.Extensions;
+using Scalar.AspNetCore;
 
 namespace A2I.WebAPI;
 
@@ -13,13 +14,13 @@ public sealed class Program
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
-
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
+            app.MapScalarApiReference();
         }
 
         app.UseHttpsRedirection();

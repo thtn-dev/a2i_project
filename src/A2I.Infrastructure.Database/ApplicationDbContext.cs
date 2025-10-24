@@ -16,10 +16,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         base.OnModelCreating(modelBuilder);
 
-        // Ensure pgcrypto for gen_random_uuid()
-        modelBuilder.HasPostgresExtension("pgcrypto");
-
-        // Apply all configs from this assembly
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
         // Global soft-delete filter
@@ -27,36 +23,28 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
             {
-                var parameter = System.Linq.Expressions.Expression.Parameter(entityType.ClrType, "e");
-                var prop = System.Linq.Expressions.Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
-                var condition = System.Linq.Expressions.Expression.Equal(
-                    prop,
-                    System.Linq.Expressions.Expression.Constant(false));
-
-                var lambda = System.Linq.Expressions.Expression.Lambda(condition, parameter);
+                var p = System.Linq.Expressions.Expression.Parameter(entityType.ClrType, "e");
+                var prop = System.Linq.Expressions.Expression.Property(p, nameof(ISoftDelete.IsDeleted));
+                var cond = System.Linq.Expressions.Expression.Equal(prop, System.Linq.Expressions.Expression.Constant(false));
+                var lambda = System.Linq.Expressions.Expression.Lambda(cond, p);
                 modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
             }
         }
-        
-        // Configure audit fields
+
         ConfigureAuditFields(modelBuilder);
     }
 
     private static void ConfigureAuditFields(ModelBuilder modelBuilder)
     {
-        // This will automatically add audit trail to all entities
-        // that implement IAuditableEntity interface
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (typeof(IAuditableEntity).IsAssignableFrom(entityType.ClrType))
             {
-                // Configure CreatedAt to be set automatically on insert
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(IAuditableEntity.CreatedAt))
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
                     .ValueGeneratedOnAdd();
 
-                // Configure UpdatedAt to be set automatically on update
                 modelBuilder.Entity(entityType.ClrType)
                     .Property(nameof(IAuditableEntity.UpdatedAt))
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -64,13 +52,19 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             }
         }
     }
-    
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var utcNow = DateTime.UtcNow;
 
         foreach (var entry in ChangeTracker.Entries())
         {
+            if (entry is { State: EntityState.Added, Entity: IEntityBase<Guid> gen } &&
+                gen.Id == Guid.Empty)
+            {
+                gen.Id = BuildingBlocks.Utils.Helpers.IdGenHelper.NewGuidId();
+            }
+
             if (entry.Entity is IAuditableEntity aud)
             {
                 switch (entry.State)
@@ -92,11 +86,12 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 }
             }
 
-            if (entry.Entity is not ISoftDelete soft) continue;
-            if (entry.State != EntityState.Deleted) continue;
-            entry.State = EntityState.Modified;
-            soft.IsDeleted = true;
-            soft.DeletedAt = utcNow;
+            if (entry is { Entity: ISoftDelete soft, State: EntityState.Deleted })
+            {
+                entry.State = EntityState.Modified;
+                soft.IsDeleted = true;
+                soft.DeletedAt = utcNow;
+            }
         }
 
         return await base.SaveChangesAsync(cancellationToken);

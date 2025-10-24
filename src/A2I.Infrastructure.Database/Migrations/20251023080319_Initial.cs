@@ -11,14 +11,11 @@ namespace A2I.Infrastructure.Database.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterDatabase()
-                .Annotation("Npgsql:PostgresExtension:pgcrypto", ",,");
-
             migrationBuilder.CreateTable(
                 name: "Customers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     StripeCustomerId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     FirstName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -46,7 +43,7 @@ namespace A2I.Infrastructure.Database.Migrations
                 name: "Plans",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     StripePriceId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -77,7 +74,7 @@ namespace A2I.Infrastructure.Database.Migrations
                 name: "Subscriptions",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CustomerId = table.Column<Guid>(type: "uuid", nullable: false),
                     PlanId = table.Column<Guid>(type: "uuid", nullable: false),
                     StripeSubscriptionId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -121,7 +118,7 @@ namespace A2I.Infrastructure.Database.Migrations
                 name: "Invoices",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CustomerId = table.Column<Guid>(type: "uuid", nullable: false),
                     SubscriptionId = table.Column<Guid>(type: "uuid", nullable: true),
                     StripeInvoiceId = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),

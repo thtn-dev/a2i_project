@@ -13,8 +13,7 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 
         b.Property(x => x.Id)
             .HasColumnType("uuid")
-            .ValueGeneratedOnAdd()
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedNever();
 
         b.Property(x => x.Email).IsRequired().HasMaxLength(255);
         b.Property(x => x.StripeCustomerId).HasMaxLength(100);
@@ -48,8 +47,7 @@ public sealed class PlanConfiguration : IEntityTypeConfiguration<Plan>
 
         b.Property(x => x.Id)
             .HasColumnType("uuid")
-            .ValueGeneratedOnAdd()
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedNever();
 
         b.Property(x => x.Name).IsRequired().HasMaxLength(100);
         b.Property(x => x.Description).HasMaxLength(500);
@@ -92,8 +90,7 @@ public sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subscri
 
         b.Property(x => x.Id)
             .HasColumnType("uuid")
-            .ValueGeneratedOnAdd()
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedNever();
 
         b.Property(x => x.CustomerId).HasColumnType("uuid");
         b.Property(x => x.PlanId).HasColumnType("uuid");
@@ -140,8 +137,7 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
         b.Property(x => x.Id)
             .HasColumnType("uuid")
-            .ValueGeneratedOnAdd()
-            .HasDefaultValueSql("gen_random_uuid()");
+            .ValueGeneratedNever();
 
         b.Property(x => x.CustomerId).HasColumnType("uuid");
         b.Property(x => x.SubscriptionId).HasColumnType("uuid");
