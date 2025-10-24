@@ -1,7 +1,11 @@
 using System.Net;
 
 namespace A2I.Application.StripeAbstraction;
-
+public class BusinessException : Exception
+{
+    public BusinessException(string message) : base(message) { }
+    public BusinessException(string message, Exception inner) : base(message, inner) { }
+}
 public class StripeServiceException : Exception
 {
     public HttpStatusCode? StatusCode { get; }
