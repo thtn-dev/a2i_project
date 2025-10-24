@@ -17,7 +17,7 @@ public class SubscriptionUpdatedHandler : WebhookEventHandlerBase
     {
     }
     
-    public override string EventType => "customer.subscription.updated";
+    public override string EventType => EventTypes.CustomerSubscriptionUpdated;
     
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,

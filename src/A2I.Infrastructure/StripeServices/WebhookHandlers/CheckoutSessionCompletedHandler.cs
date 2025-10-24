@@ -24,8 +24,8 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
     {
         _emailService = emailService;
     }
-    
-    public override string EventType => "checkout.session.completed";
+
+    public override string EventType => EventTypes.CheckoutSessionCompleted;
     
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,

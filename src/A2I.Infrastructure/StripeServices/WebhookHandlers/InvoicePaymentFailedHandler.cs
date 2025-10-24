@@ -31,7 +31,7 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
         _gracePeriodDays = 7;
     }
     
-    public override string EventType => "invoice.payment_failed";
+    public override string EventType => EventTypes.InvoicePaymentFailed;
     
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,

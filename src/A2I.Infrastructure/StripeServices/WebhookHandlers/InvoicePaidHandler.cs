@@ -23,7 +23,7 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
         _emailService = emailService;
     }
     
-    public override string EventType => "invoice.paid";
+    public override string EventType => EventTypes.InvoicePaid;
     
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,

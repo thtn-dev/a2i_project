@@ -24,8 +24,7 @@ public class SubscriptionDeletedHandler : WebhookEventHandlerBase
         _emailService = emailService;
     }
     
-    public override string EventType => "customer.subscription.deleted";
-    
+    public override string EventType => EventTypes.CustomerSubscriptionDeleted;
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,
         CancellationToken ct)
