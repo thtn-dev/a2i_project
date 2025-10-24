@@ -1,4 +1,18 @@
+using A2I.Application.Customers;
+using A2I.Application.Invoices;
+using A2I.Application.Notifications;
+using A2I.Application.StripeAbstraction.Checkout;
+using A2I.Application.StripeAbstraction.Customers;
+using A2I.Application.StripeAbstraction.Portal;
+using A2I.Application.StripeAbstraction.Subscriptions;
+using A2I.Application.StripeAbstraction.Webhooks;
+using A2I.Application.Subscriptions;
+using A2I.Infrastructure.Customers;
 using A2I.Infrastructure.Database;
+using A2I.Infrastructure.Invoices;
+using A2I.Infrastructure.Notifications;
+using A2I.Infrastructure.StripeServices;
+using A2I.Infrastructure.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -50,7 +64,7 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    private static string BuildConnectionString(DatabaseOptions dbOptions)
+    public static string BuildConnectionString(DatabaseOptions dbOptions)
     {
         var builder = new NpgsqlConnectionStringBuilder(dbOptions.ConnectionString)
         {
@@ -63,9 +77,25 @@ public static class ServiceCollectionExtensions
             TcpKeepAliveTime = 600,
             TcpKeepAliveInterval = 30,
             ApplicationName = "WebAPI",
-            MaxAutoPrepare = 100,
+            MaxAutoPrepare = 0,
         };
-
+        
         return builder.ConnectionString;
+    }
+
+    public static IServiceCollection AddStripeServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddScoped<IStripeCheckoutService, StripeCheckoutService>();
+        services.AddScoped<IStripeCustomerService, StripeCustomerService>();
+        services.AddScoped<IStripePortalService, StripePortalService>();
+        services.AddScoped<IStripeSubscriptionService, StripeSubscriptionService>();
+        services.AddScoped<IStripeWebhookService, StripeWebhookService>();
+        
+        services.AddScoped<ICustomerApplicationService, CustomerApplicationService>();
+        services.AddScoped<IInvoiceApplicationService, InvoiceApplicationService>();
+        services.AddScoped<IEmailService, MockEmailService>();
+        services.AddScoped<ISubscriptionApplicationService, SubscriptionApplicationService>();
+        services.AddScoped<IEventIdempotencyStore, DbEventIdempotencyStore>();
+        return services;
     }
 }

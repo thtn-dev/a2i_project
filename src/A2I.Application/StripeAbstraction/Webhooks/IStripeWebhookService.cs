@@ -27,4 +27,6 @@ public interface IEventIdempotencyStore
 {
     Task<bool> HasProcessedAsync(string eventId, CancellationToken ct);
     Task MarkProcessedAsync(string eventId, CancellationToken ct);
+    Task UpdateEventStatusAsync(string eventId, string eventType, string status, 
+        string? errorMessage = null, CancellationToken ct = default);
 }
