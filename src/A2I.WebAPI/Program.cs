@@ -1,5 +1,6 @@
 using A2I.Infrastructure.Database;
 using A2I.WebAPI.Endpoints.System;
+using A2I.WebAPI.Endpoints.Test;
 using A2I.WebAPI.Extensions;
 using A2I.WebAPI.Middlewares;
 using Hangfire;
@@ -107,12 +108,12 @@ public sealed class Program
             .MapHealthEndpoints();
 
         // Test endpoints (REMOVE IN PRODUCTION!)
-        // if (app.Environment.IsDevelopment())
-        // {
-        //     apiV1.MapGroup("/test")
-        //         .WithTags("Test")
-        //         .MapTestEndpoints();
-        // }
+        if (app.Environment.IsDevelopment())
+        {
+            apiV1.MapGroup("/test")
+                .WithTags("Test")
+                .MapTestEndpoints();
+        }
 
         // Business endpoints (will be added in Phase 2)
         // apiV1.MapGroup("/subscriptions").WithTags("Subscriptions").MapSubscriptionEndpoints();
