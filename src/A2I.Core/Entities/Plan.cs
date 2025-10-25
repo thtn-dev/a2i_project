@@ -55,3 +55,16 @@ public class Plan
     public DateTime? DeletedAt { get; set; }
     public string? DeletedBy { get; set; }
 }
+
+public static class PlanExtensions
+{
+    public static DateTime CalculateNextBillingDate(this Plan plan, DateTime fromDate)
+    {
+        return plan.BillingInterval switch
+        {
+            BillingInterval.Month => fromDate.AddDays(plan.IntervalCount),
+            BillingInterval.Year => fromDate.AddDays(plan.IntervalCount),
+            _ => fromDate
+        };
+    }
+}

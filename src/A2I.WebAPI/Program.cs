@@ -1,4 +1,7 @@
 using A2I.Infrastructure.Database;
+using A2I.WebAPI.Endpoints.Customers;
+using A2I.WebAPI.Endpoints.Invoices;
+using A2I.WebAPI.Endpoints.Subscriptions;
 using A2I.WebAPI.Endpoints.System;
 using A2I.WebAPI.Endpoints.Test;
 using A2I.WebAPI.Extensions;
@@ -106,6 +109,19 @@ public sealed class Program
         apiV1.MapGroup("/health")
             .WithTags("System")
             .MapHealthEndpoints();
+        
+        apiV1.MapGroup("/subscriptions")
+            .WithTags("Subscriptions")
+            .MapSubscriptionEndpoints();
+        
+        apiV1.MapGroup("/customers")
+            .WithTags("Customers")
+            .MapCustomerEndpoints();
+
+        apiV1.MapGroup("/invoices")
+            .WithTags("Invoices")
+            .MapInvoiceEndpoints();
+
 
         // Test endpoints (REMOVE IN PRODUCTION!)
         if (app.Environment.IsDevelopment())

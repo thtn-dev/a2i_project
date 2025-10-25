@@ -1,6 +1,7 @@
 using A2I.Application.Customers;
 using A2I.Application.Invoices;
 using A2I.Application.Notifications;
+using A2I.Application.StripeAbstraction;
 using A2I.Application.StripeAbstraction.Checkout;
 using A2I.Application.StripeAbstraction.Customers;
 using A2I.Application.StripeAbstraction.Portal;
@@ -86,6 +87,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddStripeServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var stripeSection = configuration.GetSection(StripeOptions.SectionName);
+        services.Configure<StripeOptions>(stripeSection);
         services.AddScoped<IStripeCheckoutService, StripeCheckoutService>();
         services.AddScoped<IStripeCustomerService, StripeCustomerService>();
         services.AddScoped<IStripePortalService, StripePortalService>();
@@ -99,7 +102,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEventIdempotencyStore, DbEventIdempotencyStore>();
         
         // Register all webhook handlers
-        services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
+        // services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
+        services.AddScoped<IWebhookEventHandler, SubscriptionCreatedHandler>();
         services.AddScoped<IWebhookEventHandler, InvoicePaidHandler>();
         services.AddScoped<IWebhookEventHandler, InvoicePaymentFailedHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionUpdatedHandler>();

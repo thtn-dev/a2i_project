@@ -98,7 +98,8 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
                 false,
                 $"Plan not found for price {priceId}");
         }
-        
+
+        var currentPeriodEnd = plan.CalculateNextBillingDate(subscription.StartDate);
         // 4. Create subscription in DB
         var newSubscription = new Core.Entities.Subscription
         {
@@ -108,7 +109,7 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
             StripeSubscriptionId = subscription.Id,
             Status = MapSubscriptionStatus(subscription.Status),
             CurrentPeriodStart = subscription.StartDate,
-            CurrentPeriodEnd = subscription.EndedAt ?? subscription.StartDate,
+            CurrentPeriodEnd = currentPeriodEnd,
             CancelAt = subscription.CancelAt,
             CanceledAt = subscription.CanceledAt,
             CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,

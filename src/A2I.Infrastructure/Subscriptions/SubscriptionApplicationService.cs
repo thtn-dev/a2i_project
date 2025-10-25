@@ -45,14 +45,14 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
 
         // 2. Validate plan exists and is active
         var plan = await _db.Plans
-            .FirstOrDefaultAsync(p => p.Id == request.PlanId && p.IsActive, ct);
+            .FirstOrDefaultAsync(p => p.Id == request.PlanId && p.IsActive == true, ct);
 
         if (plan is null)
             throw new BusinessException($"Plan not found or inactive: {request.PlanId}");
 
         // 3. Check if customer already has an active subscription
         var hasActive = await _db.Subscriptions
-            .AnyAsync(s => s.CustomerId == request.CustomerId && s.IsActive, ct);
+            .AnyAsync(s => s.CustomerId == request.CustomerId && (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing), ct);
 
         if (hasActive)
             throw new BusinessException("Customer already has an active subscription");

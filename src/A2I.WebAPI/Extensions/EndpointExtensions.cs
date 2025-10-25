@@ -26,16 +26,8 @@ public static class EndpointExtensions
         Func<Task<T>> action,
         string? successMessage = null)
     {
-        try
-        {
-            var result = await action();
-            return Results.Ok(ApiResponse<T>.Ok(result, successMessage));
-        }
-        catch (Exception)
-        {
-            // Let GlobalExceptionMiddleware handle it
-            throw;
-        }
+        var result = await action();
+        return Results.Ok(ApiResponse<T>.Ok(result, successMessage));
     }
 
     /// <summary>
@@ -45,15 +37,8 @@ public static class EndpointExtensions
         Func<Task> action,
         string successMessage = "Operation completed successfully")
     {
-        try
-        {
-            await action();
-            return Results.Ok(ApiResponse<object>.Ok(new { }, successMessage));
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        await action();
+        return Results.Ok(ApiResponse<object>.Ok(new { }, successMessage));
     }
 
     /// <summary>
@@ -62,15 +47,8 @@ public static class EndpointExtensions
     public static async Task<IResult> ExecutePaginatedAsync<T>(
         Func<Task<(List<T> Items, PaginationMetadata Pagination)>> action)
     {
-        try
-        {
-            var (items, pagination) = await action();
-            return Results.Ok(PaginatedResponse<T>.Ok(items, pagination));
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        var (items, pagination) = await action();
+        return Results.Ok(PaginatedResponse<T>.Ok(items, pagination));
     }
 
     /// <summary>
@@ -209,7 +187,7 @@ public static class EndpointExtensions
             return false;
         }
 
-        if (pageSize < 1 || pageSize > 100)
+        if (pageSize is < 1 or > 100)
         {
             errorResult = BadRequest(
                 ErrorCodes.VALIDATION_RANGE,

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using A2I.Application.Common;
 
 namespace A2I.Application.Invoices;
 
@@ -122,15 +123,6 @@ public sealed class InvoiceLineItemDto
     public string Currency { get; set; } = "usd";
 }
 
-public sealed class PaginationMetadata
-{
-    public int CurrentPage { get; set; }
-    public int PageSize { get; set; }
-    public int TotalItems { get; set; }
-    public int TotalPages { get; set; }
-    public bool HasPreviousPage { get; set; }
-    public bool HasNextPage { get; set; }
-}
 
 public sealed class InvoicePdfResponse
 {
