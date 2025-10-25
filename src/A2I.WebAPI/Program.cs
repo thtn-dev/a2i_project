@@ -1,5 +1,7 @@
 using A2I.Infrastructure.Database;
+using A2I.WebAPI.Endpoints.System;
 using A2I.WebAPI.Extensions;
+using A2I.WebAPI.Middlewares;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Scalar.AspNetCore;
@@ -12,14 +14,17 @@ public sealed class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
+        // ==================== SERVICES CONFIGURATION ====================
+
+        // Core services
         builder.Services.AddAuthorization();
         builder.Services.AddControllers();
+
+        // Database & Infrastructure
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
         builder.Services.AddStripeServices(builder.Configuration);
       
-        
-        // Add Hangfire services
+        // Hangfire for background jobs
         builder.Services.AddHangfire(config =>
         {
             config.UsePostgreSqlStorage((options) =>
@@ -43,36 +48,100 @@ public sealed class Program
 
         builder.Services.AddHangfireServer(options =>
         {
-            options.WorkerCount = 5; // Adjust based on load
+            options.WorkerCount = 5;
             options.Queues = ["webhooks", "emails", "default"];
         });
         
-        // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-        builder.Services.AddOpenApi();
+        // API Configuration
+        builder.Services.ConfigureOpenApi();
+
+        // ==================== APP CONFIGURATION ====================
+
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
+        // ===== MIDDLEWARE PIPELINE (ORDER MATTERS!) =====
+
+        // 1. Global exception handling (catches all unhandled exceptions)
+        app.UseGlobalExceptionHandler();
+
+        // 2. Request logging (logs all HTTP requests/responses)
+        // app.UseRequestLogging();
+
+        // 3. Development-only middleware
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-            app.MapScalarApiReference();
+            app.MapScalarApiReference(options =>
+            {
+                options.Title = "A2I Stripe Subscription API";
+                options.Theme = ScalarTheme.Purple;
+            });
         }
+
+        // 4. Hangfire dashboard
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             // Authorization = new[] { new HangfireAuthorizationFilter() }
+            DashboardTitle = "A2I Background Jobs"
         });
+
+        // 5. HTTPS redirection
         app.UseHttpsRedirection();
 
+        // 6. Authorization
         app.UseAuthorization();
+
+        // ===== API ENDPOINTS =====
+
+        // Legacy controller endpoints (keep for now)
         app.MapControllers();
 
-        var summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        // ===== API v1 ENDPOINTS =====
+        
+        var apiV1 = app.MapGroup("/api/v1")
+            .WithOpenApi();
 
+        // System endpoints
+        apiV1.MapGroup("/health")
+            .WithTags("System")
+            .MapHealthEndpoints();
+
+        // Test endpoints (REMOVE IN PRODUCTION!)
+        // if (app.Environment.IsDevelopment())
+        // {
+        //     apiV1.MapGroup("/test")
+        //         .WithTags("Test")
+        //         .MapTestEndpoints();
+        // }
+
+        // Business endpoints (will be added in Phase 2)
+        // apiV1.MapGroup("/subscriptions").WithTags("Subscriptions").MapSubscriptionEndpoints();
+        // apiV1.MapGroup("/customers").WithTags("Customers").MapCustomerEndpoints();
+        // apiV1.MapGroup("/invoices").WithTags("Invoices").MapInvoiceEndpoints();
+        // apiV1.MapGroup("/plans").WithTags("Plans").MapPlanEndpoints();
+
+        // ===== HEALTH CHECK ENDPOINT =====
+        app.MapGet("/health", () => Results.Ok(new
+        {
+            status = "healthy",
+            timestamp = DateTime.UtcNow,
+            version = "1.0.0",
+            environment = app.Environment.EnvironmentName
+        }))
+        .WithName("HealthCheck")
+        .WithTags("System")
+        .Produces(StatusCodes.Status200OK)
+        .ExcludeFromDescription(); // Don't show in API docs
+
+        // ===== DEMO ENDPOINT (remove in production) =====
         app.MapGet("/weatherforecast", (HttpContext httpContext) =>
             {
+                var summaries = new[]
+                {
+                    "Freezing", "Bracing", "Chilly", "Cool", "Mild", 
+                    "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+                };
+
                 var forecast = Enumerable.Range(1, 5).Select(index =>
                         new WeatherForecast
                         {
@@ -83,8 +152,10 @@ public sealed class Program
                     .ToArray();
                 return forecast;
             })
-            .WithName("GetWeatherForecast");
+            .WithName("GetWeatherForecast")
+            .WithTags("Demo");
 
+        // ===== START APPLICATION =====
         app.Run();
     }
 }
