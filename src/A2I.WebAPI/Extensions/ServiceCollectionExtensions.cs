@@ -52,14 +52,14 @@ public static class ServiceCollectionExtensions
             {
                 options.EnableSensitiveDataLogging(dbOptions.EnableSensitiveDataLogging);
                 options.EnableDetailedErrors(dbOptions.EnableDetailedErrors);
-                options.LogTo(Console.WriteLine, LogLevel.Information);
+                // options.LogTo(Console.WriteLine, LogLevel.Information);
             }
-            else
-            {
-                options.LogTo(
-                    filter: (eventId, level) => level >= LogLevel.Warning,
-                    logger: (eventData) => loggerService.LogWarning("Database event: {EventData}", eventData.ToString()));
-            }
+            // else
+            // {
+            //     options.LogTo(
+            //         filter: (_, level) => level >= LogLevel.Warning,
+            //         logger: (eventData) => loggerService.LogWarning("Database event: {EventData}", eventData.ToString()));
+            // }
         });
 
         return services;
@@ -104,6 +104,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWebhookEventHandler, InvoicePaymentFailedHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionUpdatedHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionDeletedHandler>();
+        services.AddScoped<IWebhookEventHandler, CustomerCreatedHandler>();
         services.AddScoped<IWebhookEventDispatcher, WebhookEventDispatcher>();
         return services;
     }

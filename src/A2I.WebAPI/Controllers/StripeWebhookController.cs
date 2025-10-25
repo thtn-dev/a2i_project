@@ -127,7 +127,8 @@ public class StripeWebhookController : ControllerBase
     }
     
     // Hangfire background job for retry
-    private async Task RetryWebhookAsync(string eventId, string json, string eventType)
+    [NonAction]
+    public async Task RetryWebhookAsync(string eventId, string json, string eventType)
     {
         try
         {
