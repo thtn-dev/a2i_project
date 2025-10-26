@@ -13,7 +13,6 @@ public static class CustomerEndpoints
     public static RouteGroupBuilder MapCustomerEndpoints(this RouteGroupBuilder group)
     {
         group.MapPost("/", CreateOrUpdateCustomer)
-            .WithName("CreateOrUpdateCustomer")
             .WithApiMetadata(
                 "Create or update customer",
                 "Creates a new customer in both database and Stripe, or updates existing customer information.")

@@ -1,4 +1,6 @@
+using System.Threading.RateLimiting;
 using A2I.Infrastructure.Database;
+using A2I.Infrastructure.StripeServices;
 using A2I.WebAPI.Endpoints.Customers;
 using A2I.WebAPI.Endpoints.Invoices;
 using A2I.WebAPI.Endpoints.Subscriptions;
@@ -8,6 +10,7 @@ using A2I.WebAPI.Extensions;
 using A2I.WebAPI.Middlewares;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 
 namespace A2I.WebAPI;
@@ -27,6 +30,26 @@ public sealed class Program
         // Database & Infrastructure
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
         builder.Services.AddStripeServices(builder.Configuration);
+        
+        builder.Services.AddRateLimiter(rateLimiterOptions =>
+        {
+            rateLimiterOptions.AddFixedWindowLimiter("fixed", options =>
+            {
+                options.PermitLimit = 10;
+                options.Window = TimeSpan.FromSeconds(10);
+                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                options.QueueLimit = 5;
+            });
+            
+            rateLimiterOptions.AddSlidingWindowLimiter("sliding", options =>
+            {
+                options.PermitLimit = 20;
+                options.Window = TimeSpan.FromSeconds(30);
+                options.SegmentsPerWindow = 6;
+                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                options.QueueLimit = 10;
+            });
+        });
       
         // Hangfire for background jobs
         builder.Services.AddHangfire(config =>
@@ -53,8 +76,10 @@ public sealed class Program
         builder.Services.AddHangfireServer(options =>
         {
             options.WorkerCount = 5;
-            options.Queues = ["webhooks", "emails", "default"];
+            options.Queues = ["stripe-webhooks", "emails", "default"];
         });
+        
+        builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
         
         // API Configuration
         builder.Services.ConfigureOpenApi();

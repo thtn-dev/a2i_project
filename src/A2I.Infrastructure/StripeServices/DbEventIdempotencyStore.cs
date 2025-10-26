@@ -22,7 +22,7 @@ public class DbEventIdempotencyStore : IEventIdempotencyStore
     
     public async Task<bool> HasProcessedAsync(string eventId, CancellationToken ct)
     {
-        var exists = await _db.WebhookEvents
+        var exists = await _db.WebhookEvents.AsNoTracking()
             .AnyAsync(e => e.EventId == eventId, ct);
         
         if (exists)
@@ -53,7 +53,22 @@ public class DbEventIdempotencyStore : IEventIdempotencyStore
         
         _logger.LogDebug("Marked event {EventId} as processing", eventId);
     }
-    
+
+    public Task MarkQueuedAsync(string eventId, string eventType, string? json, CancellationToken ct)
+    {
+        var webhookEvent = new WebhookEvent
+        {
+            EventId = eventId,
+            EventType = eventType, 
+            ProcessedAt = DateTime.UtcNow,
+            Status = "queued",
+            Id = IdGenHelper.NewGuidId(),
+            RawData = json
+        };
+        _db.WebhookEvents.Add(webhookEvent);
+        return _db.SaveChangesAsync(ct);
+    }
+
     public async Task UpdateEventStatusAsync(
         string eventId,
         string eventType,
@@ -76,5 +91,12 @@ public class DbEventIdempotencyStore : IEventIdempotencyStore
             
             await _db.SaveChangesAsync(ct);
         }
+    }
+
+    public Task<WebhookEvent?> GetEventStatusQueuedByEventIdAsync(string eventId, CancellationToken ct = default)
+    {
+        return _db.WebhookEvents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.EventId == eventId && e.Status == "queued", ct);
     }
 }

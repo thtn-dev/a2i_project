@@ -102,7 +102,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEventIdempotencyStore, DbEventIdempotencyStore>();
         
         // Register all webhook handlers
-        // services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
+        services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionCreatedHandler>();
         services.AddScoped<IWebhookEventHandler, InvoicePaidHandler>();
         services.AddScoped<IWebhookEventHandler, InvoicePaymentFailedHandler>();

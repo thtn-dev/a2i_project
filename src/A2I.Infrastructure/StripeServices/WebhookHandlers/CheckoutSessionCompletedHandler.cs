@@ -36,7 +36,6 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
         {
             return new WebhookHandlerResult(false, "Invalid session data");
         }
-        
         // 1. Verify session status
         if (session.Status != "complete")
         {
