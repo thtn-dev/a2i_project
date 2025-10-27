@@ -1,6 +1,7 @@
 using A2I.Application.StripeAbstraction.Webhooks;
 using Hangfire;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Stripe;
 
 namespace A2I.Infrastructure.StripeServices;
@@ -10,6 +11,7 @@ public interface IStripeWebhookJob
 {
     Task HandleAsync(string eventId, string eventType, CancellationToken ct);
 }
+
 public class StripeWebhookJob : IStripeWebhookJob
 {
     private readonly IWebhookEventDispatcher _dispatcher;
@@ -25,7 +27,7 @@ public class StripeWebhookJob : IStripeWebhookJob
         _idempotencyStore = idempotencyStore;
         _logger = logger;
     }
-    
+
     public async Task HandleAsync(string eventId, string eventType, CancellationToken ct)
     {
         // Double-check idempotency ngay trong worker (phòng race)
@@ -51,7 +53,7 @@ public class StripeWebhookJob : IStripeWebhookJob
             throw new InvalidOperationException($"Missing JSON for {eventId}");
         }
 
-        var stripeEvent = Newtonsoft.Json.JsonConvert.DeserializeObject<Event>(json)
+        var stripeEvent = JsonConvert.DeserializeObject<Event>(json)
                           ?? throw new InvalidOperationException("Cannot deserialize Stripe event");
 
         _logger.LogInformation("Processing webhook {EventId} ({EventType})", eventId, eventType);
@@ -66,10 +68,8 @@ public class StripeWebhookJob : IStripeWebhookJob
             ct);
 
         if (!result.Success)
-        {
             // Throw để cho phép AutomaticRetry của Hangfire kick in
             throw new Exception(result.Message ?? "Unknown webhook handling error");
-        }
 
         _logger.LogInformation("Processed webhook {EventId} OK", eventId);
     }

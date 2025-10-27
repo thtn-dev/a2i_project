@@ -12,10 +12,11 @@ namespace A2I.Infrastructure.StripeServices;
 public class StripeCustomerService : IStripeCustomerService
 {
     private readonly CustomerService _customerSvc;
-    private readonly PaymentMethodService _pmSvc;
-    private readonly IOptions<StripeOptions> _options;
     private readonly ILogger<StripeCustomerService> _logger;
+    private readonly IOptions<StripeOptions> _options;
+    private readonly PaymentMethodService _pmSvc;
     private readonly AsyncRetryPolicy _retry;
+
     public StripeCustomerService(IOptions<StripeOptions> options, ILogger<StripeCustomerService> logger)
     {
         _options = options;
@@ -43,17 +44,15 @@ public class StripeCustomerService : IStripeCustomerService
                     ? new CustomerInvoiceSettingsOptions { DefaultPaymentMethod = req.PaymentMethodId }
                     : null
             };
-            var reqOpts = BuildRequestOptions(idemKeySuffix: req.Email);
+            var reqOpts = BuildRequestOptions(req.Email);
 
             var customer = await RetryAsync(
-                op: "Customer.Create",
-                execute: c => _customerSvc.CreateAsync(create, reqOpts, c),
+                "Customer.Create",
+                c => _customerSvc.CreateAsync(create, reqOpts, c),
                 ct);
 
             if (!string.IsNullOrWhiteSpace(req.PaymentMethodId))
-            {
-                await AttachPaymentMethodCoreAsync(customer.Id, req.PaymentMethodId!, setAsDefault: true, ct);
-            }
+                await AttachPaymentMethodCoreAsync(customer.Id, req.PaymentMethodId!, true, ct);
 
             _logger.LogInformation("Stripe Customer created: {CustomerId} ({Email})", customer.Id, customer.Email);
             return Map(customer);
@@ -70,8 +69,8 @@ public class StripeCustomerService : IStripeCustomerService
         try
         {
             var customer = await RetryAsync(
-                op: "Customer.Get",
-                execute: c => _customerSvc.GetAsync(stripeCustomerId, cancellationToken: c),
+                "Customer.Get",
+                c => _customerSvc.GetAsync(stripeCustomerId, cancellationToken: c),
                 ct);
 
             return customer is null ? null : Map(customer);
@@ -89,7 +88,8 @@ public class StripeCustomerService : IStripeCustomerService
         }
     }
 
-    public async Task<CustomerView> UpdateCustomerAsync(string stripeCustomerId, UpdateCustomerRequest req, CancellationToken ct = default)
+    public async Task<CustomerView> UpdateCustomerAsync(string stripeCustomerId, UpdateCustomerRequest req,
+        CancellationToken ct = default)
     {
         try
         {
@@ -106,8 +106,8 @@ public class StripeCustomerService : IStripeCustomerService
             };
 
             var customer = await RetryAsync(
-                op: "Customer.Update",
-                execute: c => _customerSvc.UpdateAsync(stripeCustomerId, update, cancellationToken: c),
+                "Customer.Update",
+                c => _customerSvc.UpdateAsync(stripeCustomerId, update, cancellationToken: c),
                 ct);
 
             _logger.LogInformation("Stripe Customer updated: {CustomerId}", stripeCustomerId);
@@ -125,8 +125,8 @@ public class StripeCustomerService : IStripeCustomerService
         try
         {
             var deleted = await RetryAsync(
-                op: "Customer.Delete",
-                execute: c => _customerSvc.DeleteAsync(stripeCustomerId, cancellationToken: c),
+                "Customer.Delete",
+                c => _customerSvc.DeleteAsync(stripeCustomerId, cancellationToken: c),
                 ct);
 
             var ok = deleted?.Deleted == true;
@@ -144,30 +144,29 @@ public class StripeCustomerService : IStripeCustomerService
         }
     }
 
-    public async Task<AttachPaymentMethodResult> AttachPaymentMethodAsync(string customerId, string paymentMethodId, CancellationToken ct = default)
+    public async Task<AttachPaymentMethodResult> AttachPaymentMethodAsync(string customerId, string paymentMethodId,
+        CancellationToken ct = default)
     {
         try
         {
-            await AttachPaymentMethodCoreAsync(customerId, paymentMethodId, setAsDefault: false, ct);
+            await AttachPaymentMethodCoreAsync(customerId, paymentMethodId, false, ct);
 
             var customer = await RetryAsync(
-                op: "Customer.GetForDefaultPM",
-                execute: c => _customerSvc.GetAsync(customerId, cancellationToken: c),
+                "Customer.GetForDefaultPM",
+                c => _customerSvc.GetAsync(customerId, cancellationToken: c),
                 ct);
 
             var currentDefault = customer?.InvoiceSettings?.DefaultPaymentMethodId;
             var setDefault = string.IsNullOrWhiteSpace(currentDefault);
 
             if (setDefault)
-            {
                 await RetryAsync(
-                    op: "Customer.UpdateDefaultPM",
-                    execute: c => _customerSvc.UpdateAsync(customerId, new CustomerUpdateOptions
+                    "Customer.UpdateDefaultPM",
+                    c => _customerSvc.UpdateAsync(customerId, new CustomerUpdateOptions
                     {
                         InvoiceSettings = new CustomerInvoiceSettingsOptions { DefaultPaymentMethod = paymentMethodId }
                     }, cancellationToken: c),
                     ct);
-            }
 
             _logger.LogInformation("PaymentMethod {PaymentMethodId} attached to {CustomerId}, SetAsDefault={IsDefault}",
                 paymentMethodId, customerId, setDefault);
@@ -181,18 +180,20 @@ public class StripeCustomerService : IStripeCustomerService
         }
         catch (StripeException ex)
         {
-            _logger.LogError(ex, "Failed to attach PaymentMethod {PaymentMethodId} to {CustomerId}", paymentMethodId, customerId);
+            _logger.LogError(ex, "Failed to attach PaymentMethod {PaymentMethodId} to {CustomerId}", paymentMethodId,
+                customerId);
             throw StripeErrorMapper.Wrap(ex, "Failed to attach payment method to Stripe customer.");
         }
     }
 
-    public async Task<IReadOnlyList<PaymentMethodView>> ListPaymentMethodsAsync(string customerId, CancellationToken ct = default)
+    public async Task<IReadOnlyList<PaymentMethodView>> ListPaymentMethodsAsync(string customerId,
+        CancellationToken ct = default)
     {
         try
         {
             var list = await RetryAsync(
-                op: "PaymentMethod.List",
-                execute: c => _pmSvc.ListAsync(new PaymentMethodListOptions
+                "PaymentMethod.List",
+                c => _pmSvc.ListAsync(new PaymentMethodListOptions
                 {
                     Customer = customerId,
                     Type = "card"
@@ -200,8 +201,8 @@ public class StripeCustomerService : IStripeCustomerService
                 ct);
 
             var customer = await RetryAsync(
-                op: "Customer.GetForListPM",
-                execute: c => _customerSvc.GetAsync(customerId, cancellationToken: c),
+                "Customer.GetForListPM",
+                c => _customerSvc.GetAsync(customerId, cancellationToken: c),
                 ct);
 
             var defaultPmId = customer?.InvoiceSettings?.DefaultPaymentMethodId;
@@ -219,60 +220,65 @@ public class StripeCustomerService : IStripeCustomerService
 
     // ---------- helpers ----------
 
-    private async Task AttachPaymentMethodCoreAsync(string customerId, string paymentMethodId, bool setAsDefault, CancellationToken ct)
+    private async Task AttachPaymentMethodCoreAsync(string customerId, string paymentMethodId, bool setAsDefault,
+        CancellationToken ct)
     {
         // Attach
         await RetryAsync(
-            op: "PaymentMethod.Attach",
-            execute: c => _pmSvc.AttachAsync(paymentMethodId, new PaymentMethodAttachOptions
+            "PaymentMethod.Attach",
+            c => _pmSvc.AttachAsync(paymentMethodId, new PaymentMethodAttachOptions
             {
                 Customer = customerId
             }, cancellationToken: c),
             ct);
 
         if (setAsDefault)
-        {
             await RetryAsync(
-                op: "Customer.UpdateDefaultPM.AfterAttach",
-                execute: c => _customerSvc.UpdateAsync(customerId, new CustomerUpdateOptions
+                "Customer.UpdateDefaultPM.AfterAttach",
+                c => _customerSvc.UpdateAsync(customerId, new CustomerUpdateOptions
                 {
                     InvoiceSettings = new CustomerInvoiceSettingsOptions { DefaultPaymentMethod = paymentMethodId }
                 }, cancellationToken: c),
                 ct);
-        }
     }
 
-    private static CustomerView Map(Customer c) => new()
+    private static CustomerView Map(Customer c)
     {
-        Id = c.Id,
-        Email = c.Email,
-        Name = c.Name,
-        Phone = c.Phone,
-        Description = c.Description,
-        DefaultPaymentMethodId = c.InvoiceSettings?.DefaultPaymentMethodId,
-        Metadata = c.Metadata,
-        Deleted = c.Deleted ?? false
-    };
+        return new CustomerView
+        {
+            Id = c.Id,
+            Email = c.Email,
+            Name = c.Name,
+            Phone = c.Phone,
+            Description = c.Description,
+            DefaultPaymentMethodId = c.InvoiceSettings?.DefaultPaymentMethodId,
+            Metadata = c.Metadata,
+            Deleted = c.Deleted ?? false
+        };
+    }
 
-    private static PaymentMethodView Map(PaymentMethod pm, bool isDefault) => new()
+    private static PaymentMethodView Map(PaymentMethod pm, bool isDefault)
     {
-        Id = pm.Id,
-        Type = pm.Type,
-        Brand = pm.Card?.Brand,
-        Last4 = pm.Card?.Last4,
-        ExpMonth = pm.Card?.ExpMonth,
-        ExpYear = pm.Card?.ExpYear,
-        IsDefaultForInvoices = isDefault
-    };
+        return new PaymentMethodView
+        {
+            Id = pm.Id,
+            Type = pm.Type,
+            Brand = pm.Card?.Brand,
+            Last4 = pm.Card?.Last4,
+            ExpMonth = pm.Card?.ExpMonth,
+            ExpYear = pm.Card?.ExpYear,
+            IsDefaultForInvoices = isDefault
+        };
+    }
 
     private RequestOptions? BuildRequestOptions(string? idemKeySuffix = null)
     {
         // For write operations we can add an Idempotency-Key (optional but recommended)
         var prefix = _options.Value.IdempotencyPrefix;
-        var key = (idemKeySuffix is null) ? null : $"{prefix}{idemKeySuffix}:{Guid.NewGuid():N}";
+        var key = idemKeySuffix is null ? null : $"{prefix}{idemKeySuffix}:{Guid.NewGuid():N}";
         return key is null ? null : new RequestOptions { IdempotencyKey = key };
     }
-    
+
     // -------- Polly: retry policy + classification --------
 
     private static AsyncRetryPolicy BuildRetryPolicy(ILogger logger)
@@ -310,9 +316,7 @@ public class StripeCustomerService : IStripeCustomerService
             HttpStatusCode.BadGateway or
             HttpStatusCode.ServiceUnavailable or
             HttpStatusCode.GatewayTimeout)
-        {
             return true;
-        }
         // Some Stripe error types are safe to retry (api_connection_error, rate_limit_error)
         var type = ex.StripeError?.Type?.ToLowerInvariant();
         if (type is "api_connection_error" or "rate_limit_error") return true;
@@ -323,14 +327,13 @@ public class StripeCustomerService : IStripeCustomerService
     private static (string? code, string? requestId, string? stripeCode, int? http) ExtractStripeError(Exception ex)
     {
         if (ex is StripeException se)
-        {
             return (se.StripeError?.Code, se.Source, se.StripeError?.Type, (int?)se.HttpStatusCode);
-        }
         return (null, null, null, null);
     }
 
     private Task<T> RetryAsync<T>(string op, Func<CancellationToken, Task<T>> execute, CancellationToken ct)
-        => _retry.ExecuteAsync(async innerCt =>
+    {
+        return _retry.ExecuteAsync(async innerCt =>
         {
             using var scope = _logger.BeginScope(new Dictionary<string, object?>
             {
@@ -341,4 +344,5 @@ public class StripeCustomerService : IStripeCustomerService
             _logger.LogDebug("Stripe op {Op} succeeded", op);
             return res;
         }, ct);
+    }
 }

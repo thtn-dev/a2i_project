@@ -6,24 +6,17 @@ namespace A2I.Application.Customers;
 
 public sealed class CreateOrUpdateCustomerRequest
 {
-    [Required]
-    public Guid CustomerId { get; set; }
+    [Required] public Guid CustomerId { get; set; }
 
-    [Required]
-    [EmailAddress]
-    public required string Email { get; set; }
+    [Required] [EmailAddress] public required string Email { get; set; }
 
-    [MaxLength(100)]
-    public string? FirstName { get; set; }
+    [MaxLength(100)] public string? FirstName { get; set; }
 
-    [MaxLength(100)]
-    public string? LastName { get; set; }
+    [MaxLength(100)] public string? LastName { get; set; }
 
-    [Phone]
-    public string? Phone { get; set; }
+    [Phone] public string? Phone { get; set; }
 
-    [MaxLength(200)]
-    public string? CompanyName { get; set; }
+    [MaxLength(200)] public string? CompanyName { get; set; }
 
     public string? PaymentMethodId { get; set; }
 
@@ -32,11 +25,10 @@ public sealed class CreateOrUpdateCustomerRequest
 
 public sealed class UpdatePaymentMethodRequest
 {
-    [Required]
-    public required string PaymentMethodId { get; set; }
+    [Required] public required string PaymentMethodId { get; set; }
 
     /// <summary>
-    /// Set as default payment method for future invoices
+    ///     Set as default payment method for future invoices
     /// </summary>
     public bool SetAsDefault { get; set; } = true;
 }

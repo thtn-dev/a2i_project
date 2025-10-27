@@ -5,6 +5,12 @@ namespace BuildingBlocks.SharedKernel.Common;
 [Serializable]
 public abstract class ValueObject : IEquatable<ValueObject>
 {
+    public bool Equals(ValueObject? other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        return other != null && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
+    }
+
     protected static bool EqualOperator(ValueObject? left, ValueObject? right)
     {
         if (ReferenceEquals(left, right)) return true;
@@ -27,13 +33,10 @@ public abstract class ValueObject : IEquatable<ValueObject>
         return Equals((ValueObject)obj);
     }
 
-    public bool Equals(ValueObject? other)
+    public override int GetHashCode()
     {
-        if (ReferenceEquals(this, other)) return true;
-        return other != null && GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
+        return GetEqualityComponents().CombineHashCodes();
     }
-
-    public override int GetHashCode() => GetEqualityComponents().CombineHashCodes();
 
     public static bool operator ==(ValueObject? left, ValueObject? right)
     {

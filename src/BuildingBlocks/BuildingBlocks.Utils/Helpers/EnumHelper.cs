@@ -7,12 +7,12 @@ public class EnumHelper
         where TKey : class
     {
         var (keys, names) = GetMetadata<TEnum, TKey>();
-    
+
         var enumValues = Enum.GetValues(typeof(TEnum)).Cast<TEnum>();
-    
+
         var results = enumValues
             .Zip(keys, (enumValue, key) => new KeyValuePair<TEnum, TKey>(enumValue, key));
-    
+
         return results;
     }
 
@@ -20,7 +20,6 @@ public class EnumHelper
         where TEnum : struct, Enum
     {
         var keys = Enum.GetValues<TEnum>()
-            .Cast<TEnum>()
             .Select(e => (TKey)Convert.ChangeType(e, typeof(TKey)))
             .ToList();
 
@@ -29,4 +28,3 @@ public class EnumHelper
         return (keys, names);
     }
 }
-

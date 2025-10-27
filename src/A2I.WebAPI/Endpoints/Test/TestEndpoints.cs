@@ -2,12 +2,13 @@ using System.Net;
 using A2I.Application.Common;
 using A2I.Application.StripeAbstraction;
 using A2I.WebAPI.Extensions;
+using Stripe;
 
 namespace A2I.WebAPI.Endpoints.Test;
 
 /// <summary>
-/// Test endpoints to verify foundation components
-/// REMOVE IN PRODUCTION!
+///     Test endpoints to verify foundation components
+///     REMOVE IN PRODUCTION!
 /// </summary>
 public static class TestEndpoints
 {
@@ -104,7 +105,7 @@ public static class TestEndpoints
     private static IResult TestStripeError()
     {
         // Simulate a Stripe exception
-        var stripeEx = new Stripe.StripeException("Test Stripe error")
+        var stripeEx = new StripeException("Test Stripe error")
         {
             HttpStatusCode = HttpStatusCode.BadRequest
         };
@@ -149,7 +150,7 @@ public static class TestEndpoints
             {
                 // Simulate async work
                 await Task.Delay(100);
-                
+
                 return new TestData
                 {
                     Id = Guid.NewGuid(),

@@ -27,11 +27,11 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration,
         IHostEnvironment environment
-        )
+    )
     {
         var databaseSection = configuration.GetSection(DatabaseOptions.SectionName);
         services.Configure<DatabaseOptions>(databaseSection);
-        
+
         services.AddDbContextPool<ApplicationDbContext>((serviceProvider, options) =>
         {
             var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
@@ -41,9 +41,9 @@ public static class ServiceCollectionExtensions
             options.UseNpgsql(connectionString, npgsqlOptions =>
             {
                 npgsqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(10),
-                    errorCodesToAdd: null);
+                    3,
+                    TimeSpan.FromSeconds(10),
+                    null);
 
                 npgsqlOptions.CommandTimeout(30);
                 npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
@@ -79,9 +79,9 @@ public static class ServiceCollectionExtensions
             TcpKeepAliveTime = 600,
             TcpKeepAliveInterval = 30,
             ApplicationName = "WebAPI",
-            MaxAutoPrepare = 0,
+            MaxAutoPrepare = 0
         };
-        
+
         return builder.ConnectionString;
     }
 
@@ -94,13 +94,13 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IStripePortalService, StripePortalService>();
         services.AddScoped<IStripeSubscriptionService, StripeSubscriptionService>();
         services.AddScoped<IStripeWebhookService, StripeWebhookService>();
-        
+
         services.AddScoped<ICustomerApplicationService, CustomerApplicationService>();
         services.AddScoped<IInvoiceApplicationService, InvoiceApplicationService>();
         services.AddScoped<IEmailService, MockEmailService>();
         services.AddScoped<ISubscriptionApplicationService, SubscriptionApplicationService>();
         services.AddScoped<IEventIdempotencyStore, DbEventIdempotencyStore>();
-        
+
         // Register all webhook handlers
         services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionCreatedHandler>();

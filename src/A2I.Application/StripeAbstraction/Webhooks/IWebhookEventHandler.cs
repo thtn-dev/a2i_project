@@ -14,4 +14,3 @@ public record WebhookHandlerResult(
     bool RequiresRetry = false,
     Dictionary<string, object>? Metadata = null
 );
-

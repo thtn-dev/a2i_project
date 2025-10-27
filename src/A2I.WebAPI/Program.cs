@@ -30,7 +30,7 @@ public sealed class Program
         // Database & Infrastructure
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
         builder.Services.AddStripeServices(builder.Configuration);
-        
+
         builder.Services.AddRateLimiter(rateLimiterOptions =>
         {
             rateLimiterOptions.AddFixedWindowLimiter("fixed", options =>
@@ -40,7 +40,7 @@ public sealed class Program
                 options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 options.QueueLimit = 5;
             });
-            
+
             rateLimiterOptions.AddSlidingWindowLimiter("sliding", options =>
             {
                 options.PermitLimit = 20;
@@ -50,18 +50,18 @@ public sealed class Program
                 options.QueueLimit = 10;
             });
         });
-      
+
         // Hangfire for background jobs
         builder.Services.AddHangfire(config =>
         {
-            config.UsePostgreSqlStorage((options) =>
+            config.UsePostgreSqlStorage(options =>
             {
                 var databaseSection = builder.Configuration.GetSection(DatabaseOptions.SectionName);
                 var dbOptions = databaseSection.Get<DatabaseOptions>();
                 var connectionString = ServiceCollectionExtensions.BuildConnectionString(dbOptions!);
-               
+
                 options.UseNpgsqlConnection(connectionString);
-            }, new PostgreSqlStorageOptions  
+            }, new PostgreSqlStorageOptions
             {
                 PrepareSchemaIfNecessary = true,
                 InvisibilityTimeout = TimeSpan.FromMinutes(30),
@@ -78,9 +78,9 @@ public sealed class Program
             options.WorkerCount = 5;
             options.Queues = ["stripe-webhooks", "emails", "default"];
         });
-        
+
         builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
-        
+
         // API Configuration
         builder.Services.ConfigureOpenApi();
 
@@ -126,7 +126,7 @@ public sealed class Program
         app.MapControllers();
 
         // ===== API v1 ENDPOINTS =====
-        
+
         var apiV1 = app.MapGroup("/api/v1")
             .WithOpenApi();
 
@@ -134,11 +134,11 @@ public sealed class Program
         apiV1.MapGroup("/health")
             .WithTags("System")
             .MapHealthEndpoints();
-        
+
         apiV1.MapGroup("/subscriptions")
             .WithTags("Subscriptions")
             .MapSubscriptionEndpoints();
-        
+
         apiV1.MapGroup("/customers")
             .WithTags("Customers")
             .MapCustomerEndpoints();
@@ -150,11 +150,9 @@ public sealed class Program
 
         // Test endpoints (REMOVE IN PRODUCTION!)
         if (app.Environment.IsDevelopment())
-        {
             apiV1.MapGroup("/test")
                 .WithTags("Test")
                 .MapTestEndpoints();
-        }
 
         // Business endpoints (will be added in Phase 2)
         // apiV1.MapGroup("/subscriptions").WithTags("Subscriptions").MapSubscriptionEndpoints();
@@ -164,23 +162,23 @@ public sealed class Program
 
         // ===== HEALTH CHECK ENDPOINT =====
         app.MapGet("/health", () => Results.Ok(new
-        {
-            status = "healthy",
-            timestamp = DateTime.UtcNow,
-            version = "1.0.0",
-            environment = app.Environment.EnvironmentName
-        }))
-        .WithName("HealthCheck")
-        .WithTags("System")
-        .Produces(StatusCodes.Status200OK)
-        .ExcludeFromDescription(); // Don't show in API docs
+            {
+                status = "healthy",
+                timestamp = DateTime.UtcNow,
+                version = "1.0.0",
+                environment = app.Environment.EnvironmentName
+            }))
+            .WithName("HealthCheck")
+            .WithTags("System")
+            .Produces(StatusCodes.Status200OK)
+            .ExcludeFromDescription(); // Don't show in API docs
 
         // ===== DEMO ENDPOINT (remove in production) =====
         app.MapGet("/weatherforecast", (HttpContext httpContext) =>
             {
                 var summaries = new[]
                 {
-                    "Freezing", "Bracing", "Chilly", "Cool", "Mild", 
+                    "Freezing", "Bracing", "Chilly", "Cool", "Mild",
                     "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
                 };
 

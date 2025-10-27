@@ -1,7 +1,7 @@
 namespace BuildingBlocks.SharedKernel.Common;
 
 /// <summary>
-/// Base entity interface
+///     Base entity interface
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public interface IEntityBase<T>
@@ -10,7 +10,7 @@ public interface IEntityBase<T>
 }
 
 /// <summary>
-/// Auditable entity interface
+///     Auditable entity interface
 /// </summary>
 public interface IAuditableEntity
 {
@@ -21,7 +21,7 @@ public interface IAuditableEntity
 }
 
 /// <summary>
-/// Soft delete interface
+///     Soft delete interface
 /// </summary>
 public interface ISoftDelete
 {
@@ -31,24 +31,24 @@ public interface ISoftDelete
 }
 
 /// <summary>
-/// Aggregate root interface
+///     Aggregate root interface
 /// </summary>
 public interface IAggregateRoot
 {
 }
 
 /// <summary>
-/// Base entity class
+///     Base entity class
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public abstract class EntityBase<T> : IEntityBase<T>
     where T : IEquatable<T>
 {
-    public required T Id  { get; set; }
+    public required T Id { get; set; }
 }
 
 /// <summary>
-/// Base entity aggregate class
+///     Base entity aggregate class
 /// </summary>
 /// <typeparam name="T"></typeparam>
 public abstract class EntityAggregateBase<T> : IEntityBase<T>, IAggregateRoot
@@ -57,7 +57,7 @@ public abstract class EntityAggregateBase<T> : IEntityBase<T>, IAggregateRoot
     public required T Id { get; set; }
 }
 
-public static class  EntityExtensions
+public static class EntityExtensions
 {
     public static string? GetEntityIdName(this Type type)
     {

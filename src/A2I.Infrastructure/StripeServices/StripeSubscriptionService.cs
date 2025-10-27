@@ -1,4 +1,3 @@
-
 using System.Net;
 using A2I.Application.StripeAbstraction;
 using A2I.Application.StripeAbstraction.Subscriptions;
@@ -12,10 +11,10 @@ namespace A2I.Infrastructure.StripeServices;
 
 public sealed class StripeSubscriptionService : IStripeSubscriptionService
 {
-    private readonly SubscriptionService _subSvc;
-    private readonly IOptions<StripeOptions> _options;
     private readonly ILogger<StripeSubscriptionService> _logger;
+    private readonly IOptions<StripeOptions> _options;
     private readonly AsyncRetryPolicy _retry;
+    private readonly SubscriptionService _subSvc;
 
     public StripeSubscriptionService(
         IOptions<StripeOptions> options,
@@ -33,7 +32,8 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
     // ---------------------------- Create ----------------------------
 
-    public async Task<SubscriptionView> CreateSubscriptionAsync(CreateSubscriptionRequest req, CancellationToken ct = default)
+    public async Task<SubscriptionView> CreateSubscriptionAsync(CreateSubscriptionRequest req,
+        CancellationToken ct = default)
     {
         try
         {
@@ -42,14 +42,14 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
                 Customer = req.CustomerId,
                 Items = [new SubscriptionItemOptions { Price = req.PriceId, Quantity = req.Quantity }],
                 Metadata = req.Metadata,
-                ProrationBehavior = MapProration(req.Proration),
+                ProrationBehavior = MapProration(req.Proration)
             };
 
             if (req.PromotionCode is not null)
             {
                 // TODO: implement
             }
-                
+
 
             if (req.TrialPeriodDays.HasValue)
                 create.TrialPeriodDays = req.TrialPeriodDays;
@@ -68,7 +68,8 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
         catch (StripeException ex)
         {
-            _logger.LogError(ex, "Failed to create subscription for {CustomerId} / {PriceId}", req.CustomerId, req.PriceId);
+            _logger.LogError(ex, "Failed to create subscription for {CustomerId} / {PriceId}", req.CustomerId,
+                req.PriceId);
             throw StripeErrorMapper.Wrap(ex, "Failed to create Stripe subscription.");
         }
     }
@@ -90,6 +91,7 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
                 _logger.LogWarning("Subscription not found: {SubId}", subscriptionId);
                 return null;
             }
+
             _logger.LogError(ex, "Failed to get subscription {SubId}", subscriptionId);
             throw StripeErrorMapper.Wrap(ex, "Failed to retrieve Stripe subscription.");
         }
@@ -97,7 +99,8 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
     // ---------------------------- Update (quantity/metadata/trial) ----------------------------
 
-    public async Task<SubscriptionView> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionRequest req, CancellationToken ct = default)
+    public async Task<SubscriptionView> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionRequest req,
+        CancellationToken ct = default)
     {
         try
         {
@@ -110,21 +113,16 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
             var update = new SubscriptionUpdateOptions
             {
                 Metadata = req.Metadata,
-                ProrationBehavior = MapProration(req.Proration),
+                ProrationBehavior = MapProration(req.Proration)
             };
 
             if (req.Quantity.HasValue && firstItemId is not null)
-            {
                 update.Items = new List<SubscriptionItemOptions>
                 {
                     new() { Id = firstItemId, Quantity = req.Quantity }
                 };
-            }
 
-            if (req.TrialEnd.HasValue)
-            {
-                update.TrialEnd = req.TrialEnd.Value.DateTime;
-            }
+            if (req.TrialEnd.HasValue) update.TrialEnd = req.TrialEnd.Value.DateTime;
 
             var sub = await RetryAsync("Subscription.Update",
                 c => _subSvc.UpdateAsync(subscriptionId, update, cancellationToken: c), ct);
@@ -141,7 +139,8 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
     // ---------------------------- Cancel ----------------------------
 
-    public async Task<SubscriptionView> CancelSubscriptionAsync(string subscriptionId, bool immediately, CancellationToken ct = default)
+    public async Task<SubscriptionView> CancelSubscriptionAsync(string subscriptionId, bool immediately,
+        CancellationToken ct = default)
     {
         try
         {
@@ -159,29 +158,29 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
                 _logger.LogInformation("Canceled subscription immediately: {SubId}", subscriptionId);
                 return Map(canceled);
             }
-            else
-            {
-                // Set CancelAtPeriodEnd = true
-                var updated = await RetryAsync("Subscription.CancelAtPeriodEnd",
-                    c => _subSvc.UpdateAsync(subscriptionId, new SubscriptionUpdateOptions
-                    {
-                        CancelAtPeriodEnd = true
-                    }, cancellationToken: c), ct);
 
-                _logger.LogInformation("Marked subscription to cancel at period end: {SubId}", subscriptionId);
-                return Map(updated);
-            }
+            // Set CancelAtPeriodEnd = true
+            var updated = await RetryAsync("Subscription.CancelAtPeriodEnd",
+                c => _subSvc.UpdateAsync(subscriptionId, new SubscriptionUpdateOptions
+                {
+                    CancelAtPeriodEnd = true
+                }, cancellationToken: c), ct);
+
+            _logger.LogInformation("Marked subscription to cancel at period end: {SubId}", subscriptionId);
+            return Map(updated);
         }
         catch (StripeException ex)
         {
-            _logger.LogError(ex, "Failed to cancel subscription {SubId} (immediately={Immediately})", subscriptionId, immediately);
+            _logger.LogError(ex, "Failed to cancel subscription {SubId} (immediately={Immediately})", subscriptionId,
+                immediately);
             throw StripeErrorMapper.Wrap(ex, "Failed to cancel Stripe subscription.");
         }
     }
 
     // ---------------------------- Reactivate (un-cancel at period end) ----------------------------
 
-    public async Task<SubscriptionView> ReactivateSubscriptionAsync(string subscriptionId, CancellationToken ct = default)
+    public async Task<SubscriptionView> ReactivateSubscriptionAsync(string subscriptionId,
+        CancellationToken ct = default)
     {
         try
         {
@@ -204,7 +203,8 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
     // ---------------------------- Change Plan (price) ----------------------------
 
-    public async Task<SubscriptionView> ChangeSubscriptionPlanAsync(string subscriptionId, string newPriceId, CancellationToken ct = default)
+    public async Task<SubscriptionView> ChangeSubscriptionPlanAsync(string subscriptionId, string newPriceId,
+        CancellationToken ct = default)
     {
         try
         {
@@ -213,7 +213,8 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
             var currentItem = existing.Items?.Data?.FirstOrDefault();
             if (currentItem is null)
-                throw new StripeServiceException("Subscription has no items to update.", new InvalidOperationException());
+                throw new StripeServiceException("Subscription has no items to update.",
+                    new InvalidOperationException());
 
             var update = new SubscriptionUpdateOptions
             {
@@ -238,14 +239,16 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
         catch (StripeException ex)
         {
-            _logger.LogError(ex, "Failed to change plan for subscription {SubId} -> {PriceId}", subscriptionId, newPriceId);
+            _logger.LogError(ex, "Failed to change plan for subscription {SubId} -> {PriceId}", subscriptionId,
+                newPriceId);
             throw StripeErrorMapper.Wrap(ex, "Failed to change Stripe subscription plan.");
         }
     }
 
     // ---------------------------- Pause / Resume ----------------------------
 
-    public async Task<SubscriptionView> PauseSubscriptionAsync(string subscriptionId, PauseBehavior behavior = PauseBehavior.KeepAsDraft, CancellationToken ct = default)
+    public async Task<SubscriptionView> PauseSubscriptionAsync(string subscriptionId,
+        PauseBehavior behavior = PauseBehavior.KeepAsDraft, CancellationToken ct = default)
     {
         try
         {
@@ -265,7 +268,8 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
                     PauseCollection = pause
                 }, cancellationToken: c), ct);
 
-            _logger.LogInformation("Paused subscription {SubId} with behavior {Behavior}", subscriptionId, pause.Behavior);
+            _logger.LogInformation("Paused subscription {SubId} with behavior {Behavior}", subscriptionId,
+                pause.Behavior);
             return Map(updated);
         }
         catch (StripeException ex)
@@ -297,11 +301,14 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
     // ---------------------------- Helpers ----------------------------
 
-    private static string MapProration(ProrationMode mode) => mode switch
+    private static string MapProration(ProrationMode mode)
     {
-        ProrationMode.None => "none",
-        _ => "create_prorations"
-    };
+        return mode switch
+        {
+            ProrationMode.None => "none",
+            _ => "create_prorations"
+        };
+    }
 
     private static SubscriptionView Map(Subscription s)
     {
@@ -327,7 +334,9 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
     private RequestOptions BuildRequestOptions(string action, string? keyHint = null)
     {
-        var prefix = string.IsNullOrWhiteSpace(_options.Value.IdempotencyPrefix) ? "sub_" : _options.Value.IdempotencyPrefix;
+        var prefix = string.IsNullOrWhiteSpace(_options.Value.IdempotencyPrefix)
+            ? "sub_"
+            : _options.Value.IdempotencyPrefix;
         var idem = $"{prefix}{action}:{keyHint}:{Guid.NewGuid():N}";
         return new RequestOptions { IdempotencyKey = idem };
     }
@@ -361,10 +370,10 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
     {
         var status = (HttpStatusCode?)ex.HttpStatusCode;
         if (status is HttpStatusCode.TooManyRequests
-                 or HttpStatusCode.InternalServerError
-                 or HttpStatusCode.BadGateway
-                 or HttpStatusCode.ServiceUnavailable
-                 or HttpStatusCode.GatewayTimeout)
+            or HttpStatusCode.InternalServerError
+            or HttpStatusCode.BadGateway
+            or HttpStatusCode.ServiceUnavailable
+            or HttpStatusCode.GatewayTimeout)
             return true;
 
         var type = ex.StripeError?.Type?.ToLowerInvariant();
@@ -379,12 +388,13 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
     }
 
     private Task<T> RetryAsync<T>(string op, Func<CancellationToken, Task<T>> execute, CancellationToken ct)
-        => _retry.ExecuteAsync(async innerCt =>
+    {
+        return _retry.ExecuteAsync(async innerCt =>
         {
             using var scope = _logger.BeginScope(new Dictionary<string, object?> { ["stripe_op"] = op });
             var res = await execute(innerCt);
             _logger.LogDebug("Stripe op {Op} succeeded", op);
             return res;
         }, ct);
+    }
 }
-

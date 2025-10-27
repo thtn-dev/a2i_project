@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace A2I.WebAPI.Endpoints.Subscriptions;
 
 /// <summary>
-/// Subscription management endpoints
+///     Subscription management endpoints
 /// </summary>
 public static class SubscriptionEndpoints
 {
@@ -17,7 +17,7 @@ public static class SubscriptionEndpoints
             .WithApiMetadata(
                 "Start new subscription",
                 "Creates a Stripe checkout session for starting a new subscription. Returns checkout URL for payment.")
-            .Produces<ApiResponse<StartSubscriptionResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<StartSubscriptionResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -27,7 +27,7 @@ public static class SubscriptionEndpoints
             .WithApiMetadata(
                 "Complete checkout session",
                 "Verifies checkout session and creates subscription in database after successful payment.")
-            .Produces<ApiResponse<SubscriptionDetailsResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<SubscriptionDetailsResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -37,7 +37,7 @@ public static class SubscriptionEndpoints
             .WithApiMetadata(
                 "Get customer subscription",
                 "Retrieves the current subscription details for a customer, including plan information.")
-            .Produces<ApiResponse<SubscriptionDetailsResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<SubscriptionDetailsResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
 
@@ -46,7 +46,7 @@ public static class SubscriptionEndpoints
             .WithApiMetadata(
                 "Cancel subscription",
                 "Cancels a customer's subscription. Can cancel immediately or at period end (default).")
-            .Produces<ApiResponse<CancelSubscriptionResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<CancelSubscriptionResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -56,7 +56,7 @@ public static class SubscriptionEndpoints
             .WithApiMetadata(
                 "Upgrade subscription",
                 "Changes customer's subscription plan. Applies proration by default. Cannot downgrade during trial.")
-            .Produces<ApiResponse<UpgradeSubscriptionResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<UpgradeSubscriptionResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -85,11 +85,9 @@ public static class SubscriptionEndpoints
     {
         // Validate request
         if (string.IsNullOrWhiteSpace(request.CheckoutSessionId))
-        {
             return EndpointExtensions.BadRequest(
                 ErrorCodes.VALIDATION_REQUIRED,
                 "CheckoutSessionId is required");
-        }
 
         return await EndpointExtensions.ExecuteAsync(
             async () => await subscriptionService.CompleteCheckoutAsync(
@@ -108,11 +106,9 @@ public static class SubscriptionEndpoints
             customerId, ct);
 
         if (subscription is null)
-        {
             return EndpointExtensions.NotFound(
                 ErrorCodes.SUBSCRIPTION_NOT_FOUND,
                 $"No subscription found for customer {customerId}");
-        }
 
         return Results.Ok(ApiResponse<SubscriptionDetailsResponse>.Ok(
             subscription,
@@ -151,12 +147,12 @@ public static class SubscriptionEndpoints
 // ==================== REQUEST MODELS ====================
 
 /// <summary>
-/// Request to complete checkout session
+///     Request to complete checkout session
 /// </summary>
 public sealed class CompleteCheckoutRequest
 {
     /// <summary>
-    /// Stripe checkout session ID (cs_xxx)
+    ///     Stripe checkout session ID (cs_xxx)
     /// </summary>
     public required string CheckoutSessionId { get; set; }
 }

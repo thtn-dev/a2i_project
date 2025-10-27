@@ -12,9 +12,9 @@ namespace A2I.Infrastructure.StripeServices;
 
 public sealed class StripePortalService : IStripePortalService
 {
-    private readonly SessionService _portalSvc;
-    private readonly IOptions<StripeOptions> _options;
     private readonly ILogger<StripePortalService> _logger;
+    private readonly IOptions<StripeOptions> _options;
+    private readonly SessionService _portalSvc;
     private readonly AsyncRetryPolicy _retry;
 
     public StripePortalService(IOptions<StripeOptions> options, ILogger<StripePortalService> logger)
@@ -27,14 +27,15 @@ public sealed class StripePortalService : IStripePortalService
         _retry = BuildRetryPolicy(logger);
     }
 
-    public async Task<PortalSessionView> CreatePortalSessionAsync(string customerId, string returnUrl, CancellationToken ct = default)
+    public async Task<PortalSessionView> CreatePortalSessionAsync(string customerId, string returnUrl,
+        CancellationToken ct = default)
     {
         try
         {
             var create = new SessionCreateOptions
             {
                 Customer = customerId,
-                ReturnUrl = returnUrl,
+                ReturnUrl = returnUrl
                 // Có thể cấu hình features nâng cao bằng "FlowData" / "OnBehalfOf" nếu dùng Connect.
             };
 
@@ -46,7 +47,8 @@ public sealed class StripePortalService : IStripePortalService
             var session = await RetryAsync("Portal.Create",
                 c => _portalSvc.CreateAsync(create, reqOpts, c), ct);
 
-            _logger.LogInformation("Created Billing Portal session {PortalId} for {CustomerId}", session.Id, customerId);
+            _logger.LogInformation("Created Billing Portal session {PortalId} for {CustomerId}", session.Id,
+                customerId);
             return new PortalSessionView { Id = session.Id, Url = session.Url };
         }
         catch (StripeException ex)
@@ -61,7 +63,9 @@ public sealed class StripePortalService : IStripePortalService
     private static AsyncRetryPolicy BuildRetryPolicy(ILogger logger)
     {
         var delays = Enumerable.Range(0, 5)
-            .Select(i => TimeSpan.FromMilliseconds(200 * Math.Pow(2, i)) + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 120)));
+            .Select(i =>
+                TimeSpan.FromMilliseconds(200 * Math.Pow(2, i)) +
+                TimeSpan.FromMilliseconds(Random.Shared.Next(0, 120)));
 
         return Policy
             .Handle<StripeException>(IsTransient)
@@ -70,7 +74,8 @@ public sealed class StripePortalService : IStripePortalService
             .WaitAndRetryAsync(delays, (ex, delay, attempt, _) =>
             {
                 var (code, reqId, stripeCode, http) = ExtractStripeError(ex);
-                logger.LogWarning(ex, "Retrying Portal op (attempt {Attempt}) after {Delay}. Http={Http} StripeCode={StripeCode} ReqId={ReqId} Code={Code}",
+                logger.LogWarning(ex,
+                    "Retrying Portal op (attempt {Attempt}) after {Delay}. Http={Http} StripeCode={StripeCode} ReqId={ReqId} Code={Code}",
                     attempt, delay, http, stripeCode, reqId, code);
             });
     }
@@ -79,9 +84,9 @@ public sealed class StripePortalService : IStripePortalService
     {
         var status = (HttpStatusCode?)ex.HttpStatusCode;
         return status is HttpStatusCode.TooManyRequests or HttpStatusCode.InternalServerError
-            or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout
-            || string.Equals(ex.StripeError?.Type, "api_connection_error", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(ex.StripeError?.Type, "rate_limit_error", StringComparison.OrdinalIgnoreCase);
+                   or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout
+               || string.Equals(ex.StripeError?.Type, "api_connection_error", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(ex.StripeError?.Type, "rate_limit_error", StringComparison.OrdinalIgnoreCase);
     }
 
     private static (string? code, string? requestId, string? stripeCode, int? http) ExtractStripeError(Exception ex)
@@ -92,11 +97,13 @@ public sealed class StripePortalService : IStripePortalService
     }
 
     private Task<T> RetryAsync<T>(string op, Func<CancellationToken, Task<T>> execute, CancellationToken ct)
-        => _retry.ExecuteAsync(async innerCt =>
+    {
+        return _retry.ExecuteAsync(async innerCt =>
         {
             using var scope = _logger.BeginScope(new Dictionary<string, object?> { ["stripe_op"] = op });
             var res = await execute(innerCt);
             _logger.LogDebug("Stripe op {Op} succeeded", op);
             return res;
         }, ct);
+    }
 }

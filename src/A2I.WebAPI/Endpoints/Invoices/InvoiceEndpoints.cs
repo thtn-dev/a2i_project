@@ -5,7 +5,7 @@ using A2I.WebAPI.Extensions;
 namespace A2I.WebAPI.Endpoints.Invoices;
 
 /// <summary>
-/// Invoice management endpoints
+///     Invoice management endpoints
 /// </summary>
 public static class InvoiceEndpoints
 {
@@ -23,7 +23,7 @@ public static class InvoiceEndpoints
             .WithApiMetadata(
                 "Get invoice details",
                 "Retrieves detailed information about a specific invoice including line items and payment attempts.")
-            .Produces<ApiResponse<InvoiceDetailsResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<InvoiceDetailsResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status403Forbidden)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -33,7 +33,7 @@ public static class InvoiceEndpoints
             .WithApiMetadata(
                 "Download invoice PDF",
                 "Gets a download URL for the invoice PDF. URL is hosted by Stripe and does not expire.")
-            .Produces<ApiResponse<InvoicePdfResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<InvoicePdfResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status403Forbidden)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -51,21 +51,17 @@ public static class InvoiceEndpoints
     {
         // Validate pagination
         if (!EndpointExtensions.ValidatePagination(
-            queryParams.Page, 
-            queryParams.PageSize, 
-            out var validationError))
-        {
+                queryParams.Page,
+                queryParams.PageSize,
+                out var validationError))
             return validationError!;
-        }
 
         // Validate date range
-        if (queryParams is { FromDate: not null, ToDate: not null } && 
+        if (queryParams is { FromDate: not null, ToDate: not null } &&
             queryParams.FromDate > queryParams.ToDate)
-        {
             return EndpointExtensions.BadRequest(
                 ErrorCodes.VALIDATION_RANGE,
                 "FromDate cannot be greater than ToDate");
-        }
 
         var request = new GetInvoicesRequest
         {
@@ -76,13 +72,12 @@ public static class InvoiceEndpoints
             ToDate = queryParams.ToDate
         };
 
-        return await EndpointExtensions.ExecutePaginatedAsync(
-            async () =>
-            {
-                var response = await invoiceService.GetCustomerInvoicesAsync(
-                    customerId, request, ct);
-                return (response.Items, response.Pagination);
-            });
+        return await EndpointExtensions.ExecutePaginatedAsync(async () =>
+        {
+            var response = await invoiceService.GetCustomerInvoicesAsync(
+                customerId, request, ct);
+            return (response.Items, response.Pagination);
+        });
     }
 
     // ==================== 2. GET INVOICE DETAILS ====================
@@ -117,32 +112,32 @@ public static class InvoiceEndpoints
 // ==================== QUERY PARAMETERS ====================
 
 /// <summary>
-/// Query parameters for invoice listing
+///     Query parameters for invoice listing
 /// </summary>
 public sealed class GetInvoicesQueryParams
 {
     /// <summary>
-    /// Page number (1-based)
+    ///     Page number (1-based)
     /// </summary>
     public int Page { get; set; } = 1;
 
     /// <summary>
-    /// Items per page (max 100)
+    ///     Items per page (max 100)
     /// </summary>
     public int PageSize { get; set; } = 10;
 
     /// <summary>
-    /// Filter by invoice status (Draft, Open, Paid, Uncollectible, Void)
+    ///     Filter by invoice status (Draft, Open, Paid, Uncollectible, Void)
     /// </summary>
     public string? Status { get; set; }
 
     /// <summary>
-    /// Filter invoices created from this date
+    ///     Filter invoices created from this date
     /// </summary>
     public DateTime? FromDate { get; set; }
 
     /// <summary>
-    /// Filter invoices created until this date
+    ///     Filter invoices created until this date
     /// </summary>
     public DateTime? ToDate { get; set; }
 }

@@ -1,7 +1,7 @@
 namespace A2I.Application.Common;
 
 /// <summary>
-/// Standard API response wrapper for successful responses
+///     Standard API response wrapper for successful responses
 /// </summary>
 /// <typeparam name="T">Type of data being returned</typeparam>
 public class ApiResponse<T>
@@ -22,14 +22,15 @@ public class ApiResponse<T>
 }
 
 /// <summary>
-/// Error response for failed requests
+///     Error response for failed requests
 /// </summary>
 public class ErrorResponse
 {
     public bool Success { get; set; } = false;
     public ErrorDetail Error { get; set; } = null!;
 
-    public static ErrorResponse Create(string code, string message, Dictionary<string, string[]>? validationErrors = null, string? traceId = null)
+    public static ErrorResponse Create(string code, string message,
+        Dictionary<string, string[]>? validationErrors = null, string? traceId = null)
     {
         return new ErrorResponse
         {
@@ -45,7 +46,7 @@ public class ErrorResponse
 }
 
 /// <summary>
-/// Detailed error information
+///     Detailed error information
 /// </summary>
 public class ErrorDetail
 {
@@ -56,7 +57,7 @@ public class ErrorDetail
 }
 
 /// <summary>
-/// Paginated response wrapper
+///     Paginated response wrapper
 /// </summary>
 /// <typeparam name="T">Type of items in the collection</typeparam>
 public class PaginatedResponse<T>
@@ -79,7 +80,7 @@ public class PaginatedResponse<T>
 }
 
 /// <summary>
-/// Container for paginated data
+///     Container for paginated data
 /// </summary>
 public class PaginatedData<T>
 {
@@ -88,7 +89,7 @@ public class PaginatedData<T>
 }
 
 /// <summary>
-/// Pagination metadata (reuse from existing Dto.cs)
+///     Pagination metadata (reuse from existing Dto.cs)
 /// </summary>
 public class PaginationMetadata
 {

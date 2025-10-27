@@ -3,7 +3,7 @@ using A2I.Application.Common;
 namespace A2I.WebAPI.Helpers;
 
 /// <summary>
-/// Helper class for creating error responses with appropriate HTTP status codes
+///     Helper class for creating error responses with appropriate HTTP status codes
 /// </summary>
 public static class ErrorResponseFactory
 {
@@ -12,7 +12,8 @@ public static class ErrorResponseFactory
         return (ErrorResponse.Create(code, message), StatusCodes.Status404NotFound);
     }
 
-    public static (ErrorResponse Response, int StatusCode) CreateBadRequest(string code, string message, Dictionary<string, string[]>? validationErrors = null)
+    public static (ErrorResponse Response, int StatusCode) CreateBadRequest(string code, string message,
+        Dictionary<string, string[]>? validationErrors = null)
     {
         return (ErrorResponse.Create(code, message, validationErrors), StatusCodes.Status400BadRequest);
     }
@@ -24,7 +25,8 @@ public static class ErrorResponseFactory
 
     public static (ErrorResponse Response, int StatusCode) CreateInternalError(string message, string? traceId = null)
     {
-        return (ErrorResponse.Create(ErrorCodes.INTERNAL_ERROR, message, traceId: traceId), StatusCodes.Status500InternalServerError);
+        return (ErrorResponse.Create(ErrorCodes.INTERNAL_ERROR, message, traceId: traceId),
+            StatusCodes.Status500InternalServerError);
     }
 
     public static (ErrorResponse Response, int StatusCode) CreateUnauthorized(string message)

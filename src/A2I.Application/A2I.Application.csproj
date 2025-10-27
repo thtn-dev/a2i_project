@@ -7,11 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\A2I.Core\A2I.Core.csproj" />
+        <ProjectReference Include="..\A2I.Core\A2I.Core.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Stripe.net" Version="49.0.0" />
+        <PackageReference Include="Stripe.net" Version="49.0.0"/>
     </ItemGroup>
 
 </Project>

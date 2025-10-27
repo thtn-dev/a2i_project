@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\BuildingBlocks.Utils\BuildingBlocks.Utils.csproj" />
+        <ProjectReference Include="..\BuildingBlocks.Utils\BuildingBlocks.Utils.csproj"/>
     </ItemGroup>
 
 </Project>

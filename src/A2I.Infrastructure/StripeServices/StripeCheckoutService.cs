@@ -12,10 +12,10 @@ namespace A2I.Infrastructure.StripeServices;
 
 public sealed class StripeCheckoutService : IStripeCheckoutService
 {
-    private readonly SessionService _sessionSvc;
-    private readonly IOptions<StripeOptions> _options;
     private readonly ILogger<StripeCheckoutService> _logger;
+    private readonly IOptions<StripeOptions> _options;
     private readonly AsyncRetryPolicy _retry;
+    private readonly SessionService _sessionSvc;
 
     public StripeCheckoutService(IOptions<StripeOptions> options, ILogger<StripeCheckoutService> logger)
     {
@@ -27,7 +27,8 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
         _retry = BuildRetryPolicy(logger);
     }
 
-    public async Task<CheckoutSessionView> CreateCheckoutSessionAsync(CreateCheckoutRequest req, CancellationToken ct = default)
+    public async Task<CheckoutSessionView> CreateCheckoutSessionAsync(CreateCheckoutRequest req,
+        CancellationToken ct = default)
     {
         try
         {
@@ -44,28 +45,22 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
             };
 
             if (!string.IsNullOrWhiteSpace(req.CustomerId))
-            {
                 create.Customer = req.CustomerId;
-            }
-            else if (!string.IsNullOrWhiteSpace(req.CustomerEmail))
-            {
-                create.CustomerEmail = req.CustomerEmail;
-            }
+            else if (!string.IsNullOrWhiteSpace(req.CustomerEmail)) create.CustomerEmail = req.CustomerEmail;
 
             if (req.TrialPeriodDays.HasValue)
-            {
                 create.SubscriptionData = new SessionSubscriptionDataOptions
                 {
                     TrialPeriodDays = req.TrialPeriodDays
                 };
-            }
 
             var reqOpts = BuildRequestOptions("checkout_create", req.CustomerId ?? req.CustomerEmail);
 
             var session = await RetryAsync("Checkout.Create",
                 c => _sessionSvc.CreateAsync(create, reqOpts, c), ct);
 
-            _logger.LogInformation("Created checkout session {SessionId} for customer {CustomerOrEmail}", session.Id, req.CustomerId ?? req.CustomerEmail);
+            _logger.LogInformation("Created checkout session {SessionId} for customer {CustomerOrEmail}", session.Id,
+                req.CustomerId ?? req.CustomerEmail);
             return Map(session);
         }
         catch (StripeException ex)
@@ -90,6 +85,7 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
                 _logger.LogWarning("Checkout session not found: {SessionId}", sessionId);
                 return null;
             }
+
             _logger.LogError(ex, "Failed to get checkout session {SessionId}", sessionId);
             throw StripeErrorMapper.Wrap(ex, "Failed to retrieve Stripe checkout session.");
         }
@@ -100,13 +96,14 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
         try
         {
             var expired = await RetryAsync("Checkout.Expire",
-                c => _sessionSvc.ExpireAsync(sessionId, new SessionExpireOptions(), requestOptions: null, cancellationToken: c), ct);
+                c => _sessionSvc.ExpireAsync(sessionId, new SessionExpireOptions(), null, c), ct);
 
             var ok = string.Equals(expired?.Status, "expired", StringComparison.OrdinalIgnoreCase);
             if (ok)
                 _logger.LogInformation("Expired checkout session {SessionId}", sessionId);
             else
-                _logger.LogWarning("Expire attempted but session not in 'expired' status {SessionId} -> {Status}", sessionId, expired?.Status);
+                _logger.LogWarning("Expire attempted but session not in 'expired' status {SessionId} -> {Status}",
+                    sessionId, expired?.Status);
 
             return ok;
         }
@@ -119,24 +116,32 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
 
     // --- helpers ---
 
-    private static CheckoutSessionView Map(Session s) => new()
+    private static CheckoutSessionView Map(Session s)
     {
-        Id = s.Id,
-        Url = s.Url,
-        CustomerId = s.CustomerId,
-        SubscriptionId = s.SubscriptionId,
-        Status = s.Status,
-        PaymentStatus = s.PaymentStatus,
-        ExpiresAt = s.ExpiresAt
-    };
+        return new CheckoutSessionView
+        {
+            Id = s.Id,
+            Url = s.Url,
+            CustomerId = s.CustomerId,
+            SubscriptionId = s.SubscriptionId,
+            Status = s.Status,
+            PaymentStatus = s.PaymentStatus,
+            ExpiresAt = s.ExpiresAt
+        };
+    }
 
-    private RequestOptions BuildRequestOptions(string action, string? keyHint) =>
-        new() { IdempotencyKey = $"{_options.Value.IdempotencyPrefix}{action}:{keyHint}:{Guid.NewGuid():N}" };
+    private RequestOptions BuildRequestOptions(string action, string? keyHint)
+    {
+        return new RequestOptions
+            { IdempotencyKey = $"{_options.Value.IdempotencyPrefix}{action}:{keyHint}:{Guid.NewGuid():N}" };
+    }
 
     private static AsyncRetryPolicy BuildRetryPolicy(ILogger logger)
     {
         var delays = Enumerable.Range(0, 5)
-            .Select(i => TimeSpan.FromMilliseconds(200 * Math.Pow(2, i)) + TimeSpan.FromMilliseconds(Random.Shared.Next(0, 120)));
+            .Select(i =>
+                TimeSpan.FromMilliseconds(200 * Math.Pow(2, i)) +
+                TimeSpan.FromMilliseconds(Random.Shared.Next(0, 120)));
 
         return Policy
             .Handle<StripeException>(IsTransient)
@@ -145,7 +150,8 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
             .WaitAndRetryAsync(delays, (ex, delay, attempt, _) =>
             {
                 var (code, reqId, stripeCode, http) = ExtractStripeError(ex);
-                logger.LogWarning(ex, "Retrying Checkout op (attempt {Attempt}) after {Delay}. Http={Http} StripeCode={StripeCode} ReqId={ReqId} Code={Code}",
+                logger.LogWarning(ex,
+                    "Retrying Checkout op (attempt {Attempt}) after {Delay}. Http={Http} StripeCode={StripeCode} ReqId={ReqId} Code={Code}",
                     attempt, delay, http, stripeCode, reqId, code);
             });
     }
@@ -154,9 +160,9 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
     {
         var status = (HttpStatusCode?)ex.HttpStatusCode;
         return status is HttpStatusCode.TooManyRequests or HttpStatusCode.InternalServerError
-            or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout
-            || string.Equals(ex.StripeError?.Type, "api_connection_error", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(ex.StripeError?.Type, "rate_limit_error", StringComparison.OrdinalIgnoreCase);
+                   or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout
+               || string.Equals(ex.StripeError?.Type, "api_connection_error", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(ex.StripeError?.Type, "rate_limit_error", StringComparison.OrdinalIgnoreCase);
     }
 
     private static (string? code, string? requestId, string? stripeCode, int? http) ExtractStripeError(Exception ex)
@@ -167,11 +173,13 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
     }
 
     private Task<T> RetryAsync<T>(string op, Func<CancellationToken, Task<T>> execute, CancellationToken ct)
-        => _retry.ExecuteAsync(async innerCt =>
+    {
+        return _retry.ExecuteAsync(async innerCt =>
         {
             using var scope = _logger.BeginScope(new Dictionary<string, object?> { ["stripe_op"] = op });
             var res = await execute(innerCt);
             _logger.LogDebug("Stripe op {Op} succeeded", op);
             return res;
         }, ct);
+    }
 }

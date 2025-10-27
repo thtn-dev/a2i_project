@@ -1,12 +1,14 @@
+using Microsoft.OpenApi.Models;
+
 namespace A2I.WebAPI.Extensions;
 
 /// <summary>
-/// Extension methods for configuring API versioning
+///     Extension methods for configuring API versioning
 /// </summary>
 public static class ApiVersioningExtensions
 {
     /// <summary>
-    /// Configures API versioning for the application
+    ///     Configures API versioning for the application
     /// </summary>
     public static IServiceCollection AddApiVersioningConfiguration(this IServiceCollection services)
     {
@@ -20,7 +22,7 @@ public static class ApiVersioningExtensions
     }
 
     /// <summary>
-    /// Maps all versioned endpoints
+    ///     Maps all versioned endpoints
     /// </summary>
     public static WebApplication MapVersionedEndpoints(this WebApplication app)
     {
@@ -34,7 +36,7 @@ public static class ApiVersioningExtensions
     }
 
     /// <summary>
-    /// Maps all v1 endpoints
+    ///     Maps all v1 endpoints
     /// </summary>
     private static void MapV1Endpoints(this WebApplication app)
     {
@@ -43,7 +45,7 @@ public static class ApiVersioningExtensions
     }
 
     /// <summary>
-    /// Configure OpenAPI/Swagger for versioned APIs
+    ///     Configure OpenAPI/Swagger for versioned APIs
     /// </summary>
     public static IServiceCollection ConfigureOpenApi(this IServiceCollection services)
     {
@@ -51,12 +53,12 @@ public static class ApiVersioningExtensions
         {
             options.AddDocumentTransformer((document, context, cancellationToken) =>
             {
-                document.Info = new()
+                document.Info = new OpenApiInfo
                 {
                     Title = "A2I Stripe Subscription API",
                     Version = "v1",
                     Description = "API for managing Stripe subscriptions, customers, and invoices",
-                    Contact = new()
+                    Contact = new OpenApiContact
                     {
                         Name = "A2I Support",
                         Email = "support@a2i.com"

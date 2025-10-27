@@ -6,19 +6,13 @@ namespace A2I.Application.Subscriptions;
 
 public sealed class StartSubscriptionRequest
 {
-    [Required]
-    public Guid CustomerId { get; set; }
+    [Required] public Guid CustomerId { get; set; }
 
-    [Required]
-    public Guid PlanId { get; set; }
+    [Required] public Guid PlanId { get; set; }
 
-    [Required]
-    [Url]
-    public required string SuccessUrl { get; set; }
+    [Required] [Url] public required string SuccessUrl { get; set; }
 
-    [Required]
-    [Url]
-    public required string CancelUrl { get; set; }
+    [Required] [Url] public required string CancelUrl { get; set; }
 
     public bool AllowPromotionCodes { get; set; } = true;
 
@@ -28,8 +22,8 @@ public sealed class StartSubscriptionRequest
 public sealed class CancelSubscriptionRequest
 {
     /// <summary>
-    /// true = cancel immediately (end now)
-    /// false = cancel at period end (default)
+    ///     true = cancel immediately (end now)
+    ///     false = cancel at period end (default)
     /// </summary>
     public bool CancelImmediately { get; set; } = false;
 
@@ -38,11 +32,10 @@ public sealed class CancelSubscriptionRequest
 
 public sealed class UpgradeSubscriptionRequest
 {
-    [Required]
-    public Guid NewPlanId { get; set; }
+    [Required] public Guid NewPlanId { get; set; }
 
     /// <summary>
-    /// Apply proration or not (default: true)
+    ///     Apply proration or not (default: true)
     /// </summary>
     public bool ApplyProration { get; set; } = true;
 }
@@ -61,23 +54,23 @@ public sealed class SubscriptionDetailsResponse
     public Guid Id { get; set; }
     public Guid CustomerId { get; set; }
     public Guid PlanId { get; set; }
-    
+
     public string StripeSubscriptionId { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
-    
+
     public DateTime CurrentPeriodStart { get; set; }
     public DateTime CurrentPeriodEnd { get; set; }
     public DateTime? CancelAt { get; set; }
     public DateTime? CanceledAt { get; set; }
     public bool CancelAtPeriodEnd { get; set; }
-    
+
     public DateTime? TrialStart { get; set; }
     public DateTime? TrialEnd { get; set; }
     public bool IsInTrial { get; set; }
-    
+
     public int Quantity { get; set; }
     public int? DaysUntilRenewal { get; set; }
-    
+
     // Plan details
     public PlanDetailsDto? Plan { get; set; }
 }

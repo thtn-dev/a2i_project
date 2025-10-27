@@ -1,7 +1,6 @@
 // src/A2I.Infrastructure/StripeServices/WebhookHandlers/InvoiceCreatedHandler.cs
 
 using A2I.Application.StripeAbstraction.Webhooks;
-using A2I.Core.Entities;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -19,62 +18,59 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
         : base(db, logger)
     {
     }
-    
+
     public override string EventType => EventTypes.InvoiceCreated;
-    
+
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,
         CancellationToken ct)
     {
         var invoice = stripeEvent.Data.Object as Stripe.Invoice;
-        if (invoice == null)
-        {
-            return new WebhookHandlerResult(false, "Invalid invoice data");
-        }
-        
+        if (invoice == null) return new WebhookHandlerResult(false, "Invalid invoice data");
+
         // Skip draft invoices (they're not finalized yet)
         if (invoice.Status == "draft")
         {
             Logger.LogDebug(
                 "Skipping draft invoice {StripeInvoiceId}",
                 invoice.Id);
-            
+
             return new WebhookHandlerResult(
                 true,
                 "Draft invoice ignored (will process when finalized)");
         }
-        
+
         // Check if invoice already exists
         var existingInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
-        
+
         if (existingInvoice != null)
         {
             Logger.LogInformation(
                 "Invoice {InvoiceId} already exists",
                 existingInvoice.Id);
-            
+
             return new WebhookHandlerResult(
                 true,
                 $"Invoice already exists: {existingInvoice.Id}");
         }
-        
+
         // Find customer
         var customer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == invoice.CustomerId, ct);
-        
+
         if (customer == null)
         {
             Logger.LogError(
                 "Customer not found for invoice {StripeInvoiceId}",
                 invoice.Id);
-            
+
             return new WebhookHandlerResult(
                 false,
                 "Customer not found",
-                RequiresRetry: true);
+                true);
         }
-        
+
         // Create invoice
         var dbInvoice = new Invoice
         {
@@ -91,11 +87,11 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
             PeriodStart = invoice.PeriodStart,
             PeriodEnd = invoice.PeriodEnd,
             DueDate = invoice.DueDate,
-            AttemptCount = invoice.AttemptCount ,
+            AttemptCount = invoice.AttemptCount,
             HostedInvoiceUrl = invoice.HostedInvoiceUrl,
             InvoicePdf = invoice.InvoicePdf
         };
-        
+
         // // Link to subscription if exists
         // if (!string.IsNullOrWhiteSpace(invoice.SubscriptionId))
         // {
@@ -109,14 +105,14 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
         //         dbInvoice.SubscriptionId = subscription.Id;
         //     }
         // }
-        
+
         Db.Invoices.Add(dbInvoice);
         await Db.SaveChangesAsync(ct);
-        
+
         Logger.LogInformation(
             "Created invoice {InvoiceId} ({Status}) for customer {CustomerId}",
             dbInvoice.Id, invoice.Status, customer.Id);
-        
+
         return new WebhookHandlerResult(
             true,
             $"Invoice created: {dbInvoice.Id}",
@@ -127,7 +123,7 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
                 ["status"] = invoice.Status ?? "unknown"
             });
     }
-    
+
     private static InvoiceStatus MapInvoiceStatus(string? status)
     {
         return status?.ToLowerInvariant() switch

@@ -6,12 +6,12 @@ namespace A2I.Infrastructure.Notifications;
 public class MockEmailService : IEmailService
 {
     private readonly ILogger<MockEmailService> _logger;
-    
+
     public MockEmailService(ILogger<MockEmailService> logger)
     {
         _logger = logger;
     }
-    
+
     public Task SendWelcomeEmailAsync(Guid customerId, string email, string planName, CancellationToken ct = default)
     {
         _logger.LogInformation(
@@ -19,7 +19,7 @@ public class MockEmailService : IEmailService
             planName, customerId, email);
         return Task.CompletedTask;
     }
-    
+
     public Task SendReceiptEmailAsync(Guid customerId, Guid invoiceId, CancellationToken ct = default)
     {
         _logger.LogInformation(
@@ -27,7 +27,7 @@ public class MockEmailService : IEmailService
             invoiceId, customerId);
         return Task.CompletedTask;
     }
-    
+
     public Task SendPaymentFailedEmailAsync(
         Guid customerId, Guid invoiceId, long attemptCount, DateTime? nextRetry, CancellationToken ct = default)
     {
@@ -36,7 +36,7 @@ public class MockEmailService : IEmailService
             attemptCount, invoiceId, customerId, nextRetry);
         return Task.CompletedTask;
     }
-    
+
     public Task SendCancellationEmailAsync(
         Guid customerId, string planName, DateTime endDate, CancellationToken ct = default)
     {
@@ -45,7 +45,7 @@ public class MockEmailService : IEmailService
             customerId, planName, endDate);
         return Task.CompletedTask;
     }
-    
+
     public Task SendTrialEndingEmailAsync(
         Guid customerId, string planName, DateTime trialEndDate, CancellationToken ct = default)
     {
@@ -54,7 +54,7 @@ public class MockEmailService : IEmailService
             customerId, planName, trialEndDate);
         return Task.CompletedTask;
     }
-    
+
     public Task SendPaymentActionRequiredEmailAsync(
         Guid customerId, Guid invoiceId, string actionUrl, CancellationToken ct = default)
     {

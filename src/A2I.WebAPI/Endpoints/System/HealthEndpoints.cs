@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace A2I.WebAPI.Endpoints.System;
 
 /// <summary>
-/// Health check endpoints for monitoring system status
+///     Health check endpoints for monitoring system status
 /// </summary>
 public static class HealthEndpoints
 {
@@ -17,14 +17,15 @@ public static class HealthEndpoints
         group.MapGet("/", GetHealth)
             .WithName("GetHealth")
             .WithApiMetadata("Get basic health status", "Returns basic health status of the API")
-            .Produces<HealthResponse>(StatusCodes.Status200OK)
+            .Produces<HealthResponse>()
             .ExcludeFromDescription();
 
         // Detailed health check with dependencies
         group.MapGet("/detailed", GetDetailedHealth)
             .WithName("GetDetailedHealth")
-            .WithApiMetadata("Get detailed health status", "Returns detailed health status including database and external services")
-            .Produces<DetailedHealthResponse>(StatusCodes.Status200OK)
+            .WithApiMetadata("Get detailed health status",
+                "Returns detailed health status including database and external services")
+            .Produces<DetailedHealthResponse>()
             .Produces<ErrorResponse>(StatusCodes.Status503ServiceUnavailable);
 
         return group;
@@ -73,7 +74,7 @@ public static class HealthEndpoints
             Checks = checks
         };
 
-        return isHealthy 
+        return isHealthy
             ? Results.Ok(response)
             : Results.Json(response, statusCode: StatusCodes.Status503ServiceUnavailable);
     }
@@ -81,7 +82,7 @@ public static class HealthEndpoints
     private static async Task<ComponentHealth> CheckDatabaseAsync(ApplicationDbContext dbContext)
     {
         var stopwatch = Stopwatch.StartNew();
-        
+
         try
         {
             // Simple query to check database connectivity
@@ -102,7 +103,7 @@ public static class HealthEndpoints
         catch (Exception ex)
         {
             stopwatch.Stop();
-            
+
             return new ComponentHealth
             {
                 Status = "unhealthy",

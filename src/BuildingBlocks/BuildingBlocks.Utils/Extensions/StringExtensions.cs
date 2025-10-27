@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace BuildingBlocks.Utils.Extensions;
 
 public static class StringExtensions

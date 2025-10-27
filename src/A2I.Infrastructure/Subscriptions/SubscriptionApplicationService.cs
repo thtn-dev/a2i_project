@@ -13,10 +13,10 @@ namespace A2I.Infrastructure.Subscriptions;
 
 public sealed class SubscriptionApplicationService : ISubscriptionApplicationService
 {
-    private readonly ApplicationDbContext _db;
     private readonly IStripeCheckoutService _checkoutService;
-    private readonly IStripeSubscriptionService _subscriptionService;
+    private readonly ApplicationDbContext _db;
     private readonly ILogger<SubscriptionApplicationService> _logger;
+    private readonly IStripeSubscriptionService _subscriptionService;
 
     public SubscriptionApplicationService(
         ApplicationDbContext db,
@@ -52,7 +52,9 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
 
         // 3. Check if customer already has an active subscription
         var hasActive = await _db.Subscriptions
-            .AnyAsync(s => s.CustomerId == request.CustomerId && (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing), ct);
+            .AnyAsync(
+                s => s.CustomerId == request.CustomerId &&
+                     (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing), ct);
 
         if (hasActive)
             throw new BusinessException("Customer already has an active subscription");
@@ -71,7 +73,7 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             CancelUrl = request.CancelUrl,
             AllowPromotionCodes = request.AllowPromotionCodes,
             TrialPeriodDays = plan.TrialPeriodDays,
-            Metadata = request.Metadata ?? new()
+            Metadata = request.Metadata ?? new Dictionary<string, string>()
         };
 
         // Add tracking metadata
@@ -129,8 +131,10 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             throw new BusinessException($"Stripe subscription not found: {session.SubscriptionId}");
 
         // 4. Get customer and plan from metadata or session
-        var customerId = Guid.Parse(stripeSub.Metadata?["customer_id"] ?? throw new BusinessException("Missing customer_id in metadata"));
-        var planId = Guid.Parse(stripeSub.Metadata?["plan_id"] ?? throw new BusinessException("Missing plan_id in metadata"));
+        var customerId = Guid.Parse(stripeSub.Metadata?["customer_id"] ??
+                                    throw new BusinessException("Missing customer_id in metadata"));
+        var planId = Guid.Parse(stripeSub.Metadata?["plan_id"] ??
+                                throw new BusinessException("Missing plan_id in metadata"));
 
         var customer = await _db.Customers.FindAsync([customerId], ct);
         var plan = await _db.Plans.FindAsync([planId], ct);
@@ -187,7 +191,7 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         // 2. Cancel on Stripe (NO REFUND policy)
         var canceled = await _subscriptionService.CancelSubscriptionAsync(
             subscription.StripeSubscriptionId,
-            immediately: request.CancelImmediately,
+            request.CancelImmediately,
             ct);
 
         // 3. Update DB
@@ -200,7 +204,8 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         {
             var metadata = string.IsNullOrWhiteSpace(subscription.Metadata)
                 ? new Dictionary<string, string>()
-                : JsonSerializer.Deserialize<Dictionary<string, string>>(subscription.Metadata) ?? new();
+                : JsonSerializer.Deserialize<Dictionary<string, string>>(subscription.Metadata) ??
+                  new Dictionary<string, string>();
 
             metadata["cancel_reason"] = request.Reason;
             subscription.Metadata = JsonSerializer.Serialize(metadata);
@@ -317,10 +322,8 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
     {
         // Ensure plan is loaded
         if (subscription.Plan is null)
-        {
             subscription.Plan = await _db.Plans.FindAsync([subscription.PlanId], ct)
-                ?? throw new BusinessException("Plan not found");
-        }
+                                ?? throw new BusinessException("Plan not found");
 
         var features = string.IsNullOrWhiteSpace(subscription.Plan.Features)
             ? null
@@ -357,8 +360,9 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         };
     }
 
-    private static SubscriptionStatus MapSubscriptionStatus(string? stripeStatus) =>
-        stripeStatus?.ToLowerInvariant() switch
+    private static SubscriptionStatus MapSubscriptionStatus(string? stripeStatus)
+    {
+        return stripeStatus?.ToLowerInvariant() switch
         {
             "incomplete" => SubscriptionStatus.Incomplete,
             "incomplete_expired" => SubscriptionStatus.IncompleteExpired,
@@ -370,6 +374,7 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             "paused" => SubscriptionStatus.Paused,
             _ => SubscriptionStatus.Incomplete
         };
+    }
 
     private static decimal CalculateProration(Subscription current, Plan newPlan)
     {

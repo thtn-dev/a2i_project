@@ -17,44 +17,41 @@ public class InvoiceVoidedHandler : WebhookEventHandlerBase
         : base(db, logger)
     {
     }
-    
+
     public override string EventType => EventTypes.InvoiceVoided;
-    
+
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,
         CancellationToken ct)
     {
         var invoice = stripeEvent.Data.Object as Invoice;
-        if (invoice == null)
-        {
-            return new WebhookHandlerResult(false, "Invalid invoice data");
-        }
-        
+        if (invoice == null) return new WebhookHandlerResult(false, "Invalid invoice data");
+
         // Find invoice in DB
         var dbInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
-        
+
         if (dbInvoice == null)
         {
             Logger.LogWarning(
                 "Invoice {StripeInvoiceId} not found in DB",
                 invoice.Id);
-            
+
             return new WebhookHandlerResult(
                 true,
                 "Invoice not found in DB (might not have been synced)");
         }
-        
+
         // Update to voided status
         dbInvoice.Status = InvoiceStatus.Void;
         dbInvoice.AmountDue = 0; // Voided invoices have no amount due
-        
+
         await Db.SaveChangesAsync(ct);
-        
+
         Logger.LogInformation(
             "Invoice {InvoiceId} voided",
             dbInvoice.Id);
-        
+
         return new WebhookHandlerResult(
             true,
             $"Invoice voided: {dbInvoice.Id}",

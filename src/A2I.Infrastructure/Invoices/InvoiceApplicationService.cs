@@ -43,17 +43,10 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
 
         // 3. Apply filters
         if (!string.IsNullOrWhiteSpace(request.Status))
-        {
-            if (Enum.TryParse<InvoiceStatus>(request.Status, ignoreCase: true, out var status))
-            {
+            if (Enum.TryParse<InvoiceStatus>(request.Status, true, out var status))
                 query = query.Where(i => i.Status == status);
-            }
-        }
 
-        if (request.FromDate.HasValue)
-        {
-            query = query.Where(i => i.CreatedAt >= request.FromDate.Value);
-        }
+        if (request.FromDate.HasValue) query = query.Where(i => i.CreatedAt >= request.FromDate.Value);
 
         if (request.ToDate.HasValue)
         {
@@ -145,7 +138,7 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
 
         // 3. Build line items (simple version - can be expanded)
         var lineItems = new List<InvoiceLineItemDto>();
-        
+
         if (invoice.Subscription?.Plan is not null)
         {
             var plan = invoice.Subscription.Plan;

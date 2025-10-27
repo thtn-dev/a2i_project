@@ -10,10 +10,10 @@ namespace A2I.Infrastructure.Customers;
 
 public sealed class CustomerApplicationService : ICustomerApplicationService
 {
-    private readonly ApplicationDbContext _db;
     private readonly IStripeCustomerService _customerService;
-    private readonly IStripePortalService _portalService;
+    private readonly ApplicationDbContext _db;
     private readonly ILogger<CustomerApplicationService> _logger;
+    private readonly IStripePortalService _portalService;
 
     public CustomerApplicationService(
         ApplicationDbContext db,
@@ -121,7 +121,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
 
         SubscriptionSummaryDto? subscriptionSummary = null;
         if (activeSubscription is not null)
-        {
             subscriptionSummary = new SubscriptionSummaryDto
             {
                 Id = activeSubscription.Id,
@@ -134,7 +133,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
                 IsInTrial = activeSubscription.IsInTrial,
                 TrialEnd = activeSubscription.TrialEnd
             };
-        }
 
         // 3. Get recent invoices (last 5)
         var recentInvoices = customer.Invoices
@@ -163,7 +161,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         string? defaultPaymentMethodId = null;
 
         if (!string.IsNullOrWhiteSpace(customer.StripeCustomerId))
-        {
             try
             {
                 var stripePMs = await _customerService.ListPaymentMethodsAsync(
@@ -189,7 +186,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
                     "Failed to get payment methods for customer {CustomerId}",
                     customerId);
             }
-        }
 
         // 5. Build response
         return new CustomerDetailsResponse
@@ -243,11 +239,9 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, ct);
 
         if (activeSubscription is not null && request.SetAsDefault)
-        {
             _logger.LogInformation(
                 "Payment method will be used for subscription {SubId} on next billing cycle",
                 activeSubscription.Id);
-        }
 
         return new UpdatePaymentMethodResponse
         {
@@ -291,7 +285,8 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         {
             PortalUrl = portalSession.Url ?? string.Empty,
             PortalSessionId = portalSession.Id,
-            Message = "Portal session created successfully. Customer can manage subscription, payment methods, and view invoices."
+            Message =
+                "Portal session created successfully. Customer can manage subscription, payment methods, and view invoices."
         };
     }
 }

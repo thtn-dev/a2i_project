@@ -2,7 +2,6 @@
 
 using A2I.Application.Notifications;
 using A2I.Application.StripeAbstraction.Webhooks;
-using A2I.Core.Entities;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
 using Hangfire;
@@ -17,7 +16,7 @@ namespace A2I.Infrastructure.StripeServices.WebhookHandlers;
 public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
 {
     private readonly IEmailService _emailService;
-    
+
     public InvoicePaymentActionRequiredHandler(
         ApplicationDbContext db,
         IEmailService emailService,
@@ -28,37 +27,34 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
     }
 
     public override string EventType => EventTypes.InvoicePaymentActionRequired;
-    
+
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,
         CancellationToken ct)
     {
         var invoice = stripeEvent.Data.Object as StripeInvoice;
-        if (invoice == null)
-        {
-            return new WebhookHandlerResult(false, "Invalid invoice data");
-        }
-        
+        if (invoice == null) return new WebhookHandlerResult(false, "Invalid invoice data");
+
         // 1. Find customer
         var customer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == invoice.CustomerId, ct);
-        
+
         if (customer == null)
         {
             Logger.LogError(
                 "Customer not found for Stripe customer ID: {StripeCustomerId}",
                 invoice.CustomerId);
-            
+
             return new WebhookHandlerResult(
                 false,
                 "Customer not found",
-                RequiresRetry: true);
+                true);
         }
-        
+
         // 2. Find or create invoice
         var dbInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
-        
+
         if (dbInvoice == null)
         {
             // Create invoice with action required status
@@ -74,14 +70,14 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
                 AmountPaid = invoice.AmountPaid / 100m,
                 AmountDue = invoice.AmountRemaining / 100m,
                 Currency = invoice.Currency ?? "usd",
-                PeriodStart = invoice.PeriodStart ,
-                PeriodEnd = invoice.PeriodEnd ,
+                PeriodStart = invoice.PeriodStart,
+                PeriodEnd = invoice.PeriodEnd,
                 DueDate = invoice.DueDate,
                 AttemptCount = invoice.AttemptCount,
                 HostedInvoiceUrl = invoice.HostedInvoiceUrl,
                 InvoicePdf = invoice.InvoicePdf
             };
-            
+
             // Link to subscription
             // if (!string.IsNullOrWhiteSpace(invoice.SubscriptionId))
             // {
@@ -95,9 +91,9 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
             //         dbInvoice.SubscriptionId = subscription.Id;
             //     }
             // }
-            
+
             Db.Invoices.Add(dbInvoice);
-            
+
             Logger.LogInformation(
                 "Created invoice {InvoiceId} with payment action required",
                 dbInvoice.Id);
@@ -109,12 +105,12 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
                 "Invoice {InvoiceId} requires payment action (3D Secure)",
                 dbInvoice.Id);
         }
-        
+
         await Db.SaveChangesAsync(ct);
-        
+
         // 3. Get payment intent for action URL
-        string? actionUrl = invoice.HostedInvoiceUrl;
-        
+        var actionUrl = invoice.HostedInvoiceUrl;
+
         // if (!string.IsNullOrWhiteSpace(invoice.PaymentIntentId))
         // {
         //     try
@@ -135,7 +131,7 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
         //             invoice.PaymentIntentId);
         //     }
         // }
-        
+
         // 4. Send email with authentication link
         if (!string.IsNullOrWhiteSpace(actionUrl))
         {
@@ -145,7 +141,7 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
                     dbInvoice.Id,
                     actionUrl,
                     CancellationToken.None));
-            
+
             Logger.LogInformation(
                 "Queued payment action required email for customer {CustomerId}, invoice {InvoiceId}",
                 customer.Id, dbInvoice.Id);
@@ -156,7 +152,7 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
                 "No action URL available for invoice {InvoiceId}",
                 dbInvoice.Id);
         }
-        
+
         return new WebhookHandlerResult(
             true,
             $"Payment action required for invoice {dbInvoice.Id}",
@@ -164,7 +160,7 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
             {
                 ["invoice_id"] = dbInvoice.Id,
                 ["customer_id"] = customer.Id,
-                ["action_url"] = actionUrl ?? "N/A",
+                ["action_url"] = actionUrl ?? "N/A"
                 // ["payment_intent_id"] = invoice.PaymentIntentId ?? "N/A"
             });
     }

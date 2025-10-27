@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace A2I.WebAPI.Endpoints.Customers;
 
 /// <summary>
-/// Customer management endpoints
+///     Customer management endpoints
 /// </summary>
 public static class CustomerEndpoints
 {
@@ -16,7 +16,7 @@ public static class CustomerEndpoints
             .WithApiMetadata(
                 "Create or update customer",
                 "Creates a new customer in both database and Stripe, or updates existing customer information.")
-            .Produces<ApiResponse<CustomerDetailsResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<CustomerDetailsResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -26,7 +26,7 @@ public static class CustomerEndpoints
             .WithApiMetadata(
                 "Get customer details",
                 "Retrieves complete customer information including active subscription, recent invoices, and payment methods.")
-            .Produces<ApiResponse<CustomerDetailsResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<CustomerDetailsResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
 
@@ -35,7 +35,7 @@ public static class CustomerEndpoints
             .WithApiMetadata(
                 "Update payment method",
                 "Attaches a new payment method to the customer and optionally sets it as default for future invoices.")
-            .Produces<ApiResponse<UpdatePaymentMethodResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<UpdatePaymentMethodResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -45,7 +45,7 @@ public static class CustomerEndpoints
             .WithApiMetadata(
                 "Get customer portal URL",
                 "Creates a Stripe Customer Portal session for self-service management of subscription, invoices, and payment methods.")
-            .Produces<ApiResponse<CustomerPortalResponse>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse<CustomerPortalResponse>>()
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
             .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
             .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
@@ -100,19 +100,15 @@ public static class CustomerEndpoints
     {
         // Validate returnUrl
         if (string.IsNullOrWhiteSpace(request.ReturnUrl))
-        {
             return EndpointExtensions.BadRequest(
                 ErrorCodes.VALIDATION_REQUIRED,
                 "ReturnUrl is required");
-        }
 
         // Validate URL format
         if (!Uri.TryCreate(request.ReturnUrl, UriKind.Absolute, out _))
-        {
             return EndpointExtensions.BadRequest(
                 ErrorCodes.VALIDATION_FORMAT,
                 "ReturnUrl must be a valid absolute URL");
-        }
 
         return await EndpointExtensions.ExecuteAsync(
             async () => await customerService.GetCustomerPortalUrlAsync(
@@ -124,12 +120,12 @@ public static class CustomerEndpoints
 // ==================== REQUEST MODELS ====================
 
 /// <summary>
-/// Request to get customer portal URL
+///     Request to get customer portal URL
 /// </summary>
 public sealed class GetPortalUrlRequest
 {
     /// <summary>
-    /// URL to redirect customer after they finish managing their subscription
+    ///     URL to redirect customer after they finish managing their subscription
     /// </summary>
     public required string ReturnUrl { get; set; }
 }

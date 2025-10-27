@@ -60,6 +60,7 @@ public class StripeWebhookController : ControllerBase
                 _logger.LogInformation("Webhook {EventId} already processed (duplicate)", eventId);
                 return Ok(new { received = true, message = "Event already processed" });
             }
+
             await _idempotencyStore.MarkQueuedAsync(eventId, stripeEvent.Type, json, ct);
 
             var client = HttpContext.RequestServices.GetRequiredService<IBackgroundJobClient>();

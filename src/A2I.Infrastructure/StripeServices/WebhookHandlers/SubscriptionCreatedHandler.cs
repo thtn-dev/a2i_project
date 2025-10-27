@@ -11,13 +11,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Stripe;
 using StripeSubscription = Stripe.Subscription;
+using Subscription = A2I.Core.Entities.Subscription;
 
 namespace A2I.Infrastructure.StripeServices.WebhookHandlers;
 
 public class SubscriptionCreatedHandler : WebhookEventHandlerBase
 {
     private readonly IEmailService _emailService;
-    
+
     public SubscriptionCreatedHandler(
         ApplicationDbContext db,
         IEmailService emailService,
@@ -26,54 +27,52 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
     {
         _emailService = emailService;
     }
-    
+
     public override string EventType => EventTypes.CustomerSubscriptionCreated;
-    
+
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,
         CancellationToken ct)
     {
         if (stripeEvent.Data.Object is not StripeSubscription subscription)
-        {
             return new WebhookHandlerResult(false, "Invalid subscription data");
-        }
-        
+
         // 1. Check if subscription already exists (idempotency)
         // This can happen if checkout.session.completed already created it
         var existingSubscription = await Db.Subscriptions
             .FirstOrDefaultAsync(
                 s => s.StripeSubscriptionId == subscription.Id,
                 ct);
-        
+
         if (existingSubscription != null)
         {
             Logger.LogInformation(
                 "Subscription {SubId} already exists (likely created via checkout.session.completed)",
                 existingSubscription.Id);
-            
+
             return new WebhookHandlerResult(
                 true,
                 $"Subscription already exists: {existingSubscription.Id}");
         }
-        
+
         // 2. Find customer by Stripe ID
         var customer = await Db.Customers
             .FirstOrDefaultAsync(
                 c => c.StripeCustomerId == subscription.CustomerId,
                 ct);
-        
+
         if (customer == null)
         {
             Logger.LogError(
                 "Customer not found for Stripe customer ID: {StripeCustomerId}",
                 subscription.CustomerId);
-            
+
             return new WebhookHandlerResult(
                 false,
                 "Customer not found",
-                RequiresRetry: true);
+                true);
         }
-        
+
         // 3. Find plan by Stripe price ID
         var priceId = subscription.Items?.Data?.FirstOrDefault()?.Price?.Id;
         if (string.IsNullOrWhiteSpace(priceId))
@@ -81,19 +80,19 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
             Logger.LogError(
                 "Subscription {StripeSubId} has no price ID",
                 subscription.Id);
-            
+
             return new WebhookHandlerResult(false, "Subscription has no price ID");
         }
-        
+
         var plan = await Db.Plans
             .FirstOrDefaultAsync(p => p.StripePriceId == priceId, ct);
-        
+
         if (plan == null)
         {
             Logger.LogWarning(
                 "Plan not found for price {PriceId}",
                 priceId);
-            
+
             return new WebhookHandlerResult(
                 false,
                 $"Plan not found for price {priceId}");
@@ -101,7 +100,7 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
 
         var currentPeriodEnd = plan.CalculateNextBillingDate(subscription.StartDate);
         // 4. Create subscription in DB
-        var newSubscription = new Core.Entities.Subscription
+        var newSubscription = new Subscription
         {
             Id = Guid.NewGuid(),
             CustomerId = customer.Id,
@@ -121,25 +120,23 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
                 ? JsonSerializer.Serialize(subscription.Metadata)
                 : null
         };
-        
+
         Db.Subscriptions.Add(newSubscription);
         await Db.SaveChangesAsync(ct);
-        
+
         Logger.LogInformation(
             "Created subscription {SubId} for customer {CustomerId} via subscription.created event",
             newSubscription.Id, customer.Id);
-        
+
         // 5. Send welcome email if not in trial (trial welcome is sent at trial end)
         if (!newSubscription.IsInTrial)
-        {
             BackgroundJob.Enqueue(() =>
                 _emailService.SendWelcomeEmailAsync(
                     customer.Id,
                     customer.Email,
                     plan.Name,
                     CancellationToken.None));
-        }
-        
+
         return new WebhookHandlerResult(
             true,
             $"Subscription created: {newSubscription.Id}",
@@ -151,7 +148,7 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
                 ["is_trial"] = newSubscription.IsInTrial
             });
     }
-    
+
     private static SubscriptionStatus MapSubscriptionStatus(string? status)
     {
         return status?.ToLowerInvariant() switch

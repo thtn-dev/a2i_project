@@ -1,6 +1,5 @@
 using A2I.Application.Notifications;
 using A2I.Application.StripeAbstraction.Webhooks;
-using A2I.Core.Entities;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
 using Hangfire;
@@ -13,7 +12,7 @@ namespace A2I.Infrastructure.StripeServices.WebhookHandlers;
 public class InvoicePaidHandler : WebhookEventHandlerBase
 {
     private readonly IEmailService _emailService;
-    
+
     public InvoicePaidHandler(
         ApplicationDbContext db,
         IEmailService emailService,
@@ -22,50 +21,46 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
     {
         _emailService = emailService;
     }
-    
+
     public override string EventType => EventTypes.InvoicePaid;
-    
+
     protected override async Task<WebhookHandlerResult> HandleCoreAsync(
         Event stripeEvent,
         CancellationToken ct)
     {
-        if (stripeEvent.Data.Object is not Stripe.Invoice invoice)
-        {
+        if (stripeEvent.Data.Object is not Invoice invoice)
             return new WebhookHandlerResult(false, "Invalid invoice data");
-        }
-        
+
         // Skip draft invoices
         if (invoice.Status != "paid")
-        {
             return new WebhookHandlerResult(
                 true,
                 $"Invoice status is {invoice.Status}, not paid");
-        }
-        
+
         // 1. Find customer by Stripe ID
         var customer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == invoice.CustomerId, ct);
-        
+
         if (customer == null)
         {
             Logger.LogError(
                 "Customer not found for Stripe customer ID: {StripeCustomerId}",
                 invoice.CustomerId);
-            
+
             return new WebhookHandlerResult(
                 false,
                 "Customer not found",
-                RequiresRetry: true);
+                true);
         }
-        
+
         // 2. Find or create invoice in DB
         var dbInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
-        
+
         if (dbInvoice == null)
         {
             // Create new invoice
-            dbInvoice = new A2I.Core.Entities.Invoice
+            dbInvoice = new Core.Entities.Invoice
             {
                 Id = Guid.NewGuid(),
                 CustomerId = customer.Id,
@@ -81,11 +76,11 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
                 PeriodEnd = invoice.PeriodEnd,
                 DueDate = invoice.DueDate,
                 PaidAt = DateTime.UtcNow,
-                AttemptCount = invoice.AttemptCount ,
+                AttemptCount = invoice.AttemptCount,
                 HostedInvoiceUrl = invoice.HostedInvoiceUrl,
                 InvoicePdf = invoice.InvoicePdf
             };
-            
+
             // Link to subscription if exists
             // if (!string.IsNullOrWhiteSpace(invoice.Id))
             // {
@@ -99,9 +94,9 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
             //         dbInvoice.SubscriptionId = subscription.Id;
             //     }
             // }
-            
+
             Db.Invoices.Add(dbInvoice);
-            
+
             Logger.LogInformation(
                 "Created invoice {InvoiceId} for customer {CustomerId}",
                 dbInvoice.Id, customer.Id);
@@ -114,56 +109,54 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
             dbInvoice.AmountDue = 0;
             dbInvoice.PaidAt = DateTime.UtcNow;
             dbInvoice.AttemptCount = invoice.AttemptCount;
-            
+
             Logger.LogInformation(
                 "Updated invoice {InvoiceId} to paid status",
                 dbInvoice.Id);
         }
-        
+
         // 3. Update subscription period if applicable
         if (dbInvoice.SubscriptionId.HasValue)
         {
             var subscription = await Db.Subscriptions
                 .FindAsync(new object[] { dbInvoice.SubscriptionId.Value }, ct);
-            
+
             if (subscription != null)
             {
                 // Update subscription period
                 subscription.CurrentPeriodStart = invoice.PeriodStart;
                 subscription.CurrentPeriodEnd = invoice.PeriodEnd;
-                
+
                 // Reset to active if was past_due
                 if (subscription.Status == SubscriptionStatus.PastDue)
                 {
                     subscription.Status = SubscriptionStatus.Active;
-                    
+
                     Logger.LogInformation(
                         "Subscription {SubId} restored to active after payment",
                         subscription.Id);
                 }
-                
+
                 // Clear cancellation if it was set due to payment failure
-                if (subscription.CancelAtPeriodEnd && 
+                if (subscription.CancelAtPeriodEnd &&
                     subscription.Status == SubscriptionStatus.Active)
-                {
                     // Don't auto-clear this - user might have manually set it
                     // Just log for awareness
                     Logger.LogInformation(
                         "Subscription {SubId} still set to cancel at period end despite payment",
                         subscription.Id);
-                }
             }
         }
-        
+
         await Db.SaveChangesAsync(ct);
-        
+
         // 4. Queue receipt email
         BackgroundJob.Enqueue(() =>
             _emailService.SendReceiptEmailAsync(
                 customer.Id,
                 dbInvoice.Id,
                 CancellationToken.None));
-        
+
         return new WebhookHandlerResult(
             true,
             $"Invoice {dbInvoice.Id} marked as paid",

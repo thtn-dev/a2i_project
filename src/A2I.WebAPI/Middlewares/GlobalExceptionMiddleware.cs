@@ -7,14 +7,14 @@ using A2I.Application.StripeAbstraction;
 namespace A2I.WebAPI.Middlewares;
 
 /// <summary>
-/// Global exception handling middleware that catches all unhandled exceptions
-/// and returns consistent error responses
+///     Global exception handling middleware that catches all unhandled exceptions
+///     and returns consistent error responses
 /// </summary>
 public class GlobalExceptionMiddleware
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<GlobalExceptionMiddleware> _logger;
     private readonly IHostEnvironment _environment;
+    private readonly ILogger<GlobalExceptionMiddleware> _logger;
+    private readonly RequestDelegate _next;
 
     public GlobalExceptionMiddleware(
         RequestDelegate next,
@@ -42,7 +42,7 @@ public class GlobalExceptionMiddleware
     {
         // Get trace ID for tracking
         var traceId = Activity.Current?.Id ?? context.TraceIdentifier;
-        
+
         // Log the exception with context
         _logger.LogError(
             exception,
@@ -56,14 +56,14 @@ public class GlobalExceptionMiddleware
         {
             // Business exceptions
             BusinessException businessEx => HandleBusinessException(businessEx, traceId),
-            
+
             // Stripe exceptions
             StripeNotFoundException notFoundEx => HandleStripeNotFoundException(notFoundEx, traceId),
             StripeServiceException stripeEx => HandleStripeException(stripeEx, traceId),
-            
+
             // Validation exceptions (from FluentValidation if you add it later)
             ArgumentException argEx => HandleArgumentException(argEx, traceId),
-            
+
             // Unknown exceptions
             _ => HandleUnknownException(exception, traceId)
         };
@@ -84,24 +84,24 @@ public class GlobalExceptionMiddleware
     }
 
     private (int StatusCode, ErrorResponse Response) HandleBusinessException(
-        BusinessException exception, 
+        BusinessException exception,
         string traceId)
     {
         // Business exceptions are expected and should return 400 Bad Request
         // unless they indicate a resource not found
         var isNotFound = exception.Message.Contains("not found", StringComparison.OrdinalIgnoreCase);
-        
-        var statusCode = isNotFound 
-            ? StatusCodes.Status404NotFound 
+
+        var statusCode = isNotFound
+            ? StatusCodes.Status404NotFound
             : StatusCodes.Status400BadRequest;
 
-        var errorCode = isNotFound 
-            ? ErrorCodes.NOT_FOUND 
+        var errorCode = isNotFound
+            ? ErrorCodes.NOT_FOUND
             : ErrorCodes.BAD_REQUEST;
 
         return (statusCode, ErrorResponse.Create(
-            code: errorCode,
-            message: exception.Message,
+            errorCode,
+            exception.Message,
             traceId: traceId
         ));
     }
@@ -111,8 +111,8 @@ public class GlobalExceptionMiddleware
         string traceId)
     {
         return (StatusCodes.Status404NotFound, ErrorResponse.Create(
-            code: ErrorCodes.STRIPE_RESOURCE_NOT_FOUND,
-            message: exception.Message,
+            ErrorCodes.STRIPE_RESOURCE_NOT_FOUND,
+            exception.Message,
             traceId: traceId
         ));
     }
@@ -140,8 +140,8 @@ public class GlobalExceptionMiddleware
         };
 
         return (statusCode, ErrorResponse.Create(
-            code: errorCode,
-            message: $"Stripe error: {exception.Message}",
+            errorCode,
+            $"Stripe error: {exception.Message}",
             traceId: traceId
         ));
     }
@@ -151,8 +151,8 @@ public class GlobalExceptionMiddleware
         string traceId)
     {
         return (StatusCodes.Status400BadRequest, ErrorResponse.Create(
-            code: ErrorCodes.VALIDATION_FAILED,
-            message: exception.Message,
+            ErrorCodes.VALIDATION_FAILED,
+            exception.Message,
             traceId: traceId
         ));
     }
@@ -168,15 +168,15 @@ public class GlobalExceptionMiddleware
             : "An unexpected error occurred. Please contact support if the problem persists.";
 
         return (StatusCodes.Status500InternalServerError, ErrorResponse.Create(
-            code: ErrorCodes.INTERNAL_ERROR,
-            message: message,
+            ErrorCodes.INTERNAL_ERROR,
+            message,
             traceId: traceId
         ));
     }
 }
 
 /// <summary>
-/// Extension method for registering the middleware
+///     Extension method for registering the middleware
 /// </summary>
 public static class GlobalExceptionMiddlewareExtensions
 {
