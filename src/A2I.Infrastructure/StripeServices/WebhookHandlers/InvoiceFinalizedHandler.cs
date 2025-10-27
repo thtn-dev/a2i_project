@@ -27,7 +27,6 @@ public class InvoiceFinalizedHandler : WebhookEventHandlerBase
         var invoice = stripeEvent.Data.Object as Invoice;
         if (invoice == null) return new WebhookHandlerResult(false, "Invalid invoice data");
 
-        // Find invoice in DB
         var dbInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
 
@@ -37,8 +36,6 @@ public class InvoiceFinalizedHandler : WebhookEventHandlerBase
                 "Invoice {StripeInvoiceId} not found in DB (creating it)",
                 invoice.Id);
 
-            // Invoice might not exist yet - create it
-            // (reuse logic from InvoiceCreatedHandler)
             return await CreateInvoiceFromStripe(invoice, ct);
         }
 
@@ -97,18 +94,18 @@ public class InvoiceFinalizedHandler : WebhookEventHandlerBase
             InvoicePdf = invoice.InvoicePdf
         };
 
-        // if (!string.IsNullOrWhiteSpace(invoice.SubscriptionId))
-        // {
-        //     var subscription = await Db.Subscriptions
-        //         .FirstOrDefaultAsync(
-        //             s => s.StripeSubscriptionId == invoice.SubscriptionId,
-        //             ct);
-        //     
-        //     if (subscription != null)
-        //     {
-        //         dbInvoice.SubscriptionId = subscription.Id;
-        //     }
-        // }
+        if (!string.IsNullOrWhiteSpace(invoice.Parent.SubscriptionDetails.SubscriptionId))
+        {
+            var subscription = await Db.Subscriptions
+                .FirstOrDefaultAsync(
+                    s => s.StripeSubscriptionId == invoice.Parent.SubscriptionDetails.SubscriptionId,
+                    ct);
+            
+            if (subscription != null)
+            {
+                dbInvoice.SubscriptionId = subscription.Id;
+            }
+        }
 
         Db.Invoices.Add(dbInvoice);
         await Db.SaveChangesAsync(ct);

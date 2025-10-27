@@ -26,7 +26,6 @@ public class SubscriptionUpdatedHandler : WebhookEventHandlerBase
         var subscription = stripeEvent.Data.Object as Subscription;
         if (subscription == null) return new WebhookHandlerResult(false, "Invalid subscription data");
 
-        // 1. Find subscription in DB
         var dbSubscription = await Db.Subscriptions
             .Include(s => s.Plan)
             .FirstOrDefaultAsync(
@@ -44,12 +43,12 @@ public class SubscriptionUpdatedHandler : WebhookEventHandlerBase
             return await CreateSubscriptionFromStripe(subscription, ct);
         }
 
-        // 2. Track changes for logging
+        // Track changes for logging
         var changes = new List<string>();
         var oldStatus = dbSubscription.Status;
         var newStatus = MapSubscriptionStatus(subscription.Status);
 
-        // 3. Update all fields (full sync)
+        // Update all fields
         dbSubscription.Status = newStatus;
         dbSubscription.CurrentPeriodStart = subscription.StartDate;
         dbSubscription.CurrentPeriodEnd = subscription.EndedAt ?? subscription.StartDate;
@@ -63,7 +62,7 @@ public class SubscriptionUpdatedHandler : WebhookEventHandlerBase
 
         if (subscription.Metadata != null) dbSubscription.Metadata = JsonSerializer.Serialize(subscription.Metadata);
 
-        // 4. Detect and log critical changes
+        // Detect and log critical changes
         if (oldStatus != newStatus)
         {
             changes.Add($"Status: {oldStatus} → {newStatus}");
@@ -160,7 +159,6 @@ public class SubscriptionUpdatedHandler : WebhookEventHandlerBase
                 $"Plan not found for price {priceId}");
         }
 
-        // Create subscription
         var newSubscription = new Core.Entities.Subscription
         {
             Id = Guid.NewGuid(),

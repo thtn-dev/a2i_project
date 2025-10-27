@@ -36,7 +36,6 @@ public sealed class StripePortalService : IStripePortalService
             {
                 Customer = customerId,
                 ReturnUrl = returnUrl
-                // Có thể cấu hình features nâng cao bằng "FlowData" / "OnBehalfOf" nếu dùng Connect.
             };
 
             var reqOpts = new RequestOptions
@@ -57,8 +56,6 @@ public sealed class StripePortalService : IStripePortalService
             throw StripeErrorMapper.Wrap(ex, "Failed to create Stripe Billing Portal session.");
         }
     }
-
-    // --- Polly boilerplate (same pattern) ---
 
     private static AsyncRetryPolicy BuildRetryPolicy(ILogger logger)
     {
@@ -85,8 +82,7 @@ public sealed class StripePortalService : IStripePortalService
         var status = (HttpStatusCode?)ex.HttpStatusCode;
         return status is HttpStatusCode.TooManyRequests or HttpStatusCode.InternalServerError
                    or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout
-               || string.Equals(ex.StripeError?.Type, "api_connection_error", StringComparison.OrdinalIgnoreCase)
-               || string.Equals(ex.StripeError?.Type, "rate_limit_error", StringComparison.OrdinalIgnoreCase);
+               || string.Equals(ex.StripeError?.Type, "api_error", StringComparison.OrdinalIgnoreCase);
     }
 
     private static (string? code, string? requestId, string? stripeCode, int? http) ExtractStripeError(Exception ex)

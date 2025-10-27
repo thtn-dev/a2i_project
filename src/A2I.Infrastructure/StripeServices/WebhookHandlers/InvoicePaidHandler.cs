@@ -31,13 +31,11 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
         if (stripeEvent.Data.Object is not Invoice invoice)
             return new WebhookHandlerResult(false, "Invalid invoice data");
 
-        // Skip draft invoices
         if (invoice.Status != "paid")
             return new WebhookHandlerResult(
                 true,
                 $"Invoice status is {invoice.Status}, not paid");
 
-        // 1. Find customer by Stripe ID
         var customer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == invoice.CustomerId, ct);
 
@@ -53,13 +51,11 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
                 true);
         }
 
-        // 2. Find or create invoice in DB
         var dbInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
 
         if (dbInvoice == null)
         {
-            // Create new invoice
             dbInvoice = new Core.Entities.Invoice
             {
                 Id = Guid.NewGuid(),
@@ -82,18 +78,18 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
             };
 
             // Link to subscription if exists
-            // if (!string.IsNullOrWhiteSpace(invoice.Id))
-            // {
-            //     var subscription = await Db.Subscriptions
-            //         .FirstOrDefaultAsync(
-            //             s => s.StripeSubscriptionId == invoice.SubscriptionId,
-            //             ct);
-            //     
-            //     if (subscription != null)
-            //     {
-            //         dbInvoice.SubscriptionId = subscription.Id;
-            //     }
-            // }
+            if (!string.IsNullOrWhiteSpace(invoice.Parent.SubscriptionDetails.SubscriptionId))
+            {
+                var subscription = await Db.Subscriptions
+                    .FirstOrDefaultAsync(
+                        s => s.StripeSubscriptionId == invoice.Parent.SubscriptionDetails.SubscriptionId,
+                        ct);
+                
+                if (subscription != null)
+                {
+                    dbInvoice.SubscriptionId = subscription.Id;
+                }
+            }
 
             Db.Invoices.Add(dbInvoice);
 
@@ -103,7 +99,6 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
         }
         else
         {
-            // Update existing invoice
             dbInvoice.Status = InvoiceStatus.Paid;
             dbInvoice.AmountPaid = invoice.AmountPaid / 100m;
             dbInvoice.AmountDue = 0;
@@ -115,11 +110,10 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
                 dbInvoice.Id);
         }
 
-        // 3. Update subscription period if applicable
         if (dbInvoice.SubscriptionId.HasValue)
         {
             var subscription = await Db.Subscriptions
-                .FindAsync(new object[] { dbInvoice.SubscriptionId.Value }, ct);
+                .FindAsync([dbInvoice.SubscriptionId.Value], ct);
 
             if (subscription != null)
             {
@@ -137,20 +131,20 @@ public class InvoicePaidHandler : WebhookEventHandlerBase
                         subscription.Id);
                 }
 
-                // Clear cancellation if it was set due to payment failure
-                if (subscription.CancelAtPeriodEnd &&
-                    subscription.Status == SubscriptionStatus.Active)
+                if (subscription is { CancelAtPeriodEnd: true, Status: SubscriptionStatus.Active })
+                {
                     // Don't auto-clear this - user might have manually set it
                     // Just log for awareness
                     Logger.LogInformation(
                         "Subscription {SubId} still set to cancel at period end despite payment",
                         subscription.Id);
+                }
             }
         }
 
         await Db.SaveChangesAsync(ct);
 
-        // 4. Queue receipt email
+        // Queue receipt email
         BackgroundJob.Enqueue(() =>
             _emailService.SendReceiptEmailAsync(
                 customer.Id,

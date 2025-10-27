@@ -39,7 +39,6 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
         if (stripeEvent.Data.Object is not Invoice invoice)
             return new WebhookHandlerResult(false, "Invalid invoice data");
 
-        // 1. Find customer
         var customer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == invoice.CustomerId, ct);
 
@@ -52,7 +51,6 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
             return new WebhookHandlerResult(false, "Customer not found", true);
         }
 
-        // 2. Find or create invoice
         var dbInvoice = await Db.Invoices
             .Include(i => i.Subscription)
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
@@ -83,18 +81,18 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
             };
 
             // Link to subscription
-            // if (!string.IsNullOrWhiteSpace(invoice.SubscriptionId))
-            // {
-            //     var subscription = await Db.Subscriptions
-            //         .FirstOrDefaultAsync(
-            //             s => s.StripeSubscriptionId == invoice.SubscriptionId,
-            //             ct);
-            //     
-            //     if (subscription != null)
-            //     {
-            //         dbInvoice.SubscriptionId = subscription.Id;
-            //     }
-            // }
+            if (!string.IsNullOrWhiteSpace(invoice.Parent.SubscriptionDetails.SubscriptionId))
+            {
+                var subscription = await Db.Subscriptions
+                    .FirstOrDefaultAsync(
+                        s => s.StripeSubscriptionId == invoice.Parent.SubscriptionDetails.SubscriptionId,
+                        ct);
+                
+                if (subscription != null)
+                {
+                    dbInvoice.SubscriptionId = subscription.Id;
+                }
+            }
 
             Db.Invoices.Add(dbInvoice);
         }
@@ -107,7 +105,7 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
             dbInvoice.AmountDue = invoice.AmountRemaining / 100m;
         }
 
-        // 3. Track first failure date in metadata
+        // Track first failure date in metadata
         var metadata = string.IsNullOrWhiteSpace(dbInvoice.Metadata)
             ? new Dictionary<string, string>()
             : JsonSerializer.Deserialize<Dictionary<string, string>>(dbInvoice.Metadata)
@@ -119,7 +117,7 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
             dbInvoice.Metadata = JsonSerializer.Serialize(metadata);
         }
 
-        // 4. Check grace period
+        // Check grace period
         var firstFailureDate = metadata.TryGetValue("first_failure_date", out var dateStr)
             ? DateTime.Parse(dateStr)
             : DateTime.UtcNow;
@@ -131,7 +129,7 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
             "Payment failed for invoice {InvoiceId} (attempt {Attempt}). Days since first failure: {Days}/{GraceDays}",
             dbInvoice.Id, dbInvoice.AttemptCount, (int)daysSinceFirstFailure, _gracePeriodDays);
 
-        // 5. Update subscription status if applicable
+        // Update subscription status if applicable
         if (dbInvoice.SubscriptionId.HasValue)
         {
             var subscription = await Db.Subscriptions

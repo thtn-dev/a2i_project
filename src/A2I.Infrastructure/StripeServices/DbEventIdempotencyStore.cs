@@ -33,25 +33,6 @@ public class DbEventIdempotencyStore : IEventIdempotencyStore
         return exists;
     }
 
-    public async Task MarkProcessedAsync(string eventId, CancellationToken ct)
-    {
-        // Note: This is called BEFORE processing
-        // Actual status will be updated after handler completes
-        var webhookEvent = new WebhookEvent
-        {
-            EventId = eventId,
-            EventType = "pending", // Will be updated by handler
-            ProcessedAt = DateTime.UtcNow,
-            Status = "processing",
-            Id = IdGenHelper.NewGuidId()
-        };
-
-        _db.WebhookEvents.Add(webhookEvent);
-        await _db.SaveChangesAsync(ct);
-
-        _logger.LogDebug("Marked event {EventId} as processing", eventId);
-    }
-
     public Task MarkQueuedAsync(string eventId, string eventType, string? json, CancellationToken ct)
     {
         var webhookEvent = new WebhookEvent

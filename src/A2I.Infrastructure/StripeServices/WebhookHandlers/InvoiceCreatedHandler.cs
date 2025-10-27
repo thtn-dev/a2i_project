@@ -25,10 +25,12 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
         Event stripeEvent,
         CancellationToken ct)
     {
-        var invoice = stripeEvent.Data.Object as Stripe.Invoice;
-        if (invoice == null) return new WebhookHandlerResult(false, "Invalid invoice data");
+        if (stripeEvent.Data.Object is not Stripe.Invoice invoice)
+        {
+            return new WebhookHandlerResult(false, "Invalid invoice data");
+        }
 
-        // Skip draft invoices (they're not finalized yet)
+        // Skip draft invoices
         if (invoice.Status == "draft")
         {
             Logger.LogDebug(
@@ -40,7 +42,6 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
                 "Draft invoice ignored (will process when finalized)");
         }
 
-        // Check if invoice already exists
         var existingInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
 
@@ -55,7 +56,6 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
                 $"Invoice already exists: {existingInvoice.Id}");
         }
 
-        // Find customer
         var customer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == invoice.CustomerId, ct);
 
@@ -71,7 +71,6 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
                 true);
         }
 
-        // Create invoice
         var dbInvoice = new Invoice
         {
             Id = Guid.NewGuid(),
@@ -92,19 +91,19 @@ public class InvoiceCreatedHandler : WebhookEventHandlerBase
             InvoicePdf = invoice.InvoicePdf
         };
 
-        // // Link to subscription if exists
-        // if (!string.IsNullOrWhiteSpace(invoice.SubscriptionId))
-        // {
-        //     var subscription = await Db.Subscriptions
-        //         .FirstOrDefaultAsync(
-        //             s => s.StripeSubscriptionId == invoice.SubscriptionId,
-        //             ct);
-        //     
-        //     if (subscription != null)
-        //     {
-        //         dbInvoice.SubscriptionId = subscription.Id;
-        //     }
-        // }
+        // Link to subscription if exists
+        if (!string.IsNullOrWhiteSpace(invoice.Parent.SubscriptionDetails.SubscriptionId))
+        {
+            var subscription = await Db.Subscriptions
+                .FirstOrDefaultAsync(
+                    s => s.StripeSubscriptionId == invoice.Parent.SubscriptionDetails.SubscriptionId,
+                    ct);
+            
+            if (subscription != null)
+            {
+                dbInvoice.SubscriptionId = subscription.Id;
+            }
+        }
 
         Db.Invoices.Add(dbInvoice);
         await Db.SaveChangesAsync(ct);

@@ -35,7 +35,6 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
         var invoice = stripeEvent.Data.Object as StripeInvoice;
         if (invoice == null) return new WebhookHandlerResult(false, "Invalid invoice data");
 
-        // 1. Find customer
         var customer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == invoice.CustomerId, ct);
 
@@ -51,7 +50,6 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
                 true);
         }
 
-        // 2. Find or create invoice
         var dbInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
 
@@ -79,18 +77,18 @@ public class InvoicePaymentActionRequiredHandler : WebhookEventHandlerBase
             };
 
             // Link to subscription
-            // if (!string.IsNullOrWhiteSpace(invoice.SubscriptionId))
-            // {
-            //     var subscription = await Db.Subscriptions
-            //         .FirstOrDefaultAsync(
-            //             s => s.StripeSubscriptionId == invoice.SubscriptionId,
-            //             ct);
-            //     
-            //     if (subscription != null)
-            //     {
-            //         dbInvoice.SubscriptionId = subscription.Id;
-            //     }
-            // }
+            if (!string.IsNullOrWhiteSpace(invoice.Parent.SubscriptionDetails.SubscriptionId))
+            {
+                var subscription = await Db.Subscriptions
+                    .FirstOrDefaultAsync(
+                        s => s.StripeSubscriptionId == invoice.Parent.SubscriptionDetails.SubscriptionId,
+                        ct);
+                
+                if (subscription != null)
+                {
+                    dbInvoice.SubscriptionId = subscription.Id;
+                }
+            }
 
             Db.Invoices.Add(dbInvoice);
 

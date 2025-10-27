@@ -1,5 +1,3 @@
-// src/A2I.Infrastructure/StripeServices/WebhookHandlers/CustomerUpdatedHandler.cs
-
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +24,6 @@ public class CustomerUpdatedHandler : WebhookEventHandlerBase
         var customer = stripeEvent.Data.Object as Customer;
         if (customer == null) return new WebhookHandlerResult(false, "Invalid customer data");
 
-        // Find customer in DB
         var dbCustomer = await Db.Customers
             .FirstOrDefaultAsync(c => c.StripeCustomerId == customer.Id, ct);
 
@@ -76,7 +73,7 @@ public class CustomerUpdatedHandler : WebhookEventHandlerBase
             }
         }
 
-        if (changes.Any())
+        if (changes.Count != 0)
         {
             await Db.SaveChangesAsync(ct);
 
@@ -93,7 +90,7 @@ public class CustomerUpdatedHandler : WebhookEventHandlerBase
 
         return new WebhookHandlerResult(
             true,
-            changes.Any()
+            changes.Count != 0
                 ? $"Customer synced: {string.Join(", ", changes)}"
                 : "No changes to sync");
     }

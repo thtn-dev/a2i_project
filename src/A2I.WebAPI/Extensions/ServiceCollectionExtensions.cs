@@ -23,7 +23,7 @@ namespace A2I.WebAPI.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddDatabaseServices(
+    public static void AddDatabaseServices(
         this IServiceCollection services,
         IConfiguration configuration,
         IHostEnvironment environment
@@ -62,8 +62,6 @@ public static class ServiceCollectionExtensions
             //         logger: (eventData) => loggerService.LogWarning("Database event: {EventData}", eventData.ToString()));
             // }
         });
-
-        return services;
     }
 
     public static string BuildConnectionString(DatabaseOptions dbOptions)
@@ -85,7 +83,7 @@ public static class ServiceCollectionExtensions
         return builder.ConnectionString;
     }
 
-    public static IServiceCollection AddStripeServices(this IServiceCollection services, IConfiguration configuration)
+    public static void AddStripeServices(this IServiceCollection services, IConfiguration configuration)
     {
         var stripeSection = configuration.GetSection(StripeOptions.SectionName);
         services.Configure<StripeOptions>(stripeSection);
@@ -93,23 +91,28 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IStripeCustomerService, StripeCustomerService>();
         services.AddScoped<IStripePortalService, StripePortalService>();
         services.AddScoped<IStripeSubscriptionService, StripeSubscriptionService>();
-        services.AddScoped<IStripeWebhookService, StripeWebhookService>();
 
         services.AddScoped<ICustomerApplicationService, CustomerApplicationService>();
         services.AddScoped<IInvoiceApplicationService, InvoiceApplicationService>();
         services.AddScoped<IEmailService, MockEmailService>();
         services.AddScoped<ISubscriptionApplicationService, SubscriptionApplicationService>();
         services.AddScoped<IEventIdempotencyStore, DbEventIdempotencyStore>();
-
+        services.AddScoped<IWebhookEventDispatcher, WebhookEventDispatcher>();
+        
         // Register all webhook handlers
         services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
-        services.AddScoped<IWebhookEventHandler, SubscriptionCreatedHandler>();
-        services.AddScoped<IWebhookEventHandler, InvoicePaidHandler>();
-        services.AddScoped<IWebhookEventHandler, InvoicePaymentFailedHandler>();
-        services.AddScoped<IWebhookEventHandler, SubscriptionUpdatedHandler>();
-        services.AddScoped<IWebhookEventHandler, SubscriptionDeletedHandler>();
         services.AddScoped<IWebhookEventHandler, CustomerCreatedHandler>();
-        services.AddScoped<IWebhookEventDispatcher, WebhookEventDispatcher>();
-        return services;
+        services.AddScoped<IWebhookEventHandler, CustomerDeletedHandler>();
+        services.AddScoped<IWebhookEventHandler, CustomerUpdatedHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoiceCreatedHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoiceFinalizedHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoicePaidHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoicePaymentActionRequiredHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoicePaymentFailedHandler>();
+        services.AddScoped<IWebhookEventHandler, InvoiceVoidedHandler>();
+        services.AddScoped<IWebhookEventHandler, SubscriptionCreatedHandler>();
+        services.AddScoped<IWebhookEventHandler, SubscriptionDeletedHandler>();
+        services.AddScoped<IWebhookEventHandler, SubscriptionTrialWillEndHandler>();
+        services.AddScoped<IWebhookEventHandler, SubscriptionUpdatedHandler>();
     }
 }

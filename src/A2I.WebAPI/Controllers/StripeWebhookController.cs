@@ -1,33 +1,24 @@
+using A2I.Application.StripeAbstraction;
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Infrastructure.StripeServices;
 using Hangfire;
 using Hangfire.States;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Stripe;
 
 namespace A2I.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/webhooks")]
-public class StripeWebhookController : ControllerBase
+public class StripeWebhookController(
+    IEventIdempotencyStore idempotencyStore,
+    IOptions<StripeOptions> options,
+    ILogger<StripeWebhookController> logger)
+    : ControllerBase
 {
-    private readonly IConfiguration _config;
-    private readonly IEventIdempotencyStore _idempotencyStore;
-    private readonly ILogger<StripeWebhookController> _logger;
-    private readonly IStripeWebhookService _webhookService;
-
-    public StripeWebhookController(
-        IStripeWebhookService webhookService,
-        IEventIdempotencyStore idempotencyStore,
-        IConfiguration config,
-        ILogger<StripeWebhookController> logger)
-    {
-        _webhookService = webhookService;
-        _idempotencyStore = idempotencyStore;
-        _config = config;
-        _logger = logger;
-    }
+    private readonly StripeOptions _stripeOptions = options.Value;
 
     [HttpPost("stripe")]
     [AllowAnonymous]
@@ -43,25 +34,28 @@ public class StripeWebhookController : ControllerBase
             var signature = Request.Headers["Stripe-Signature"].FirstOrDefault();
             if (string.IsNullOrEmpty(signature))
             {
-                _logger.LogWarning("Webhook received without Stripe signature");
+                logger.LogWarning("Webhook received without Stripe signature");
                 return BadRequest(new { error = "Missing Stripe-Signature header" });
             }
-
-            var secret = _config["Stripe:WebhookSecret"]
-                         ?? throw new InvalidOperationException("Stripe:WebhookSecret not configured");
-
-            var stripeEvent = _webhookService.ConstructEvent(json, signature, secret);
+            
+            var secret = _stripeOptions.WebhookSecret;
+            if (string.IsNullOrWhiteSpace(secret))
+            {
+                throw new InvalidOperationException("Stripe:WebhookSecret not configured");
+            }
+            
+            var stripeEvent = EventUtility.ConstructEvent(json, signature, secret, throwOnApiVersionMismatch: true);
             eventId = stripeEvent.Id;
 
-            _logger.LogInformation("Received Stripe webhook: {EventType} {EventId}", stripeEvent.Type, eventId);
+            logger.LogInformation("Received Stripe webhook: {EventType} {EventId}", stripeEvent.Type, eventId);
 
-            if (await _idempotencyStore.HasProcessedAsync(eventId, ct))
+            if (await idempotencyStore.HasProcessedAsync(eventId, ct))
             {
-                _logger.LogInformation("Webhook {EventId} already processed (duplicate)", eventId);
+                logger.LogInformation("Webhook {EventId} already processed (duplicate)", eventId);
                 return Ok(new { received = true, message = "Event already processed" });
             }
 
-            await _idempotencyStore.MarkQueuedAsync(eventId, stripeEvent.Type, json, ct);
+            await idempotencyStore.MarkQueuedAsync(eventId, stripeEvent.Type, json, ct);
 
             var client = HttpContext.RequestServices.GetRequiredService<IBackgroundJobClient>();
             client.Create<IStripeWebhookJob>(
@@ -78,12 +72,12 @@ public class StripeWebhookController : ControllerBase
         }
         catch (StripeException ex)
         {
-            _logger.LogError(ex, "Stripe webhook signature validation failed");
+            logger.LogError(ex, "Stripe webhook signature validation failed");
             return BadRequest(new { error = "Invalid signature", eventId });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled error enqueueing webhook {EventId}", eventId);
+            logger.LogError(ex, "Unhandled error enqueueing webhook {EventId}", eventId);
             // Stripe will retry if status code is 500, so we return 200 here to avoid infinite retries
             return Ok(new { received = true, eventId, success = false, error = ex.Message });
         }

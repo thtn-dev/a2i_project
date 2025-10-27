@@ -161,8 +161,7 @@ public sealed class StripeCheckoutService : IStripeCheckoutService
         var status = (HttpStatusCode?)ex.HttpStatusCode;
         return status is HttpStatusCode.TooManyRequests or HttpStatusCode.InternalServerError
                    or HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout
-               || string.Equals(ex.StripeError?.Type, "api_connection_error", StringComparison.OrdinalIgnoreCase)
-               || string.Equals(ex.StripeError?.Type, "rate_limit_error", StringComparison.OrdinalIgnoreCase);
+               || string.Equals(ex.StripeError?.Type, "api_error", StringComparison.OrdinalIgnoreCase);
     }
 
     private static (string? code, string? requestId, string? stripeCode, int? http) ExtractStripeError(Exception ex)

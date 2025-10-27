@@ -33,7 +33,6 @@ public class SubscriptionDeletedHandler : WebhookEventHandlerBase
         var subscription = stripeEvent.Data.Object as Subscription;
         if (subscription == null) return new WebhookHandlerResult(false, "Invalid subscription data");
 
-        // 1. Find subscription in DB
         var dbSubscription = await Db.Subscriptions
             .Include(s => s.Customer)
             .Include(s => s.Plan)
@@ -64,12 +63,11 @@ public class SubscriptionDeletedHandler : WebhookEventHandlerBase
                 $"Subscription {dbSubscription.Id} already deleted");
         }
 
-        // 2. Update subscription status
+        // Update subscription status
         dbSubscription.Status = SubscriptionStatus.Canceled;
         dbSubscription.CanceledAt = subscription.CanceledAt ?? DateTime.UtcNow;
         dbSubscription.EndedAt = subscription.EndedAt ?? DateTime.UtcNow;
 
-        // 3. Soft delete (preserve data for analytics)
         dbSubscription.IsDeleted = true;
         dbSubscription.DeletedAt = DateTime.UtcNow;
 
@@ -79,7 +77,7 @@ public class SubscriptionDeletedHandler : WebhookEventHandlerBase
 
         await Db.SaveChangesAsync(ct);
 
-        // 4. Queue cancellation confirmation email
+        // Queue cancellation confirmation email
         BackgroundJob.Enqueue(() =>
             _emailService.SendCancellationEmailAsync(
                 dbSubscription.CustomerId,

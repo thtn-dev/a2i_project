@@ -1,5 +1,3 @@
-// src/A2I.Infrastructure/StripeServices/WebhookHandlers/CustomerCreatedHandler.cs
-
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +39,6 @@ public class CustomerCreatedHandler : WebhookEventHandlerBase
                 $"Customer already synced: {dbCustomer.Id}");
         }
 
-        // Log for tracking (actual customer creation happens via API/Checkout)
         Logger.LogInformation(
             "Stripe customer created: {StripeCustomerId} ({Email}). " +
             "Note: DB customer should be created via application flow.",

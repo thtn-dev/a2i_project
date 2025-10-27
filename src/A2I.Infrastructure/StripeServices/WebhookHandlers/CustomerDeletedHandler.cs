@@ -59,10 +59,9 @@ public class CustomerDeletedHandler : WebhookEventHandlerBase
                 "Customer has active subscriptions - manual review needed");
         }
 
-        // Soft delete customer (preserve data)
         dbCustomer.IsDeleted = true;
         dbCustomer.DeletedAt = DateTime.UtcNow;
-        dbCustomer.StripeCustomerId = null; // Clear Stripe ID
+        dbCustomer.StripeCustomerId = null;
 
         await Db.SaveChangesAsync(ct);
 

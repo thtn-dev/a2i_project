@@ -31,9 +31,11 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
         Event stripeEvent,
         CancellationToken ct)
     {
-        var session = stripeEvent.Data.Object as Session;
-        if (session == null) return new WebhookHandlerResult(false, "Invalid session data");
-        // 1. Verify session status
+        if (stripeEvent.Data.Object is not Session session)
+        {
+            return new WebhookHandlerResult(false, "Invalid session data");
+        }
+        // Verify session status
         if (session.Status != "complete")
         {
             Logger.LogWarning(
@@ -56,7 +58,7 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
                 "Session has no subscription (might be one-time payment)");
         }
 
-        // 2. Extract metadata
+        // Extract metadata
         var metadata = session.Metadata ?? new Dictionary<string, string>();
         if (!metadata.TryGetValue("customer_id", out var customerIdStr) ||
             !Guid.TryParse(customerIdStr, out var customerId))
@@ -78,7 +80,7 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
             return new WebhookHandlerResult(false, "Missing plan_id in metadata");
         }
 
-        // 3. Check if subscription already exists (idempotency)
+        // Check if subscription already exists (idempotency)
         var existingSubscription = await Db.Subscriptions
             .FirstOrDefaultAsync(
                 s => s.StripeSubscriptionId == session.SubscriptionId,
@@ -103,7 +105,7 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
                 $"Subscription already exists: {existingSubscription.Id}");
         }
 
-        // 4. Verify customer and plan exist
+        // Verify customer and plan exist
         var customer = await Db.Customers.FindAsync(new object[] { customerId }, ct);
         if (customer == null)
         {
@@ -118,7 +120,7 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
             return new WebhookHandlerResult(false, "Plan not found", true);
         }
 
-        // 5. Get full subscription details from Stripe
+        // Get full subscription details from Stripe
         var subscriptionService = new SubscriptionService();
         var stripeSubscription = await subscriptionService.GetAsync(session.SubscriptionId, cancellationToken: ct);
 
@@ -130,8 +132,7 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
 
             return new WebhookHandlerResult(false, "Stripe subscription not found", true);
         }
-
-        // 6. Create subscription in DB
+        
         var subscription = new Subscription
         {
             Id = Guid.NewGuid(),
@@ -159,7 +160,6 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
             "Created subscription {SubId} for customer {CustomerId} from checkout {SessionId}",
             subscription.Id, customerId, session.Id);
 
-        // 7. Queue welcome email
         BackgroundJob.Enqueue(() =>
             _emailService.SendWelcomeEmailAsync(
                 customerId,

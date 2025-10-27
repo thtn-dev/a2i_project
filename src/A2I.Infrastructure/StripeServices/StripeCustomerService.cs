@@ -317,11 +317,8 @@ public class StripeCustomerService : IStripeCustomerService
             HttpStatusCode.ServiceUnavailable or
             HttpStatusCode.GatewayTimeout)
             return true;
-        // Some Stripe error types are safe to retry (api_connection_error, rate_limit_error)
         var type = ex.StripeError?.Type?.ToLowerInvariant();
-        if (type is "api_connection_error" or "rate_limit_error") return true;
-
-        return false;
+        return type is "api_error";
     }
 
     private static (string? code, string? requestId, string? stripeCode, int? http) ExtractStripeError(Exception ex)

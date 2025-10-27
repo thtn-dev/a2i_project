@@ -35,9 +35,11 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
         CancellationToken ct)
     {
         if (stripeEvent.Data.Object is not StripeSubscription subscription)
+        {
             return new WebhookHandlerResult(false, "Invalid subscription data");
+        }
 
-        // 1. Check if subscription already exists (idempotency)
+        // Check if subscription already exists (idempotency)
         // This can happen if checkout.session.completed already created it
         var existingSubscription = await Db.Subscriptions
             .FirstOrDefaultAsync(
@@ -55,7 +57,7 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
                 $"Subscription already exists: {existingSubscription.Id}");
         }
 
-        // 2. Find customer by Stripe ID
+        // Find customer by Stripe ID
         var customer = await Db.Customers
             .FirstOrDefaultAsync(
                 c => c.StripeCustomerId == subscription.CustomerId,
@@ -73,7 +75,7 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
                 true);
         }
 
-        // 3. Find plan by Stripe price ID
+        // Find plan by Stripe price ID
         var priceId = subscription.Items?.Data?.FirstOrDefault()?.Price?.Id;
         if (string.IsNullOrWhiteSpace(priceId))
         {
@@ -99,7 +101,6 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
         }
 
         var currentPeriodEnd = plan.CalculateNextBillingDate(subscription.StartDate);
-        // 4. Create subscription in DB
         var newSubscription = new Subscription
         {
             Id = Guid.NewGuid(),
@@ -128,7 +129,7 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
             "Created subscription {SubId} for customer {CustomerId} via subscription.created event",
             newSubscription.Id, customer.Id);
 
-        // 5. Send welcome email if not in trial (trial welcome is sent at trial end)
+        // Send welcome email if not in trial (trial welcome is sent at trial end)
         if (!newSubscription.IsInTrial)
             BackgroundJob.Enqueue(() =>
                 _emailService.SendWelcomeEmailAsync(

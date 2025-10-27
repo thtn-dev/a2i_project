@@ -27,23 +27,18 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         _logger = logger;
     }
 
-    // ==================== CREATE OR UPDATE CUSTOMER ====================
-
     public async Task<CustomerDetailsResponse> CreateOrUpdateCustomerAsync(
         CreateOrUpdateCustomerRequest request,
         CancellationToken ct = default)
     {
-        // 1. Get customer from DB
         var customer = await _db.Customers
             .FirstOrDefaultAsync(c => c.Id == request.CustomerId, ct);
 
         if (customer is null)
             throw new BusinessException($"Customer not found: {request.CustomerId}");
 
-        // 2. Create or update Stripe customer
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
         {
-            // Create new Stripe customer
             var createRequest = new CreateCustomerRequest
             {
                 Email = request.Email,
@@ -54,12 +49,10 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
                 Metadata = request.Metadata ?? new Dictionary<string, string>()
             };
 
-            // Add internal customer ID to metadata
             createRequest.Metadata["internal_customer_id"] = customer.Id.ToString();
 
             var stripeCustomer = await _customerService.CreateCustomerAsync(createRequest, ct);
 
-            // Update DB with Stripe customer ID
             customer.StripeCustomerId = stripeCustomer.Id;
 
             _logger.LogInformation(
@@ -68,7 +61,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         }
         else
         {
-            // Update existing Stripe customer
             var updateRequest = new UpdateCustomerRequest
             {
                 Email = request.Email,
@@ -86,7 +78,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
                 customer.StripeCustomerId, customer.Id);
         }
 
-        // 3. Update customer in DB
         customer.Email = request.Email;
         customer.FirstName = request.FirstName;
         customer.LastName = request.LastName;
@@ -95,17 +86,13 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
 
         await _db.SaveChangesAsync(ct);
 
-        // 4. Return customer details
         return await GetCustomerDetailsAsync(customer.Id, ct);
     }
-
-    // ==================== GET CUSTOMER DETAILS ====================
 
     public async Task<CustomerDetailsResponse> GetCustomerDetailsAsync(
         Guid customerId,
         CancellationToken ct = default)
     {
-        // 1. Get customer with related data
         var customer = await _db.Customers
             .Include(c => c.Subscriptions.Where(s => !s.IsDeleted))
             .ThenInclude(s => s.Plan)
@@ -115,7 +102,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         if (customer is null)
             throw new BusinessException($"Customer not found: {customerId}");
 
-        // 2. Get active subscription
         var activeSubscription = customer.Subscriptions
             .FirstOrDefault(s => s.IsActive);
 
@@ -134,7 +120,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
                 TrialEnd = activeSubscription.TrialEnd
             };
 
-        // 3. Get recent invoices (last 5)
         var recentInvoices = customer.Invoices
             .OrderByDescending(i => i.CreatedAt)
             .Take(5)
@@ -156,7 +141,7 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
             })
             .ToList();
 
-        // 4. Get payment methods from Stripe (if customer exists)
+        // Get payment methods from Stripe (if customer exists)
         var paymentMethods = new List<PaymentMethodDto>();
         string? defaultPaymentMethodId = null;
 
@@ -187,7 +172,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
                     customerId);
             }
 
-        // 5. Build response
         return new CustomerDetailsResponse
         {
             Id = customer.Id,
@@ -207,14 +191,11 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         };
     }
 
-    // ==================== UPDATE PAYMENT METHOD ====================
-
     public async Task<UpdatePaymentMethodResponse> UpdatePaymentMethodAsync(
         Guid customerId,
         UpdatePaymentMethodRequest request,
         CancellationToken ct = default)
     {
-        // 1. Get customer
         var customer = await _db.Customers
             .FirstOrDefaultAsync(c => c.Id == customerId, ct);
 
@@ -224,7 +205,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
             throw new BusinessException("Customer does not have a Stripe customer ID");
 
-        // 2. Attach payment method to Stripe customer
         var result = await _customerService.AttachPaymentMethodAsync(
             customer.StripeCustomerId,
             request.PaymentMethodId,
@@ -234,7 +214,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
             "Attached payment method {PaymentMethodId} to customer {CustomerId}. SetAsDefault={SetAsDefault}",
             request.PaymentMethodId, customerId, result.SetAsDefaultForInvoices);
 
-        // 3. If there's an active subscription, update it to use the new payment method
         var activeSubscription = await _db.Subscriptions
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, ct);
 
@@ -254,14 +233,11 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         };
     }
 
-    // ==================== GET CUSTOMER PORTAL URL ====================
-
     public async Task<CustomerPortalResponse> GetCustomerPortalUrlAsync(
         Guid customerId,
         string returnUrl,
         CancellationToken ct = default)
     {
-        // 1. Get customer
         var customer = await _db.Customers
             .FirstOrDefaultAsync(c => c.Id == customerId, ct);
 
@@ -271,7 +247,6 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
             throw new BusinessException("Customer does not have a Stripe customer ID. Please complete checkout first.");
 
-        // 2. Create portal session
         var portalSession = await _portalService.CreatePortalSessionAsync(
             customer.StripeCustomerId,
             returnUrl,

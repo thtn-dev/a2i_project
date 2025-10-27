@@ -32,7 +32,6 @@ public class SubscriptionTrialWillEndHandler : WebhookEventHandlerBase
         var subscription = stripeEvent.Data.Object as Subscription;
         if (subscription == null) return new WebhookHandlerResult(false, "Invalid subscription data");
 
-        // 1. Find subscription in DB
         var dbSubscription = await Db.Subscriptions
             .Include(s => s.Customer)
             .Include(s => s.Plan)
@@ -52,7 +51,6 @@ public class SubscriptionTrialWillEndHandler : WebhookEventHandlerBase
                 true);
         }
 
-        // 2. Verify trial end date
         if (!subscription.TrialEnd.HasValue)
         {
             Logger.LogWarning(
@@ -72,7 +70,6 @@ public class SubscriptionTrialWillEndHandler : WebhookEventHandlerBase
             Math.Round(daysUntilTrialEnd, 1),
             subscription.TrialEnd.Value);
 
-        // 3. Check if customer has payment method
         var hasPaymentMethod = false;
         if (!string.IsNullOrWhiteSpace(dbSubscription.Customer.StripeCustomerId))
             try
@@ -92,7 +89,7 @@ public class SubscriptionTrialWillEndHandler : WebhookEventHandlerBase
                     dbSubscription.CustomerId);
             }
 
-        // 4. Send trial ending email
+        // Send trial ending email
         BackgroundJob.Enqueue(() =>
             _emailService.SendTrialEndingEmailAsync(
                 dbSubscription.CustomerId,

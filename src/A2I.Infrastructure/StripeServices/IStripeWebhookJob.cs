@@ -30,14 +30,6 @@ public class StripeWebhookJob : IStripeWebhookJob
 
     public async Task HandleAsync(string eventId, string eventType, CancellationToken ct)
     {
-        // Double-check idempotency ngay trong worker (phòng race)
-        // if (await _idempotencyStore.HasProcessedAsync(eventId, ct))
-        // {
-        //     _logger.LogInformation("Skip {EventId}: already processed", eventId);
-        //     return;
-        // }
-
-        // Lấy raw JSON đã lưu từ controller
         var @event = await _idempotencyStore.GetEventStatusQueuedByEventIdAsync(eventId, ct);
         if (@event is null)
         {
@@ -49,7 +41,6 @@ public class StripeWebhookJob : IStripeWebhookJob
         if (string.IsNullOrWhiteSpace(json))
         {
             _logger.LogWarning("Missing JSON for {EventId}", eventId);
-            // Cho fail để retry (hoặc UpdateEventStatusAsync(..., "failed", ...))
             throw new InvalidOperationException($"Missing JSON for {eventId}");
         }
 
@@ -68,8 +59,7 @@ public class StripeWebhookJob : IStripeWebhookJob
             ct);
 
         if (!result.Success)
-            // Throw để cho phép AutomaticRetry của Hangfire kick in
-            throw new Exception(result.Message ?? "Unknown webhook handling error");
+            throw new Exception(result.Message);
 
         _logger.LogInformation("Processed webhook {EventId} OK", eventId);
     }

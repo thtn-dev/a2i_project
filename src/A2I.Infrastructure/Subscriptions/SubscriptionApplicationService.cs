@@ -1,4 +1,5 @@
 using System.Text.Json;
+using A2I.Application.Notifications;
 using A2I.Application.StripeAbstraction;
 using A2I.Application.StripeAbstraction.Checkout;
 using A2I.Application.StripeAbstraction.Subscriptions;
@@ -17,40 +18,39 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
     private readonly ApplicationDbContext _db;
     private readonly ILogger<SubscriptionApplicationService> _logger;
     private readonly IStripeSubscriptionService _subscriptionService;
+    private readonly IEmailService _emailService;
 
     public SubscriptionApplicationService(
         ApplicationDbContext db,
         IStripeCheckoutService checkoutService,
         IStripeSubscriptionService subscriptionService,
+        IEmailService emailService,
         ILogger<SubscriptionApplicationService> logger)
     {
         _db = db;
         _checkoutService = checkoutService;
         _subscriptionService = subscriptionService;
+        _emailService = emailService;
         _logger = logger;
     }
 
-    // ==================== START SUBSCRIPTION ====================
 
     public async Task<StartSubscriptionResponse> StartSubscriptionAsync(
         StartSubscriptionRequest request,
         CancellationToken ct = default)
     {
-        // 1. Validate customer exists
         var customer = await _db.Customers
             .FirstOrDefaultAsync(c => c.Id == request.CustomerId, ct);
 
         if (customer is null)
             throw new BusinessException($"Customer not found: {request.CustomerId}");
 
-        // 2. Validate plan exists and is active
         var plan = await _db.Plans
             .FirstOrDefaultAsync(p => p.Id == request.PlanId && p.IsActive == true, ct);
 
         if (plan is null)
             throw new BusinessException($"Plan not found or inactive: {request.PlanId}");
 
-        // 3. Check if customer already has an active subscription
         var hasActive = await _db.Subscriptions
             .AnyAsync(
                 s => s.CustomerId == request.CustomerId &&
@@ -59,11 +59,9 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         if (hasActive)
             throw new BusinessException("Customer already has an active subscription");
 
-        // 4. Ensure Stripe customer exists
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
             throw new BusinessException("Customer does not have a Stripe customer ID");
 
-        // 5. Create checkout session
         var checkoutRequest = new CreateCheckoutRequest
         {
             PriceId = plan.StripePriceId,
@@ -76,7 +74,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             Metadata = request.Metadata ?? new Dictionary<string, string>()
         };
 
-        // Add tracking metadata
         checkoutRequest.Metadata["customer_id"] = customer.Id.ToString();
         checkoutRequest.Metadata["plan_id"] = plan.Id.ToString();
 
@@ -94,13 +91,11 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         };
     }
 
-    // ==================== COMPLETE CHECKOUT ====================
 
     public async Task<SubscriptionDetailsResponse> CompleteCheckoutAsync(
         string checkoutSessionId,
         CancellationToken ct = default)
     {
-        // 1. Get and verify checkout session
         var session = await _checkoutService.GetCheckoutSessionAsync(checkoutSessionId, ct);
 
         if (session is null)
@@ -112,7 +107,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         if (string.IsNullOrWhiteSpace(session.SubscriptionId))
             throw new BusinessException("Checkout session has no subscription ID");
 
-        // 2. Check if subscription already exists in DB (idempotency)
         var existing = await _db.Subscriptions
             .FirstOrDefaultAsync(s => s.StripeSubscriptionId == session.SubscriptionId, ct);
 
@@ -124,13 +118,11 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             return await MapToDetailsResponse(existing, ct);
         }
 
-        // 3. Get subscription details from Stripe
         var stripeSub = await _subscriptionService.GetSubscriptionAsync(session.SubscriptionId, ct);
 
         if (stripeSub is null)
             throw new BusinessException($"Stripe subscription not found: {session.SubscriptionId}");
 
-        // 4. Get customer and plan from metadata or session
         var customerId = Guid.Parse(stripeSub.Metadata?["customer_id"] ??
                                     throw new BusinessException("Missing customer_id in metadata"));
         var planId = Guid.Parse(stripeSub.Metadata?["plan_id"] ??
@@ -142,7 +134,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         if (customer is null || plan is null)
             throw new BusinessException("Customer or Plan not found");
 
-        // 5. Create subscription in DB
         var subscription = new Subscription
         {
             Id = Guid.NewGuid(),
@@ -168,8 +159,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             "Created subscription {SubId} from checkout {SessionId}",
             subscription.Id, checkoutSessionId);
 
-        // TODO: Send welcome email here
-
         return await MapToDetailsResponse(subscription, ct);
     }
 
@@ -180,7 +169,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         CancelSubscriptionRequest request,
         CancellationToken ct = default)
     {
-        // 1. Get customer's active subscription
         var subscription = await _db.Subscriptions
             .Include(s => s.Plan)
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, ct);
@@ -188,13 +176,13 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         if (subscription is null)
             throw new BusinessException("No active subscription found for this customer");
 
-        // 2. Cancel on Stripe (NO REFUND policy)
+        // Cancel on Stripe (NO REFUND policy)
         var canceled = await _subscriptionService.CancelSubscriptionAsync(
             subscription.StripeSubscriptionId,
             request.CancelImmediately,
             ct);
 
-        // 3. Update DB
+        // Update DB
         subscription.Status = MapSubscriptionStatus(canceled.Status);
         subscription.CancelAtPeriodEnd = canceled.CancelAtPeriodEnd;
         subscription.CancelAt = canceled.CancelAt;
@@ -234,14 +222,11 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         };
     }
 
-    // ==================== UPGRADE SUBSCRIPTION ====================
-
     public async Task<UpgradeSubscriptionResponse> UpgradeSubscriptionAsync(
         Guid customerId,
         UpgradeSubscriptionRequest request,
         CancellationToken ct = default)
     {
-        // 1. Get customer's active subscription
         var subscription = await _db.Subscriptions
             .Include(s => s.Plan)
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, ct);
@@ -249,7 +234,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         if (subscription is null)
             throw new BusinessException("No active subscription found for this customer");
 
-        // 2. Validate new plan
         var newPlan = await _db.Plans
             .FirstOrDefaultAsync(p => p.Id == request.NewPlanId && p.IsActive, ct);
 
@@ -259,22 +243,20 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         if (subscription.PlanId == request.NewPlanId)
             throw new BusinessException("Customer is already on this plan");
 
-        // 3. Business Rule: Cannot downgrade during trial
+        // Rule: Cannot downgrade during trial
         if (subscription.IsInTrial && newPlan.Amount < subscription.Plan.Amount)
             throw new BusinessException("Cannot downgrade plan during trial period");
 
-        // 4. Change plan on Stripe
         var updated = await _subscriptionService.ChangeSubscriptionPlanAsync(
             subscription.StripeSubscriptionId,
             newPlan.StripePriceId,
             ct);
 
-        // 5. Calculate proration amount (approximation)
+        // Calculate proration amount (approximation)
         var prorationAmount = request.ApplyProration
             ? CalculateProration(subscription, newPlan)
             : 0m;
 
-        // 6. Update DB
         var oldPlanId = subscription.PlanId;
         subscription.PlanId = request.NewPlanId;
         subscription.Status = MapSubscriptionStatus(updated.Status);
@@ -298,8 +280,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         };
     }
 
-    // ==================== GET CUSTOMER SUBSCRIPTION ====================
-
     public async Task<SubscriptionDetailsResponse?> GetCustomerSubscriptionAsync(
         Guid customerId,
         CancellationToken ct = default)
@@ -314,7 +294,6 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         return await MapToDetailsResponse(subscription, ct);
     }
 
-    // ==================== HELPERS ====================
 
     private async Task<SubscriptionDetailsResponse> MapToDetailsResponse(
         Subscription subscription,

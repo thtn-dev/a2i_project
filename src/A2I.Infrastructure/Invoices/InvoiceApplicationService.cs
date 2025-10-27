@@ -21,27 +21,22 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
         _logger = logger;
     }
 
-    // ==================== GET CUSTOMER INVOICES (WITH PAGINATION) ====================
-
     public async Task<InvoiceListResponse> GetCustomerInvoicesAsync(
         Guid customerId,
         GetInvoicesRequest request,
         CancellationToken ct = default)
     {
-        // 1. Verify customer exists
         var customerExists = await _db.Customers
             .AnyAsync(c => c.Id == customerId, ct);
 
         if (!customerExists)
             throw new BusinessException($"Customer not found: {customerId}");
 
-        // 2. Build query
         var query = _db.Invoices
             .Include(i => i.Subscription)
             .ThenInclude(s => s!.Plan)
             .Where(i => i.CustomerId == customerId);
 
-        // 3. Apply filters
         if (!string.IsNullOrWhiteSpace(request.Status))
             if (Enum.TryParse<InvoiceStatus>(request.Status, true, out var status))
                 query = query.Where(i => i.Status == status);
@@ -54,14 +49,11 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             query = query.Where(i => i.CreatedAt <= toDateEnd);
         }
 
-        // 4. Get total count for pagination
         var totalItems = await query.CountAsync(ct);
 
-        // 5. Calculate pagination
         var totalPages = (int)Math.Ceiling(totalItems / (double)request.PageSize);
         var skip = (request.Page - 1) * request.PageSize;
 
-        // 6. Get paginated results
         var invoices = await query
             .OrderByDescending(i => i.CreatedAt)
             .Skip(skip)
@@ -94,7 +86,6 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             "Retrieved {Count} invoices for customer {CustomerId} (Page {Page}/{TotalPages})",
             invoices.Count, customerId, request.Page, totalPages);
 
-        // 7. Build response
         return new InvoiceListResponse
         {
             Items = invoices,
@@ -110,14 +101,12 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
         };
     }
 
-    // ==================== GET INVOICE DETAILS ====================
 
     public async Task<InvoiceDetailsResponse> GetInvoiceDetailsAsync(
         Guid customerId,
         Guid invoiceId,
         CancellationToken ct = default)
     {
-        // 1. Get invoice with related data
         var invoice = await _db.Invoices
             .Include(i => i.Customer)
             .Include(i => i.Subscription)
@@ -127,7 +116,6 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
         if (invoice is null)
             throw new BusinessException($"Invoice not found: {invoiceId}");
 
-        // 2. Verify ownership
         if (invoice.CustomerId != customerId)
         {
             _logger.LogWarning(
@@ -136,7 +124,6 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             throw new BusinessException("You do not have permission to access this invoice");
         }
 
-        // 3. Build line items (simple version - can be expanded)
         var lineItems = new List<InvoiceLineItemDto>();
 
         if (invoice.Subscription?.Plan is not null)
@@ -151,7 +138,6 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             });
         }
 
-        // 4. Build response
         var response = new InvoiceDetailsResponse
         {
             Id = invoice.Id,
@@ -191,21 +177,18 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
         return response;
     }
 
-    // ==================== DOWNLOAD INVOICE PDF ====================
 
     public async Task<InvoicePdfResponse> DownloadInvoicePdfAsync(
         Guid customerId,
         Guid invoiceId,
         CancellationToken ct = default)
     {
-        // 1. Get invoice
         var invoice = await _db.Invoices
             .FirstOrDefaultAsync(i => i.Id == invoiceId, ct);
 
         if (invoice is null)
             throw new BusinessException($"Invoice not found: {invoiceId}");
 
-        // 2. Verify ownership
         if (invoice.CustomerId != customerId)
         {
             _logger.LogWarning(
@@ -214,7 +197,6 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             throw new BusinessException("You do not have permission to access this invoice");
         }
 
-        // 3. Check if PDF URL exists
         if (string.IsNullOrWhiteSpace(invoice.InvoicePdf))
         {
             _logger.LogWarning(
@@ -223,7 +205,6 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             throw new BusinessException("Invoice PDF is not available");
         }
 
-        // 4. Return PDF URL
         _logger.LogInformation(
             "Retrieved PDF URL for invoice {InvoiceId} for customer {CustomerId}",
             invoiceId, customerId);

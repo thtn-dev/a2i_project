@@ -27,7 +27,6 @@ public class InvoiceVoidedHandler : WebhookEventHandlerBase
         var invoice = stripeEvent.Data.Object as Invoice;
         if (invoice == null) return new WebhookHandlerResult(false, "Invalid invoice data");
 
-        // Find invoice in DB
         var dbInvoice = await Db.Invoices
             .FirstOrDefaultAsync(i => i.StripeInvoiceId == invoice.Id, ct);
 

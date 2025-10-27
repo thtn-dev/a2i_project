@@ -30,8 +30,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         _retry = BuildRetryPolicy(_logger);
     }
 
-    // ---------------------------- Create ----------------------------
-
     public async Task<SubscriptionView> CreateSubscriptionAsync(CreateSubscriptionRequest req,
         CancellationToken ct = default)
     {
@@ -74,8 +72,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
     }
 
-    // ---------------------------- Get ----------------------------
-
     public async Task<SubscriptionView?> GetSubscriptionAsync(string subscriptionId, CancellationToken ct = default)
     {
         try
@@ -97,14 +93,11 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
     }
 
-    // ---------------------------- Update (quantity/metadata/trial) ----------------------------
-
     public async Task<SubscriptionView> UpdateSubscriptionAsync(string subscriptionId, UpdateSubscriptionRequest req,
         CancellationToken ct = default)
     {
         try
         {
-            // Lấy sub để lấy item id hiện tại khi cần update quantity
             var existing = await RetryAsync("Subscription.GetForUpdate",
                 c => _subSvc.GetAsync(subscriptionId, cancellationToken: c), ct);
 
@@ -137,8 +130,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
     }
 
-    // ---------------------------- Cancel ----------------------------
-
     public async Task<SubscriptionView> CancelSubscriptionAsync(string subscriptionId, bool immediately,
         CancellationToken ct = default)
     {
@@ -146,11 +137,9 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         {
             if (immediately)
             {
-                // Cancel ngay lập tức (có thể chọn InvoiceNow/Prorate; ở đây dùng mặc định Stripe)
                 var canceled = await RetryAsync("Subscription.CancelNow",
                     c => _subSvc.CancelAsync(subscriptionId, new SubscriptionCancelOptions
                     {
-                        // Tùy nhu cầu có thể bật:
                         // InvoiceNow = true,
                         // Prorate = true
                     }, cancellationToken: c), ct);
@@ -177,14 +166,11 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
     }
 
-    // ---------------------------- Reactivate (un-cancel at period end) ----------------------------
-
     public async Task<SubscriptionView> ReactivateSubscriptionAsync(string subscriptionId,
         CancellationToken ct = default)
     {
         try
         {
-            // Nếu chưa kết thúc và đang set CancelAtPeriodEnd = true thì bỏ cờ này
             var updated = await RetryAsync("Subscription.Reactivate",
                 c => _subSvc.UpdateAsync(subscriptionId, new SubscriptionUpdateOptions
                 {
@@ -201,8 +187,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
     }
 
-    // ---------------------------- Change Plan (price) ----------------------------
-
     public async Task<SubscriptionView> ChangeSubscriptionPlanAsync(string subscriptionId, string newPriceId,
         CancellationToken ct = default)
     {
@@ -218,7 +202,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
 
             var update = new SubscriptionUpdateOptions
             {
-                // Mặc định: tạo prorations. Cho phép caller điều chỉnh qua một overload khác nếu cần
                 ProrationBehavior = "create_prorations",
                 Items = new List<SubscriptionItemOptions>
                 {
@@ -244,8 +227,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
             throw StripeErrorMapper.Wrap(ex, "Failed to change Stripe subscription plan.");
         }
     }
-
-    // ---------------------------- Pause / Resume ----------------------------
 
     public async Task<SubscriptionView> PauseSubscriptionAsync(string subscriptionId,
         PauseBehavior behavior = PauseBehavior.KeepAsDraft, CancellationToken ct = default)
@@ -299,8 +280,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         }
     }
 
-    // ---------------------------- Helpers ----------------------------
-
     private static string MapProration(ProrationMode mode)
     {
         return mode switch
@@ -340,8 +319,6 @@ public sealed class StripeSubscriptionService : IStripeSubscriptionService
         var idem = $"{prefix}{action}:{keyHint}:{Guid.NewGuid():N}";
         return new RequestOptions { IdempotencyKey = idem };
     }
-
-    // -------- Polly retry policy --------
 
     private static AsyncRetryPolicy BuildRetryPolicy(ILogger logger)
     {
