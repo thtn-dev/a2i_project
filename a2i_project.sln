@@ -16,6 +16,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.Application", "src\A2I.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.Infrastructure", "src\A2I.Infrastructure\A2I.Infrastructure.csproj", "{071A8241-4700-4E92-845B-9602FC3F13BE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.Infrastructure.Caching", "src\A2I.Infrastructure.Caching\A2I.Infrastructure.Caching.csproj", "{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{FBC38449-7810-43D3-9340-856DFEF1104F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +28,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1451FA68-12D2-45FA-A0E0-DD0DBFAE09A9} = {9C3CF96F-798B-4AA9-B947-6E44B6C64F10}
 		{C6C9A901-B3F5-441C-B884-BBEAC2E4DB2D} = {9C3CF96F-798B-4AA9-B947-6E44B6C64F10}
+		{071A8241-4700-4E92-845B-9602FC3F13BE} = {FBC38449-7810-43D3-9340-856DFEF1104F}
+		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8} = {FBC38449-7810-43D3-9340-856DFEF1104F}
+		{6871E8C4-E2D9-4333-9C7D-CF3218E8F48B} = {FBC38449-7810-43D3-9340-856DFEF1104F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1451FA68-12D2-45FA-A0E0-DD0DBFAE09A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -54,5 +61,9 @@ Global
 		{071A8241-4700-4E92-845B-9602FC3F13BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{071A8241-4700-4E92-845B-9602FC3F13BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{071A8241-4700-4E92-845B-9602FC3F13BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

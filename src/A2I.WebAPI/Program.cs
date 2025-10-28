@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using A2I.Infrastructure.Caching;
 using A2I.Infrastructure.Database;
 using A2I.Infrastructure.StripeServices;
 using A2I.WebAPI.Endpoints.Customers;
@@ -77,6 +78,14 @@ public sealed class Program
         {
             options.WorkerCount = 5;
             options.Queues = ["stripe-webhooks", "emails", "default"];
+        });
+        
+        builder.Services.AddCacheService(options =>
+        {
+            options.CacheType = CacheType.Redis;
+            options.ConnectionString = "localhost:6379";
+            options.DefaultExpirationMinutes = 30;
+            options.InstanceName = "MyApp";
         });
 
         builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();

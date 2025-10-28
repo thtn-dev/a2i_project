@@ -1,3 +1,4 @@
+using A2I.Application.Common.Caching;
 using A2I.Application.Customers;
 using A2I.Application.Invoices;
 using A2I.Application.Notifications;
@@ -8,6 +9,8 @@ using A2I.Application.StripeAbstraction.Portal;
 using A2I.Application.StripeAbstraction.Subscriptions;
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Application.Subscriptions;
+using A2I.Infrastructure.Caching;
+using A2I.Infrastructure.Caching.Providers;
 using A2I.Infrastructure.Customers;
 using A2I.Infrastructure.Database;
 using A2I.Infrastructure.Invoices;
@@ -18,6 +21,7 @@ using A2I.Infrastructure.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
+using StackExchange.Redis;
 
 namespace A2I.WebAPI.Extensions;
 
@@ -102,18 +106,45 @@ public static class ServiceCollectionExtensions
 
         // Register all webhook handlers
         services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
+        
         services.AddScoped<IWebhookEventHandler, CustomerCreatedHandler>();
         services.AddScoped<IWebhookEventHandler, CustomerDeletedHandler>();
         services.AddScoped<IWebhookEventHandler, CustomerUpdatedHandler>();
+        
         services.AddScoped<IWebhookEventHandler, InvoiceCreatedHandler>();
         services.AddScoped<IWebhookEventHandler, InvoiceFinalizedHandler>();
         services.AddScoped<IWebhookEventHandler, InvoicePaidHandler>();
         services.AddScoped<IWebhookEventHandler, InvoicePaymentActionRequiredHandler>();
         services.AddScoped<IWebhookEventHandler, InvoicePaymentFailedHandler>();
         services.AddScoped<IWebhookEventHandler, InvoiceVoidedHandler>();
+        
         services.AddScoped<IWebhookEventHandler, SubscriptionCreatedHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionDeletedHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionTrialWillEndHandler>();
         services.AddScoped<IWebhookEventHandler, SubscriptionUpdatedHandler>();
+    }
+    
+    public static void AddCacheService(
+        this IServiceCollection services, 
+        Action<CacheOptions> configureOptions)
+    {
+        var options = new CacheOptions();
+        configureOptions(options);
+        services.AddSingleton(options);
+
+        if (options.CacheType == CacheType.Redis)
+        {
+            if (string.IsNullOrEmpty(options.ConnectionString))
+                throw new ArgumentException("Redis connection string is required for Redis cache type.");
+
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+                ConnectionMultiplexer.Connect(options.ConnectionString));
+
+            services.AddSingleton<ICacheService, RedisCacheService>();
+        }
+        else
+        {
+            throw new NotImplementedException("Memory cache is not implemented yet.");
+        }
     }
 }
