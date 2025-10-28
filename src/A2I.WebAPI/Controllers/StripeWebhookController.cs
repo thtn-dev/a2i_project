@@ -37,13 +37,13 @@ public class StripeWebhookController(
                 logger.LogWarning("Webhook received without Stripe signature");
                 return BadRequest(new { error = "Missing Stripe-Signature header" });
             }
-            
+
             var secret = _stripeOptions.WebhookSecret;
             if (string.IsNullOrWhiteSpace(secret))
             {
                 throw new InvalidOperationException("Stripe:WebhookSecret not configured");
             }
-            
+
             var stripeEvent = EventUtility.ConstructEvent(json, signature, secret, throwOnApiVersionMismatch: true);
             eventId = stripeEvent.Id;
 

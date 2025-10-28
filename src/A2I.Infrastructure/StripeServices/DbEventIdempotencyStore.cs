@@ -1,5 +1,6 @@
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Core.Entities;
+using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
 using BuildingBlocks.Utils.Helpers;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +23,7 @@ public class DbEventIdempotencyStore : IEventIdempotencyStore
 
     public async Task<bool> HasProcessedAsync(string eventId, CancellationToken ct)
     {
-        var exists = await _db.WebhookEvents.AsNoTracking()
+        var exists = await _db.StripeWebhookEvents.AsNoTracking()
             .AnyAsync(e => e.EventId == eventId, ct);
 
         if (exists)
@@ -35,27 +36,27 @@ public class DbEventIdempotencyStore : IEventIdempotencyStore
 
     public Task MarkQueuedAsync(string eventId, string eventType, string? json, CancellationToken ct)
     {
-        var webhookEvent = new WebhookEvent
+        var webhookEvent = new StripeWebhookEvent
         {
             EventId = eventId,
             EventType = eventType,
             ProcessedAt = DateTime.UtcNow,
-            Status = "queued",
+            Status = StripeWebhookStatus.Queued,
             Id = IdGenHelper.NewGuidId(),
             RawData = json
         };
-        _db.WebhookEvents.Add(webhookEvent);
+        _db.StripeWebhookEvents.Add(webhookEvent);
         return _db.SaveChangesAsync(ct);
     }
 
     public async Task UpdateEventStatusAsync(
         string eventId,
         string eventType,
-        string status,
+        StripeWebhookStatus status,
         string? errorMessage = null,
         CancellationToken ct = default)
     {
-        var webhookEvent = await _db.WebhookEvents
+        var webhookEvent = await _db.StripeWebhookEvents
             .FirstOrDefaultAsync(e => e.EventId == eventId, ct);
 
         if (webhookEvent != null)
@@ -65,17 +66,17 @@ public class DbEventIdempotencyStore : IEventIdempotencyStore
             webhookEvent.ErrorMessage = errorMessage;
             webhookEvent.ProcessedAt = DateTime.UtcNow;
 
-            if (status == "failed")
+            if (status == StripeWebhookStatus.Failed)
                 webhookEvent.RetryCount++;
 
             await _db.SaveChangesAsync(ct);
         }
     }
 
-    public Task<WebhookEvent?> GetEventStatusQueuedByEventIdAsync(string eventId, CancellationToken ct = default)
+    public Task<StripeWebhookEvent?> GetEventStatusQueuedByEventIdAsync(string eventId, CancellationToken ct = default)
     {
-        return _db.WebhookEvents
+        return _db.StripeWebhookEvents
             .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.EventId == eventId && e.Status == "queued", ct);
+            .FirstOrDefaultAsync(e => e.EventId == eventId && e.Status == StripeWebhookStatus.Queued, ct);
     }
 }

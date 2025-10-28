@@ -7,6 +7,7 @@ using A2I.Application.Subscriptions;
 using A2I.Core.Entities;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
+using BuildingBlocks.Utils.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -136,7 +137,7 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
 
         var subscription = new Subscription
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenHelper.NewGuidId(),
             CustomerId = customerId,
             PlanId = planId,
             StripeSubscriptionId = stripeSub.Id,

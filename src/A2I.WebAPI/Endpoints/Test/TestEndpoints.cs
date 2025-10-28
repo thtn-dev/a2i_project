@@ -2,6 +2,7 @@ using System.Net;
 using A2I.Application.Common;
 using A2I.Application.StripeAbstraction;
 using A2I.WebAPI.Extensions;
+using BuildingBlocks.Utils.Helpers;
 using Stripe;
 
 namespace A2I.WebAPI.Endpoints.Test;
@@ -70,7 +71,7 @@ public static class TestEndpoints
         return Results.Ok(ApiResponse<TestData>.Ok(
             new TestData
             {
-                Id = Guid.NewGuid(),
+                Id = IdGenHelper.NewGuidId(),
                 Name = "Test Item",
                 Description = "This is a successful response",
                 CreatedAt = DateTime.UtcNow
@@ -123,7 +124,7 @@ public static class TestEndpoints
         var items = Enumerable.Range(1, 10)
             .Select(i => new TestData
             {
-                Id = Guid.NewGuid(),
+                Id = IdGenHelper.NewGuidId(),
                 Name = $"Item {i}",
                 Description = $"Description for item {i}",
                 CreatedAt = DateTime.UtcNow.AddDays(-i)
@@ -153,7 +154,7 @@ public static class TestEndpoints
 
                 return new TestData
                 {
-                    Id = Guid.NewGuid(),
+                    Id = IdGenHelper.NewGuidId(),
                     Name = "Async Test",
                     Description = "This was returned using ExecuteAsync helper",
                     CreatedAt = DateTime.UtcNow

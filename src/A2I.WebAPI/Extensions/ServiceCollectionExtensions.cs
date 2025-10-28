@@ -39,15 +39,16 @@ public static class ServiceCollectionExtensions
 
             var loggerService = serviceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
             options.UseNpgsql(connectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.EnableRetryOnFailure(
-                    3,
-                    TimeSpan.FromSeconds(10),
-                    null);
+                {
+                    npgsqlOptions.EnableRetryOnFailure(
+                        3,
+                        TimeSpan.FromSeconds(10),
+                        null);
 
-                npgsqlOptions.CommandTimeout(30);
-                npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
-            });
+                    npgsqlOptions.CommandTimeout(30);
+                    npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                })
+                .UseSnakeCaseNamingConvention();
 
             if (environment.IsDevelopment())
             {
@@ -98,7 +99,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISubscriptionApplicationService, SubscriptionApplicationService>();
         services.AddScoped<IEventIdempotencyStore, DbEventIdempotencyStore>();
         services.AddScoped<IWebhookEventDispatcher, WebhookEventDispatcher>();
-        
+
         // Register all webhook handlers
         services.AddScoped<IWebhookEventHandler, CheckoutSessionCompletedHandler>();
         services.AddScoped<IWebhookEventHandler, CustomerCreatedHandler>();

@@ -3,6 +3,7 @@
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
+using BuildingBlocks.Utils.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Stripe;
@@ -77,7 +78,7 @@ public class InvoiceFinalizedHandler : WebhookEventHandlerBase
 
         var dbInvoice = new Core.Entities.Invoice
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenHelper.NewGuidId(),
             CustomerId = customer.Id,
             StripeInvoiceId = invoice.Id,
             StripePaymentIntentId = "",
@@ -100,7 +101,7 @@ public class InvoiceFinalizedHandler : WebhookEventHandlerBase
                 .FirstOrDefaultAsync(
                     s => s.StripeSubscriptionId == invoice.Parent.SubscriptionDetails.SubscriptionId,
                     ct);
-            
+
             if (subscription != null)
             {
                 dbInvoice.SubscriptionId = subscription.Id;

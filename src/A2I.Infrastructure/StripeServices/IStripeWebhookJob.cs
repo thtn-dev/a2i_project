@@ -1,4 +1,5 @@
 using A2I.Application.StripeAbstraction.Webhooks;
+using A2I.Core.Enums;
 using Hangfire;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -54,7 +55,7 @@ public class StripeWebhookJob : IStripeWebhookJob
         await _idempotencyStore.UpdateEventStatusAsync(
             eventId,
             eventType,
-            result.Success ? "processed" : "failed",
+            result.Success ? StripeWebhookStatus.Processed : StripeWebhookStatus.Failed,
             result.Success ? null : result.Message,
             ct);
 

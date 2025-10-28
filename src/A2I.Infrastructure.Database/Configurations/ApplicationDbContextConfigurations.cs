@@ -8,7 +8,6 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
     public void Configure(EntityTypeBuilder<Customer> b)
     {
-        b.ToTable("Customers");
         b.HasKey(x => x.Id);
 
         b.Property(x => x.Id)
@@ -42,7 +41,6 @@ public sealed class PlanConfiguration : IEntityTypeConfiguration<Plan>
 {
     public void Configure(EntityTypeBuilder<Plan> b)
     {
-        b.ToTable("Plans");
         b.HasKey(x => x.Id);
 
         b.Property(x => x.Id)
@@ -75,7 +73,7 @@ public sealed class PlanConfiguration : IEntityTypeConfiguration<Plan>
         b.HasIndex(x => x.StripePriceId).IsUnique();
         b.HasIndex(x => x.StripeProductId);
         // filtered/partial index (only active plans)
-        b.HasIndex(x => x.IsActive).HasFilter("\"IsActive\" = TRUE");
+        b.HasIndex(x => x.IsActive).HasFilter("\"is_active\" = TRUE");
 
         b.Property(x => x.IsDeleted).HasDefaultValue(false);
     }
@@ -85,7 +83,6 @@ public sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subscri
 {
     public void Configure(EntityTypeBuilder<Subscription> b)
     {
-        b.ToTable("Subscriptions");
         b.HasKey(x => x.Id);
 
         b.Property(x => x.Id)
@@ -132,7 +129,6 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 {
     public void Configure(EntityTypeBuilder<Invoice> b)
     {
-        b.ToTable("Invoices");
         b.HasKey(x => x.Id);
 
         b.Property(x => x.Id)
@@ -161,7 +157,7 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
         b.Property(x => x.HostedInvoiceUrl).HasMaxLength(500);
         b.Property(x => x.InvoicePdf).HasMaxLength(500);
-
+        
         // FKs
         b.HasOne(x => x.Customer)
             .WithMany(c => c.Invoices)
@@ -180,5 +176,41 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         b.HasIndex(x => new { x.Status, x.DueDate });
 
         b.Property(x => x.IsDeleted).HasDefaultValue(false);
+    }
+}
+
+public sealed class StripeWebhookEventConfiguration : IEntityTypeConfiguration<StripeWebhookEvent>
+{
+    public void Configure(EntityTypeBuilder<StripeWebhookEvent> builder)
+    {
+        builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.EventId)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(x => x.EventType)
+            .IsRequired()
+            .HasMaxLength(100);
+        
+        // Enum to string
+        builder.Property(x => x.Status)
+            .IsRequired()
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        builder.Property(x => x.ErrorMessage)
+            .HasMaxLength(2000);
+
+        builder.Property(x => x.RetryCount)
+            .HasDefaultValue(0);
+
+        builder.Property(x => x.RawData)
+            .HasColumnType("jsonb");
+
+        // Index
+        builder.HasIndex(x => x.EventId).IsUnique();
+        builder.HasIndex(x => x.EventType);
+        builder.HasIndex(x => x.ProcessedAt);
     }
 }

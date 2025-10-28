@@ -6,6 +6,7 @@ using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Core.Entities;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
+using BuildingBlocks.Utils.Helpers;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -103,7 +104,7 @@ public class SubscriptionCreatedHandler : WebhookEventHandlerBase
         var currentPeriodEnd = plan.CalculateNextBillingDate(subscription.StartDate);
         var newSubscription = new Subscription
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenHelper.NewGuidId(),
             CustomerId = customer.Id,
             PlanId = plan.Id,
             StripeSubscriptionId = subscription.Id,

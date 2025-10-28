@@ -3,6 +3,7 @@ using A2I.Application.Notifications;
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
+using BuildingBlocks.Utils.Helpers;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -35,6 +36,7 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
         {
             return new WebhookHandlerResult(false, "Invalid session data");
         }
+
         // Verify session status
         if (session.Status != "complete")
         {
@@ -132,10 +134,10 @@ public class CheckoutSessionCompletedHandler : WebhookEventHandlerBase
 
             return new WebhookHandlerResult(false, "Stripe subscription not found", true);
         }
-        
+
         var subscription = new Subscription
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenHelper.NewGuidId(),
             CustomerId = customerId,
             PlanId = planId,
             StripeSubscriptionId = session.SubscriptionId,

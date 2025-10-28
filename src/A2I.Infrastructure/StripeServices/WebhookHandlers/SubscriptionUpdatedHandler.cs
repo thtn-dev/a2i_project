@@ -2,6 +2,7 @@ using System.Text.Json;
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
+using BuildingBlocks.Utils.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Stripe;
@@ -161,7 +162,7 @@ public class SubscriptionUpdatedHandler : WebhookEventHandlerBase
 
         var newSubscription = new Core.Entities.Subscription
         {
-            Id = Guid.NewGuid(),
+            Id = IdGenHelper.NewGuidId(),
             CustomerId = customer.Id,
             PlanId = plan.Id,
             StripeSubscriptionId = stripeSubscription.Id,

@@ -3,6 +3,7 @@ using A2I.Application.Notifications;
 using A2I.Application.StripeAbstraction.Webhooks;
 using A2I.Core.Enums;
 using A2I.Infrastructure.Database;
+using BuildingBlocks.Utils.Helpers;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -60,7 +61,7 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
             // Create invoice with failed status
             dbInvoice = new Core.Entities.Invoice
             {
-                Id = Guid.NewGuid(),
+                Id = IdGenHelper.NewGuidId(),
                 CustomerId = customer.Id,
                 StripeInvoiceId = invoice.Id,
                 StripePaymentIntentId = "",
@@ -87,7 +88,7 @@ public class InvoicePaymentFailedHandler : WebhookEventHandlerBase
                     .FirstOrDefaultAsync(
                         s => s.StripeSubscriptionId == invoice.Parent.SubscriptionDetails.SubscriptionId,
                         ct);
-                
+
                 if (subscription != null)
                 {
                     dbInvoice.SubscriptionId = subscription.Id;
