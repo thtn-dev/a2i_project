@@ -17,7 +17,7 @@ public class CacheServiceFactory
         };
     }
 
-    private static ICacheService CreateRedisCache(
+    private static RedisCacheService CreateRedisCache(
         CacheOptions options, 
         ILogger<RedisCacheService>? logger)
     {
