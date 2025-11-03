@@ -27,6 +27,16 @@ public sealed class Program
         // Core services
         builder.Services.AddAuthorization();
         builder.Services.AddControllers();
+        builder.Services.AddProblemDetails(options =>
+        {
+            options.CustomizeProblemDetails = context =>
+            {
+                context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
+                context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                context.ProblemDetails.Extensions["timestamp"] = DateTime.UtcNow;
+            };
+        });
+
 
         // Database & Infrastructure
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
@@ -101,6 +111,8 @@ public sealed class Program
 
         // 1. Global exception handling (catches all unhandled exceptions)
         app.UseGlobalExceptionHandler();
+        
+        app.UseStatusCodePages();
 
         // 2. Request logging (logs all HTTP requests/responses)
         // app.UseRequestLogging();
