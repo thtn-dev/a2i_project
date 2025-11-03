@@ -13,11 +13,14 @@ using A2I.Infrastructure.Caching;
 using A2I.Infrastructure.Caching.Providers;
 using A2I.Infrastructure.Customers;
 using A2I.Infrastructure.Database;
+using A2I.Infrastructure.Identity;
+using A2I.Infrastructure.Identity.Entities;
 using A2I.Infrastructure.Invoices;
 using A2I.Infrastructure.Notifications;
 using A2I.Infrastructure.StripeServices;
 using A2I.Infrastructure.StripeServices.WebhookHandlers;
 using A2I.Infrastructure.Subscriptions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -27,6 +30,49 @@ namespace A2I.WebAPI.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    public static void AddIdentityServices(this IServiceCollection services)
+    {
+        services.AddDbContextPool<AppIdentityDbContext>((serviceProvider, options) =>
+        {
+            var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+            var connectionString = BuildConnectionString(dbOptions);
+
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.EnableRetryOnFailure(
+                        3,
+                        TimeSpan.FromSeconds(10),
+                        null);
+
+                    npgsqlOptions.CommandTimeout(30);
+                    npgsqlOptions.MigrationsAssembly(typeof(AppIdentityDbContext).Assembly.FullName);
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "identity");
+                })
+                .UseSnakeCaseNamingConvention();
+        });
+        
+        services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+            {
+                // password
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+
+                // lockout
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.AllowedForNewUsers = true;
+
+                // Cuser
+                options.User.RequireUniqueEmail = true;
+                options.SignIn.RequireConfirmedEmail = false;
+            })
+            .AddEntityFrameworkStores<AppIdentityDbContext>()
+            .AddDefaultTokenProviders();
+    }
+    
     public static void AddDatabaseServices(
         this IServiceCollection services,
         IConfiguration configuration,

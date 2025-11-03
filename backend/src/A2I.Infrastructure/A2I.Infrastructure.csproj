@@ -10,6 +10,7 @@
         <ProjectReference Include="..\A2I.Application\A2I.Application.csproj"/>
         <ProjectReference Include="..\A2I.Infrastructure.Caching\A2I.Infrastructure.Caching.csproj" />
         <ProjectReference Include="..\A2I.Infrastructure.Database\A2I.Infrastructure.Database.csproj"/>
+        <ProjectReference Include="..\A2I.Infrastructure.Identity\A2I.Infrastructure.Identity.csproj" />
     </ItemGroup>
 
     <ItemGroup>

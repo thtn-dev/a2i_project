@@ -24,6 +24,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2.Application", "2.Applicat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1.Core", "1.Core", "{AF5BC969-FD97-46AA-9902-7C98FA2C9F64}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "A2I.Infrastructure.Identity", "src\A2I.Infrastructure.Identity\A2I.Infrastructure.Identity.csproj", "{74998992-1DA6-453A-B122-F686AD00CA1F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,7 @@ Global
 		{6871E8C4-E2D9-4333-9C7D-CF3218E8F48B} = {FBC38449-7810-43D3-9340-856DFEF1104F}
 		{A6F78308-DB08-47E4-8706-BCA6390E71EE} = {452FFD72-4FA3-4EF9-87AF-3C77227FAC31}
 		{FF75756F-41CB-4229-A47C-34F69D44ACFB} = {AF5BC969-FD97-46AA-9902-7C98FA2C9F64}
+		{74998992-1DA6-453A-B122-F686AD00CA1F} = {FBC38449-7810-43D3-9340-856DFEF1104F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1451FA68-12D2-45FA-A0E0-DD0DBFAE09A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -71,5 +74,9 @@ Global
 		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1315B24E-0FA3-4252-B0AF-417F3A6D92C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74998992-1DA6-453A-B122-F686AD00CA1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74998992-1DA6-453A-B122-F686AD00CA1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74998992-1DA6-453A-B122-F686AD00CA1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74998992-1DA6-453A-B122-F686AD00CA1F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

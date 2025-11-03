@@ -40,6 +40,7 @@ public sealed class Program
 
         // Database & Infrastructure
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
+        builder.Services.AddIdentityServices();
         builder.Services.AddStripeServices(builder.Configuration);
 
         builder.Services.AddRateLimiter(rateLimiterOptions =>
