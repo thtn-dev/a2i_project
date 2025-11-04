@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using A2I.Infrastructure.Caching;
 using A2I.Infrastructure.Database;
 using A2I.Infrastructure.StripeServices;
+using A2I.WebAPI.Endpoints.Auth;
 using A2I.WebAPI.Endpoints.Customers;
 using A2I.WebAPI.Endpoints.Invoices;
 using A2I.WebAPI.Endpoints.Subscriptions;
@@ -40,8 +41,9 @@ public sealed class Program
 
         // Database & Infrastructure
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
-        builder.Services.AddIdentityServices();
+        builder.Services.AddIdentityServices(builder.Configuration);
         builder.Services.AddStripeServices(builder.Configuration);
+        builder.Services.AddBackgroundJobServices();
 
         builder.Services.AddRateLimiter(rateLimiterOptions =>
         {
@@ -146,11 +148,15 @@ public sealed class Program
 
         // Legacy controller endpoints (keep for now)
         app.MapControllers();
-
+        
+        app.MapGroup("/")
+            .MapJwksEndpoints();
         // ===== API v1 ENDPOINTS =====
 
         var apiV1 = app.MapGroup("/api/v1")
             .WithOpenApi();
+
+        
 
         // System endpoints
         apiV1.MapGroup("/health")
@@ -168,6 +174,10 @@ public sealed class Program
         apiV1.MapGroup("/invoices")
             .WithTags("Invoices")
             .MapInvoiceEndpoints();
+        
+        apiV1.MapGroup("/auth")
+            .WithTags("Auth")
+            .MapAuthEndpoints();
 
 
         // Test endpoints (REMOVE IN PRODUCTION!)

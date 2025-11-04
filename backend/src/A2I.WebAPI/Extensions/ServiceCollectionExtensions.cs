@@ -15,23 +15,48 @@ using A2I.Infrastructure.Customers;
 using A2I.Infrastructure.Database;
 using A2I.Infrastructure.Identity;
 using A2I.Infrastructure.Identity.Entities;
+using A2I.Infrastructure.Identity.Security;
 using A2I.Infrastructure.Invoices;
 using A2I.Infrastructure.Notifications;
 using A2I.Infrastructure.StripeServices;
 using A2I.Infrastructure.StripeServices.WebhookHandlers;
 using A2I.Infrastructure.Subscriptions;
+using A2I.WebAPI.BackgroundJobs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Npgsql;
+using Quartz;
 using StackExchange.Redis;
 
 namespace A2I.WebAPI.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddIdentityServices(this IServiceCollection services)
+    public static void AddBackgroundJobServices(this IServiceCollection services)
     {
+        services.AddQuartz(q =>
+        {
+            var jobKey = new JobKey("KeyRotationJob");
+            q.AddJob<KeyRotationJob>(opts => opts.WithIdentity(jobKey));
+
+            q.AddTrigger(opts => opts
+                .ForJob(jobKey)
+                .WithIdentity("KeyRotationTrigger")
+                .WithCronSchedule("0 0 2 */30 * ?")); // 2 AM mỗi 30 ngày
+            // .WithSimpleSchedule(x => x.WithIntervalInHours(24).RepeatForever())); // Test: mỗi 24 giờ
+        });
+        services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+    }
+    public static void AddIdentityServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<JwtSettings>(
+            configuration.GetSection(JwtSettings.SectionName));
+        services.AddSingleton<IJwtService, JwtService>();
+        services.AddSingleton<IKeyManagementService, KeyManagementService>();
+        
         services.AddDbContextPool<AppIdentityDbContext>((serviceProvider, options) =>
         {
             var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
@@ -65,12 +90,33 @@ public static class ServiceCollectionExtensions
                 options.Lockout.MaxFailedAccessAttempts = 5;
                 options.Lockout.AllowedForNewUsers = true;
 
-                // Cuser
+                // User
                 options.User.RequireUniqueEmail = true;
                 options.SignIn.RequireConfirmedEmail = false;
             })
             .AddEntityFrameworkStores<AppIdentityDbContext>()
             .AddDefaultTokenProviders();
+        
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                var jwtSettings = configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = jwtSettings?.Issuer,
+                    ValidAudience = jwtSettings?.Audience,
+                    IssuerSigningKeyResolver = (_, _, _, _) =>
+                    {
+                        var keyService = services.BuildServiceProvider()
+                            .GetRequiredService<KeyManagementService>();
+                        return keyService.GetAllPublicKeys();
+                    }
+                };
+            });
     }
     
     public static void AddDatabaseServices(
@@ -87,7 +133,7 @@ public static class ServiceCollectionExtensions
             var dbOptions = serviceProvider.GetRequiredService<IOptions<DatabaseOptions>>().Value;
             var connectionString = BuildConnectionString(dbOptions);
 
-            var loggerService = serviceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+            // var loggerService = serviceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
             options.UseNpgsql(connectionString, npgsqlOptions =>
                 {
                     npgsqlOptions.EnableRetryOnFailure(
@@ -183,7 +229,7 @@ public static class ServiceCollectionExtensions
             if (string.IsNullOrEmpty(options.ConnectionString))
                 throw new ArgumentException("Redis connection string is required for Redis cache type.");
 
-            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            services.AddSingleton<IConnectionMultiplexer>(_ =>
                 ConnectionMultiplexer.Connect(options.ConnectionString));
 
             services.AddSingleton<ICacheService, RedisCacheService>();
