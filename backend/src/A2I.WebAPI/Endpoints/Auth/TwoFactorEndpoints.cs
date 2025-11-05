@@ -60,10 +60,9 @@ public static class TwoFactorEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
-
-        return Results.Ok(new ApiResponse<Enable2FAResponse>(success, message, data));
+        return Results.Ok(ApiResponse<Enable2FAResponse>.Ok(data, message));
     }
 
     private static async Task<IResult> Disable2FA(
@@ -80,7 +79,7 @@ public static class TwoFactorEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
 
         return Results.Ok(new ApiResponse(success, message));
@@ -101,7 +100,7 @@ public static class TwoFactorEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
 
         return Results.Ok(new ApiResponse(success, message));
@@ -121,9 +120,9 @@ public static class TwoFactorEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
+        return Results.Ok(ApiResponse<GenerateRecoveryCodesResponse>.Ok(data, message));
 
-        return Results.Ok(new ApiResponse<GenerateRecoveryCodesResponse>(success, message, data));
     }
 }

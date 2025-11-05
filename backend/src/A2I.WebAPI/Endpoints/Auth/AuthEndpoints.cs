@@ -61,7 +61,7 @@ public static class AuthEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
 
         return Results.Ok(new ApiResponse(success, message));
@@ -80,7 +80,7 @@ public static class AuthEndpoints
             return Results.Unauthorized();
         }
 
-        return Results.Ok(new ApiResponse<LoginResponse>(success, message, data));
+        return Results.Ok(ApiResponse<LoginResponse>.Ok(data, message));
     }
 
     private static async Task<IResult> RefreshToken(
@@ -95,8 +95,7 @@ public static class AuthEndpoints
         {
             return Results.Unauthorized();
         }
-
-        return Results.Ok(new ApiResponse<LoginResponse>(success, message, data));
+        return Results.Ok(ApiResponse<LoginResponse>.Ok(data, message));
     }
 
     private static async Task<IResult> RevokeToken(
@@ -109,9 +108,8 @@ public static class AuthEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
-
         return Results.Ok(new ApiResponse(success, message));
     }
 

@@ -16,9 +16,9 @@ public interface IJwtService
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _config;
-    private readonly KeyManagementService _keyService;
+    private readonly IKeyManagementService _keyService;
 
-    public JwtService(IConfiguration config, KeyManagementService keyService)
+    public JwtService(IConfiguration config, IKeyManagementService keyService)
     {
         _config = config;
         _keyService = keyService;

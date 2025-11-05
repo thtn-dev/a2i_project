@@ -118,7 +118,7 @@ public static class ServiceCollectionExtensions
                     IssuerSigningKeyResolver = (_, _, _, _) =>
                     {
                         var keyService = services.BuildServiceProvider()
-                            .GetRequiredService<KeyManagementService>();
+                            .GetRequiredService<IKeyManagementService>();
                         return keyService.GetAllPublicKeys();
                     }
                 };

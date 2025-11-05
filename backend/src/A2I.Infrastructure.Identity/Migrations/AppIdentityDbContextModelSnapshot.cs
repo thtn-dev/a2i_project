@@ -326,6 +326,18 @@ namespace A2I.Infrastructure.Identity.Migrations
                     b.ToTable("user_tokens", "identity");
                 });
 
+            modelBuilder.Entity("A2I.Infrastructure.Identity.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("A2I.Infrastructure.Identity.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_tokens_users_user_id");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("A2I.Infrastructure.Identity.Entities.ApplicationRole", null)
@@ -381,18 +393,6 @@ namespace A2I.Infrastructure.Identity.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_tokens_users_user_id");
-                });
-
-            modelBuilder.Entity("A2I.Infrastructure.Identity.Entities.RefreshToken", b =>
-                {
-                    b.HasOne("A2I.Infrastructure.Identity.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_refresh_tokens_users_user_id");
-
-                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

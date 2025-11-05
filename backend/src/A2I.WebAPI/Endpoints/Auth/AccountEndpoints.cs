@@ -83,7 +83,7 @@ public static class AccountEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
 
         return Results.Ok(new ApiResponse(success, message));
@@ -106,7 +106,7 @@ public static class AccountEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
 
         return Results.Ok(new ApiResponse(success, message));
@@ -120,7 +120,7 @@ public static class AccountEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create(message, message));
         }
 
         return Results.Ok(new ApiResponse(success, message));
@@ -149,10 +149,10 @@ public static class AccountEndpoints
 
         if (userInfo == null)
         {
-            return Results.NotFound(new ErrorResponse("User not found"));
+            return Results.NotFound(ErrorResponse.Create("", "User not found"));
         }
 
-        return Results.Ok(new ApiResponse<UserInfo>(true, "User retrieved successfully", userInfo));
+        return Results.Ok(ApiResponse<UserInfo>.Ok(userInfo, "User retrieved successfully"));
     }
 
     private static async Task<IResult> UpdateProfile(
@@ -170,9 +170,9 @@ public static class AccountEndpoints
 
         if (!success)
         {
-            return Results.BadRequest(new ErrorResponse(message));
+            return Results.BadRequest(ErrorResponse.Create("", "User not found"));
         }
 
-        return Results.Ok(new ApiResponse<UserInfo>(success, message, data));
+        return Results.Ok(ApiResponse<UserInfo>.Ok(data, message));
     }
 }
