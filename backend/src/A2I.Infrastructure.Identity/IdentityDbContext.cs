@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace A2I.Infrastructure.Identity;
 
-public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) 
+public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options)
     : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
 {
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -46,6 +47,23 @@ public class AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options
         modelBuilder.Entity<IdentityUserToken<Guid>>(entity =>
         {
             entity.ToTable("user_tokens");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_tokens");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Token).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.CreatedByIp).HasMaxLength(45);
+            entity.Property(e => e.RevokedByIp).HasMaxLength(45);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.Token);
+            entity.HasIndex(e => e.UserId);
         });
     }
 }

@@ -179,6 +179,14 @@ public sealed class Program
             .WithTags("Auth")
             .MapAuthEndpoints();
 
+        apiV1.MapGroup("/account")
+            .WithTags("Account")
+            .MapAccountEndpoints();
+
+        apiV1.MapGroup("/2fa")
+            .WithTags("Two-Factor Authentication")
+            .MapTwoFactorEndpoints();
+
 
         // Test endpoints (REMOVE IN PRODUCTION!)
         if (app.Environment.IsDevelopment())

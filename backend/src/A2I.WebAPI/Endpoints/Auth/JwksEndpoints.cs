@@ -26,7 +26,7 @@ public static class JwksEndpoints
         return group;
     }
     
-    private static IResult GetJwks(KeyManagementService keyService)
+    private static IResult GetJwks(IKeyManagementService keyService)
     {
         var publicKeys = keyService.GetAllPublicKeys();
         
@@ -47,7 +47,7 @@ public static class JwksEndpoints
         return Results.Ok(new { keys = jwks });
     }
     
-    private static async Task<IResult> RotateKey(KeyManagementService keyService)
+    private static async Task<IResult> RotateKey(IKeyManagementService keyService)
     {
         var newKey = await keyService.RotateKey();
         return Results.Ok(new 

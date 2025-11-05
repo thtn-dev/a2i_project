@@ -5,10 +5,10 @@ namespace A2I.WebAPI.BackgroundJobs;
 
 public class KeyRotationJob : IJob
 {
-    private readonly KeyManagementService _keyService;
+    private readonly IKeyManagementService _keyService;
     private readonly ILogger<KeyRotationJob> _logger;
 
-    public KeyRotationJob(KeyManagementService keyService, ILogger<KeyRotationJob> logger)
+    public KeyRotationJob(IKeyManagementService keyService, ILogger<KeyRotationJob> logger)
     {
         _keyService = keyService;
         _logger = logger;

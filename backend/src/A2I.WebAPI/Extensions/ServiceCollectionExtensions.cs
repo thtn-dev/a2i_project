@@ -16,6 +16,7 @@ using A2I.Infrastructure.Database;
 using A2I.Infrastructure.Identity;
 using A2I.Infrastructure.Identity.Entities;
 using A2I.Infrastructure.Identity.Security;
+using A2I.Infrastructure.Identity.Services;
 using A2I.Infrastructure.Invoices;
 using A2I.Infrastructure.Notifications;
 using A2I.Infrastructure.StripeServices;
@@ -56,6 +57,11 @@ public static class ServiceCollectionExtensions
             configuration.GetSection(JwtSettings.SectionName));
         services.AddSingleton<IJwtService, JwtService>();
         services.AddSingleton<IKeyManagementService, KeyManagementService>();
+
+        // Register Identity application services
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<ITwoFactorAuthService, TwoFactorAuthService>();
         
         services.AddDbContextPool<AppIdentityDbContext>((serviceProvider, options) =>
         {
@@ -112,7 +118,7 @@ public static class ServiceCollectionExtensions
                     IssuerSigningKeyResolver = (_, _, _, _) =>
                     {
                         var keyService = services.BuildServiceProvider()
-                            .GetRequiredService<KeyManagementService>();
+                            .GetRequiredService<IKeyManagementService>();
                         return keyService.GetAllPublicKeys();
                     }
                 };
