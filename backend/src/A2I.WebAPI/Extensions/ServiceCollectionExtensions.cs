@@ -1,4 +1,3 @@
-using A2I.Application.Common.Caching;
 using A2I.Application.Customers;
 using A2I.Application.Invoices;
 using A2I.Application.Notifications;
@@ -103,7 +102,12 @@ public static class ServiceCollectionExtensions
             .AddEntityFrameworkStores<AppIdentityDbContext>()
             .AddDefaultTokenProviders();
         
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options =>
             {
                 var jwtSettings = configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
@@ -236,9 +240,29 @@ public static class ServiceCollectionExtensions
                 throw new ArgumentException("Redis connection string is required for Redis cache type.");
 
             services.AddSingleton<IConnectionMultiplexer>(_ =>
-                ConnectionMultiplexer.Connect(options.ConnectionString));
+            {
+                var muxer = ConnectionMultiplexer.Connect(
+                    new ConfigurationOptions{
+                        EndPoints= { {"redis-17046.crce185.ap-seast-1-1.ec2.redns.redis-cloud.com", 17046} },
+                        User="default",
+                        Password="FcJ2dUSeLKqFXTQEb7TtagbGeWwhzwex"
+                    }
+                );
+                return muxer;
+            });
 
-            services.AddSingleton<ICacheService, RedisCacheService>();
+            services.AddSingleton<IRedisDistributedCache, RedisDistributedCache>();
+            
+            services.AddStackExchangeRedisCache(redisOptions =>
+            {
+                redisOptions.ConfigurationOptions = new ConfigurationOptions
+                {
+                    EndPoints= { {"redis-17046.crce185.ap-seast-1-1.ec2.redns.redis-cloud.com", 17046} },
+                    User="default",
+                    Password="FcJ2dUSeLKqFXTQEb7TtagbGeWwhzwex"
+                };
+                redisOptions.InstanceName = options.InstanceName ?? "AppCache";
+            });
         }
         else
         {

@@ -3,6 +3,7 @@ using A2I.Infrastructure.Identity.Models;
 using A2I.Infrastructure.Identity.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace A2I.Infrastructure.Identity.Services;
 
@@ -20,15 +21,18 @@ public class AuthService : IAuthService
     private readonly AppIdentityDbContext _dbContext;
     private readonly IJwtService _jwtService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IDistributedCache _cache;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IJwtService jwtService,
+        IDistributedCache cache,
         AppIdentityDbContext dbContext)
     {
         _userManager = userManager;
         _jwtService = jwtService;
         _dbContext = dbContext;
+        _cache = cache;
     }
 
     public async Task<(bool Success, string Message, LoginResponse? Data)> RegisterAsync(RegisterRequest request)
@@ -231,15 +235,27 @@ public class AuthService : IAuthService
 
     public async Task<UserInfo?> GetUserInfoAsync(Guid userId)
     {
+        var cacheKey = $"user_info_{userId}";
+        var cachedUserInfo = await _cache.GetStringAsync(cacheKey);
+        if (cachedUserInfo != null)
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<UserInfo>(cachedUserInfo);
+        }
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null) return null;
-
-        return new UserInfo(
+        var userInfo = new UserInfo(
             user.Id,
             user.UserName!,
             user.Email!,
             user.EmailConfirmed,
             user.PhoneNumber,
             user.TwoFactorEnabled);
+        
+        var serializedUserInfo = System.Text.Json.JsonSerializer.Serialize(userInfo);
+        await _cache.SetStringAsync(cacheKey, serializedUserInfo, new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+        });
+        return userInfo;
     }
 }

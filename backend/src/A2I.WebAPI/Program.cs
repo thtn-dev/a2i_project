@@ -2,11 +2,8 @@ using System.Threading.RateLimiting;
 using A2I.Infrastructure.Caching;
 using A2I.Infrastructure.Database;
 using A2I.Infrastructure.StripeServices;
+using A2I.WebAPI.Endpoints;
 using A2I.WebAPI.Endpoints.Auth;
-using A2I.WebAPI.Endpoints.Customers;
-using A2I.WebAPI.Endpoints.Invoices;
-using A2I.WebAPI.Endpoints.Subscriptions;
-using A2I.WebAPI.Endpoints.System;
 using A2I.WebAPI.Extensions;
 using A2I.WebAPI.Middlewares;
 using Hangfire;
@@ -101,9 +98,9 @@ public sealed class Program
         builder.Services.AddCacheService(options =>
         {
             options.CacheType = CacheType.Redis;
-            options.ConnectionString = "localhost:6379";
+            options.ConnectionString = "redis://default:FcJ2dUSeLKqFXTQEb7TtagbGeWwhzwex@redis-17046.crce185.ap-seast-1-1.ec2.redns.redis-cloud.com:17046";
             options.DefaultExpirationMinutes = 30;
-            options.InstanceName = "MyApp";
+            options.InstanceName = "A2I_Cache_";
         });
 
         builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
@@ -142,41 +139,13 @@ public sealed class Program
 
         // ===== API ENDPOINTS =====
         app.MapControllers();
-        
         app.MapGroup("/")
             .MapJwksEndpoints();
         
         // ===== API v1 ENDPOINTS =====
-        var apiV1 = app.MapGroup("/api/v1")
-            .WithOpenApi();
-
-        apiV1.MapGroup("/health")
-            .WithTags("System")
-            .MapHealthEndpoints();
-
-        apiV1.MapGroup("/subscriptions")
-            .WithTags("Subscriptions")
-            .MapSubscriptionEndpoints();
-
-        apiV1.MapGroup("/customers")
-            .WithTags("Customers")
-            .MapCustomerEndpoints();
-
-        apiV1.MapGroup("/invoices")
-            .WithTags("Invoices")
-            .MapInvoiceEndpoints();
-        
-        apiV1.MapGroup("/auth")
-            .WithTags("Auth")
-            .MapAuthEndpoints();
-
-        apiV1.MapGroup("/account")
-            .WithTags("Account")
-            .MapAccountEndpoints();
-
-        apiV1.MapGroup("/2fa")
-            .WithTags("Two-Factor Authentication")
-            .MapTwoFactorEndpoints();
+        app.MapGroup("/api/v1")
+            .WithOpenApi()
+            .MapV1Endpoints();
 
         app.Run();
     }
