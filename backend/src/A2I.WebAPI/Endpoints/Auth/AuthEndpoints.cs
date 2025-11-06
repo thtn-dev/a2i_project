@@ -22,6 +22,7 @@ public static class AuthEndpoints
             .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/login", Login)
+            .RequireRateLimiting("login_fixed")
             .WithApiMetadata(
                 "User login",
                 "Authenticates a user and returns JWT and refresh tokens.")

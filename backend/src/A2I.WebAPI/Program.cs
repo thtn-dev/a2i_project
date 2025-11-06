@@ -7,7 +7,6 @@ using A2I.WebAPI.Endpoints.Customers;
 using A2I.WebAPI.Endpoints.Invoices;
 using A2I.WebAPI.Endpoints.Subscriptions;
 using A2I.WebAPI.Endpoints.System;
-using A2I.WebAPI.Endpoints.Test;
 using A2I.WebAPI.Extensions;
 using A2I.WebAPI.Middlewares;
 using Hangfire;
@@ -22,8 +21,6 @@ public sealed class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-
-        // ==================== SERVICES CONFIGURATION ====================
 
         // Core services
         builder.Services.AddAuthorization();
@@ -62,6 +59,14 @@ public sealed class Program
                 options.SegmentsPerWindow = 6;
                 options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 options.QueueLimit = 10;
+            });
+
+            rateLimiterOptions.AddFixedWindowLimiter("login_fixed", options =>
+            {
+                options.PermitLimit = 3;
+                options.Window = TimeSpan.FromMinutes(3);
+                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                options.QueueLimit = 0;
             });
         });
 
@@ -103,24 +108,19 @@ public sealed class Program
 
         builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
 
-        // API Configuration
         builder.Services.ConfigureOpenApi();
 
         // ==================== APP CONFIGURATION ====================
 
         var app = builder.Build();
 
-        // ===== MIDDLEWARE PIPELINE (ORDER MATTERS!) =====
-
-        // 1. Global exception handling (catches all unhandled exceptions)
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseRateLimiter();
+        }
         app.UseGlobalExceptionHandler();
-        
         app.UseStatusCodePages();
 
-        // 2. Request logging (logs all HTTP requests/responses)
-        // app.UseRequestLogging();
-
-        // 3. Development-only middleware
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
@@ -131,34 +131,25 @@ public sealed class Program
             });
         }
 
-        // 4. Hangfire dashboard
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             // Authorization = new[] { new HangfireAuthorizationFilter() }
             DashboardTitle = "A2I Background Jobs"
         });
 
-        // 5. HTTPS redirection
         app.UseHttpsRedirection();
-
-        // 6. Authorization
         app.UseAuthorization();
 
         // ===== API ENDPOINTS =====
-
-        // Legacy controller endpoints (keep for now)
         app.MapControllers();
         
         app.MapGroup("/")
             .MapJwksEndpoints();
+        
         // ===== API v1 ENDPOINTS =====
-
         var apiV1 = app.MapGroup("/api/v1")
             .WithOpenApi();
 
-        
-
-        // System endpoints
         apiV1.MapGroup("/health")
             .WithTags("System")
             .MapHealthEndpoints();
@@ -187,55 +178,6 @@ public sealed class Program
             .WithTags("Two-Factor Authentication")
             .MapTwoFactorEndpoints();
 
-
-        // Test endpoints (REMOVE IN PRODUCTION!)
-        if (app.Environment.IsDevelopment())
-            apiV1.MapGroup("/test")
-                .WithTags("Test")
-                .MapTestEndpoints();
-
-        // Business endpoints (will be added in Phase 2)
-        // apiV1.MapGroup("/subscriptions").WithTags("Subscriptions").MapSubscriptionEndpoints();
-        // apiV1.MapGroup("/customers").WithTags("Customers").MapCustomerEndpoints();
-        // apiV1.MapGroup("/invoices").WithTags("Invoices").MapInvoiceEndpoints();
-        // apiV1.MapGroup("/plans").WithTags("Plans").MapPlanEndpoints();
-
-        // ===== HEALTH CHECK ENDPOINT =====
-        app.MapGet("/health", () => Results.Ok(new
-            {
-                status = "healthy",
-                timestamp = DateTime.UtcNow,
-                version = "1.0.0",
-                environment = app.Environment.EnvironmentName
-            }))
-            .WithName("HealthCheck")
-            .WithTags("System")
-            .Produces(StatusCodes.Status200OK)
-            .ExcludeFromDescription(); // Don't show in API docs
-
-        // ===== DEMO ENDPOINT (remove in production) =====
-        app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-            {
-                var summaries = new[]
-                {
-                    "Freezing", "Bracing", "Chilly", "Cool", "Mild",
-                    "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-                };
-
-                var forecast = Enumerable.Range(1, 5).Select(index =>
-                        new WeatherForecast
-                        {
-                            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                            TemperatureC = Random.Shared.Next(-20, 55),
-                            Summary = summaries[Random.Shared.Next(summaries.Length)]
-                        })
-                    .ToArray();
-                return forecast;
-            })
-            .WithName("GetWeatherForecast")
-            .WithTags("Demo");
-
-        // ===== START APPLICATION =====
         app.Run();
     }
 }
