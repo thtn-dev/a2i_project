@@ -13,12 +13,61 @@ using Scalar.AspNetCore;
 
 namespace A2I.WebAPI;
 
-public sealed class Program
+public static class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(args)
+            .RegisterServices();
 
+        var app = builder.Build()
+            .RegisterPipelines();
+        
+        await app.RunAsync();
+    }
+    
+    private static WebApplication RegisterPipelines(this WebApplication app)
+    {
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseRateLimiter();
+        }
+        app.UseGlobalExceptionHandler();
+        app.UseStatusCodePages();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi();
+            app.MapScalarApiReference(options =>
+            {
+                options.Title = "A2I Stripe Subscription API";
+                options.Theme = ScalarTheme.Purple;
+            });
+        }
+
+        app.UseHangfireDashboard("/hangfire", new DashboardOptions
+        {
+            // Authorization = new[] { new HangfireAuthorizationFilter() }
+            DashboardTitle = "A2I Background Jobs"
+        });
+
+        app.UseHttpsRedirection();
+        app.UseAuthorization();
+
+        // ===== API ENDPOINTS =====
+        app.MapControllers();
+        app.MapGroup("/")
+            .MapJwksEndpoints();
+        
+        // ===== API v1 ENDPOINTS =====
+        app.MapGroup("/api/v1")
+            .WithOpenApi()
+            .MapV1Endpoints();
+        return app;
+    }
+    
+    private static WebApplicationBuilder RegisterServices(this WebApplicationBuilder builder)
+    {
         // Core services
         builder.Services.AddAuthorization();
         builder.Services.AddControllers();
@@ -31,7 +80,6 @@ public sealed class Program
                 context.ProblemDetails.Extensions["timestamp"] = DateTime.UtcNow;
             };
         });
-
 
         // Database & Infrastructure
         builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
@@ -106,47 +154,6 @@ public sealed class Program
         builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
 
         builder.Services.ConfigureOpenApi();
-
-        // ==================== APP CONFIGURATION ====================
-
-        var app = builder.Build();
-
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseRateLimiter();
-        }
-        app.UseGlobalExceptionHandler();
-        app.UseStatusCodePages();
-
-        if (app.Environment.IsDevelopment())
-        {
-            app.MapOpenApi();
-            app.MapScalarApiReference(options =>
-            {
-                options.Title = "A2I Stripe Subscription API";
-                options.Theme = ScalarTheme.Purple;
-            });
-        }
-
-        app.UseHangfireDashboard("/hangfire", new DashboardOptions
-        {
-            // Authorization = new[] { new HangfireAuthorizationFilter() }
-            DashboardTitle = "A2I Background Jobs"
-        });
-
-        app.UseHttpsRedirection();
-        app.UseAuthorization();
-
-        // ===== API ENDPOINTS =====
-        app.MapControllers();
-        app.MapGroup("/")
-            .MapJwksEndpoints();
-        
-        // ===== API v1 ENDPOINTS =====
-        app.MapGroup("/api/v1")
-            .WithOpenApi()
-            .MapV1Endpoints();
-
-        app.Run();
+        return builder;
     }
 }

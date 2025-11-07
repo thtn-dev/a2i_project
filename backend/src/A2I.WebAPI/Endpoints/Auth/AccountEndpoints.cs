@@ -1,6 +1,7 @@
 using A2I.Application.Common;
 using A2I.Infrastructure.Identity.Models;
 using A2I.WebAPI.Extensions;
+using Microsoft.AspNetCore.Mvc;
 
 namespace A2I.WebAPI.Endpoints.Auth;
 
