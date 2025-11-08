@@ -21,15 +21,7 @@ public static partial class AccountEndpoints
         }
 
         var result = await accountService.ChangePasswordAsync(userId, request);
-
-        if (result.IsFailed)
-        {
-            var errorMessage = result.GetErrorMessage();
-            return Results.BadRequest(ErrorResponse.Create(errorMessage, errorMessage));
-        }
-
-        var successMessage = result.GetSuccessMessage("Password changed successfully");
-        return Results.Ok(new ApiResponse(true, successMessage));
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> ForgotPassword(
@@ -37,9 +29,7 @@ public static partial class AccountEndpoints
         [FromServices] IAccountService accountService)
     {
         var result = await accountService.ForgotPasswordAsync(request);
-
-        var message = result.GetSuccessMessage("Password reset request processed");
-        return Results.Ok(new ApiResponse(true, message));
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> ResetPassword(
@@ -47,15 +37,8 @@ public static partial class AccountEndpoints
         [FromServices] IAccountService accountService)
     {
         var result = await accountService.ResetPasswordAsync(request);
+        return result.ToHttpResult();
 
-        if (result.IsFailed)
-        {
-            var errorMessage = result.GetErrorMessage();
-            return Results.BadRequest(ErrorResponse.Create(errorMessage, errorMessage));
-        }
-
-        var successMessage = result.GetSuccessMessage("Password reset successfully");
-        return Results.Ok(new ApiResponse(true, successMessage));
     }
 
     private static async Task<IResult> ConfirmEmail(
@@ -64,14 +47,7 @@ public static partial class AccountEndpoints
     {
         var result = await accountService.ConfirmEmailAsync(request);
 
-        if (result.IsFailed)
-        {
-            var errorMessage = result.GetErrorMessage();
-            return Results.BadRequest(ErrorResponse.Create(errorMessage, errorMessage));
-        }
-
-        var successMessage = result.GetSuccessMessage("Email confirmed successfully");
-        return Results.Ok(new ApiResponse(true, successMessage));
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> ResendEmailConfirmation(
@@ -79,15 +55,7 @@ public static partial class AccountEndpoints
         [FromServices] IAccountService accountService)
     {
         var result = await accountService.ResendEmailConfirmationAsync(request);
-
-        if (result.IsFailed)
-        {
-            var errorMessage = result.GetErrorMessage();
-            return Results.BadRequest(ErrorResponse.Create(errorMessage, errorMessage));
-        }
-
-        var message = result.GetSuccessMessage("Confirmation email sent");
-        return Results.Ok(new ApiResponse(true, message));
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GetCurrentUser(
@@ -101,13 +69,7 @@ public static partial class AccountEndpoints
         }
 
         var userInfo = await authService.GetUserInfoAsync(userId);
-
-        if (userInfo == null)
-        {
-            return Results.NotFound(ErrorResponse.Create("", "User not found"));
-        }
-
-        return Results.Ok(ApiResponse<UserInfo>.Ok(userInfo, "User retrieved successfully"));
+        return userInfo.ToHttpResult();
     }
 
     private static async Task<IResult> UpdateProfile(
@@ -122,14 +84,6 @@ public static partial class AccountEndpoints
         }
 
         var result = await accountService.UpdateProfileAsync(userId, request);
-
-        if (result.IsFailed)
-        {
-            var errorMessage = result.GetErrorMessage();
-            return Results.BadRequest(ErrorResponse.Create(errorMessage, errorMessage));
-        }
-
-        var successMessage = result.GetSuccessMessage("Profile updated successfully");
-        return Results.Ok(ApiResponse<UserInfo>.Ok(result.Value, successMessage));
+        return result.ToHttpResult();
     }
 }

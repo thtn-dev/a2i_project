@@ -16,21 +16,21 @@ public static partial class AccountEndpoints
                 "Change password",
                 "Changes the password for the authenticated user.")
             .Produces<ApiResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/forgot-password", ForgotPassword)
             .WithApiMetadata(
                 "Forgot password",
                 "Sends a password reset link to the user's email.")
             .Produces<ApiResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/reset-password", ResetPassword)
             .WithApiMetadata(
                 "Reset password",
                 "Resets the user's password using a valid reset token.")
             .Produces<ApiResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         // Email Confirmation
         group.MapPost("/confirm-email", ConfirmEmail)
@@ -38,14 +38,14 @@ public static partial class AccountEndpoints
                 "Confirm email",
                 "Confirms the user's email address using a confirmation token.")
             .Produces<ApiResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         group.MapPost("/resend-email-confirmation", ResendEmailConfirmation)
             .WithApiMetadata(
                 "Resend email confirmation",
                 "Resends the email confirmation link.")
             .Produces<ApiResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         // Profile Management
         group.MapGet("/me", GetCurrentUser)
@@ -61,7 +61,7 @@ public static partial class AccountEndpoints
                 "Update profile",
                 "Updates the authenticated user's profile information.")
             .Produces<ApiResponse<UserInfo>>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .Produces<ProblemDetails>(StatusCodes.Status400BadRequest);
 
         return group;
     }

@@ -1,6 +1,7 @@
 using A2I.Application.Common;
 using A2I.Application.Customers;
 using A2I.WebAPI.Extensions;
+using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A2I.WebAPI.Endpoints.Customers;
@@ -16,68 +17,49 @@ public static class CustomerEndpoints
             .WithApiMetadata(
                 "Create or update customer",
                 "Creates a new customer in both database and Stripe, or updates existing customer information.")
-            .Produces<ApiResponse<CustomerDetailsResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
-            .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+            .WithStandardResponses<CustomerDetailsResponse>();
 
         group.MapGet("/{customerId:guid}", GetCustomerDetails)
             .WithName("GetCustomerDetails")
             .WithApiMetadata(
                 "Get customer details",
                 "Retrieves complete customer information including active subscription, recent invoices, and payment methods.")
-            .Produces<ApiResponse<CustomerDetailsResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+            .WithStandardResponses<CustomerDetailsResponse>();
 
         group.MapPut("/{customerId:guid}/payment-method", UpdatePaymentMethod)
             .WithName("UpdatePaymentMethod")
             .WithApiMetadata(
                 "Update payment method",
                 "Attaches a new payment method to the customer and optionally sets it as default for future invoices.")
-            .Produces<ApiResponse<UpdatePaymentMethodResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
-            .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+            .WithStandardResponses<UpdatePaymentMethodResponse>();
 
         group.MapPost("/{customerId:guid}/portal", GetCustomerPortalUrl)
             .WithName("GetCustomerPortalUrl")
             .WithApiMetadata(
                 "Get customer portal URL",
                 "Creates a Stripe Customer Portal session for self-service management of subscription, invoices, and payment methods.")
-            .Produces<ApiResponse<CustomerPortalResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest)
-            .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+            .WithStandardResponses<CustomerPortalResponse>();
 
         return group;
     }
-
-    // ==================== 1. CREATE OR UPDATE CUSTOMER ====================
 
     private static async Task<IResult> CreateOrUpdateCustomer(
         [FromBody] CreateOrUpdateCustomerRequest request,
         ICustomerApplicationService customerService,
         CancellationToken ct)
     {
-        return await EndpointExtensions.ExecuteAsync(
-            async () => await customerService.CreateOrUpdateCustomerAsync(request, ct),
-            "Customer saved successfully");
+        var result = await customerService.CreateOrUpdateCustomerAsync(request, ct);
+        return result.ToHttpResult();
     }
-
-    // ==================== 2. GET CUSTOMER DETAILS ====================
 
     private static async Task<IResult> GetCustomerDetails(
         Guid customerId,
         ICustomerApplicationService customerService,
         CancellationToken ct)
     {
-        return await EndpointExtensions.ExecuteAsync(
-            async () => await customerService.GetCustomerDetailsAsync(customerId, ct),
-            "Customer details retrieved successfully");
+        var result = await customerService.GetCustomerDetailsAsync(customerId, ct);
+        return result.ToHttpResult();
     }
-
-    // ==================== 3. UPDATE PAYMENT METHOD ====================
 
     private static async Task<IResult> UpdatePaymentMethod(
         Guid customerId,
@@ -85,12 +67,9 @@ public static class CustomerEndpoints
         ICustomerApplicationService customerService,
         CancellationToken ct)
     {
-        return await EndpointExtensions.ExecuteAsync(
-            async () => await customerService.UpdatePaymentMethodAsync(customerId, request, ct),
-            "Payment method updated successfully");
+        var result = await customerService.UpdatePaymentMethodAsync(customerId, request, ct);
+        return result.ToHttpResult();
     }
-
-    // ==================== 4. GET CUSTOMER PORTAL URL ====================
 
     private static async Task<IResult> GetCustomerPortalUrl(
         Guid customerId,
@@ -100,20 +79,16 @@ public static class CustomerEndpoints
     {
         // Validate returnUrl
         if (string.IsNullOrWhiteSpace(request.ReturnUrl))
-            return EndpointExtensions.BadRequest(
-                ErrorCodes.VALIDATION_REQUIRED,
-                "ReturnUrl is required");
+            return Results.BadRequest();
 
         // Validate URL format
         if (!Uri.TryCreate(request.ReturnUrl, UriKind.Absolute, out _))
-            return EndpointExtensions.BadRequest(
-                ErrorCodes.VALIDATION_FORMAT,
-                "ReturnUrl must be a valid absolute URL");
-
-        return await EndpointExtensions.ExecuteAsync(
-            async () => await customerService.GetCustomerPortalUrlAsync(
-                customerId, request.ReturnUrl, ct),
-            "Portal URL created successfully");
+            return Results.BadRequest( "ReturnUrl must be a valid absolute URL");
+        
+        var result = await customerService.GetCustomerPortalUrlAsync(
+            customerId, request.ReturnUrl, ct);
+        
+        return result.ToHttpResult();
     }
 }
 
@@ -127,5 +102,5 @@ public sealed class GetPortalUrlRequest
     /// <summary>
     ///     URL to redirect customer after they finish managing their subscription
     /// </summary>
-    public required string ReturnUrl { get; set; }
+    public string ReturnUrl { get; set; } = string.Empty;
 }

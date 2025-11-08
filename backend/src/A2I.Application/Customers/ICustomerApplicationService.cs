@@ -1,3 +1,5 @@
+using FluentResults;
+
 namespace A2I.Application.Customers;
 
 /// <summary>
@@ -12,7 +14,7 @@ public interface ICustomerApplicationService
     ///     - Update existing Stripe customer if already exists
     ///     - Sync customer data between DB and Stripe
     /// </summary>
-    Task<CustomerDetailsResponse> CreateOrUpdateCustomerAsync(
+    Task<Result<CustomerDetailsResponse>> CreateOrUpdateCustomerAsync(
         CreateOrUpdateCustomerRequest request,
         CancellationToken ct = default);
 
@@ -24,7 +26,7 @@ public interface ICustomerApplicationService
     ///     - Recent invoices (last 5)
     ///     - Payment methods
     /// </summary>
-    Task<CustomerDetailsResponse> GetCustomerDetailsAsync(
+    Task<Result<CustomerDetailsResponse>> GetCustomerDetailsAsync(
         Guid customerId,
         CancellationToken ct = default);
 
@@ -36,7 +38,7 @@ public interface ICustomerApplicationService
     ///     - Update subscription if needed
     ///     - Set as default if requested
     /// </summary>
-    Task<UpdatePaymentMethodResponse> UpdatePaymentMethodAsync(
+    Task<Result<UpdatePaymentMethodResponse>> UpdatePaymentMethodAsync(
         Guid customerId,
         UpdatePaymentMethodRequest request,
         CancellationToken ct = default);
@@ -49,7 +51,7 @@ public interface ICustomerApplicationService
     ///     - Cancel subscription
     ///     - Update billing info
     /// </summary>
-    Task<CustomerPortalResponse> GetCustomerPortalUrlAsync(
+    Task<Result<CustomerPortalResponse>> GetCustomerPortalUrlAsync(
         Guid customerId,
         string returnUrl,
         CancellationToken ct = default);

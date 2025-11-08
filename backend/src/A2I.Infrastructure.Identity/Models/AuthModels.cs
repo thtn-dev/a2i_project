@@ -71,8 +71,3 @@ public record Verify2FARequest(
 public record GenerateRecoveryCodesResponse(
     string[] RecoveryCodes);
 
-// Generic Response
-public record ApiResponse(
-    bool Success,
-    string Message,
-    object? Data = null);

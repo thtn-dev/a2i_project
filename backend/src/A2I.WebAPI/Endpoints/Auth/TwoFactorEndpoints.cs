@@ -1,4 +1,3 @@
-using A2I.Application.Common;
 using A2I.Infrastructure.Identity.Models;
 using A2I.Infrastructure.Identity.Services;
 using A2I.WebAPI.Extensions;
@@ -16,113 +15,84 @@ public static class TwoFactorEndpoints
             .WithApiMetadata(
                 "Enable 2FA",
                 "Enables two-factor authentication and returns QR code data.")
-            .Produces<ApiResponse<Enable2FAResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .WithStandardResponses<Enable2FAResponse>();
 
         group.MapPost("/disable", Disable2FA)
             .RequireAuthorization()
             .WithApiMetadata(
                 "Disable 2FA",
                 "Disables two-factor authentication.")
-            .Produces<ApiResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .WithStandardResponses();
 
         group.MapPost("/verify", Verify2FACode)
             .RequireAuthorization()
             .WithApiMetadata(
                 "Verify 2FA code",
                 "Verifies a two-factor authentication code from authenticator app.")
-            .Produces<ApiResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .WithStandardResponses();
 
         group.MapPost("/recovery-codes", GenerateRecoveryCodes)
             .RequireAuthorization()
             .WithApiMetadata(
                 "Generate recovery codes",
                 "Generates new recovery codes for two-factor authentication.")
-            .Produces<ApiResponse<GenerateRecoveryCodesResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status400BadRequest);
+            .WithStandardResponses<GenerateRecoveryCodesResponse>();
 
         return group;
     }
 
     private static async Task<IResult> Enable2FA(
-        [FromServices] ITwoFactorAuthService twoFactorService,
+        ITwoFactorAuthService twoFactorService,
         ClaimsPrincipal user)
     {
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
-        {
+        var userId = GetUserIdFromClaims(user);
+        if (userId is null)
             return Results.Unauthorized();
-        }
 
-        var (success, message, data) = await twoFactorService.Enable2FAAsync(userId);
-
-        if (!success)
-        {
-            return Results.BadRequest(ErrorResponse.Create(message, message));
-        }
-        return Results.Ok(ApiResponse<Enable2FAResponse>.Ok(data, message));
+        var result = await twoFactorService.Enable2FAAsync(userId.Value);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Disable2FA(
-        [FromServices] ITwoFactorAuthService twoFactorService,
+        ITwoFactorAuthService twoFactorService,
         ClaimsPrincipal user)
     {
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
-        {
+        var userId = GetUserIdFromClaims(user);
+        if (userId is null)
             return Results.Unauthorized();
-        }
 
-        var (success, message) = await twoFactorService.Disable2FAAsync(userId);
-
-        if (!success)
-        {
-            return Results.BadRequest(ErrorResponse.Create(message, message));
-        }
-
-        return Results.Ok(new ApiResponse(success, message));
+        var result = await twoFactorService.Disable2FAAsync(userId.Value);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> Verify2FACode(
         [FromBody] Verify2FARequest request,
-        [FromServices] ITwoFactorAuthService twoFactorService,
+        ITwoFactorAuthService twoFactorService,
         ClaimsPrincipal user)
     {
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
-        {
+        var userId = GetUserIdFromClaims(user);
+        if (userId is null)
             return Results.Unauthorized();
-        }
 
-        var (success, message) = await twoFactorService.Verify2FACodeAsync(userId, request.Code);
-
-        if (!success)
-        {
-            return Results.BadRequest(ErrorResponse.Create(message, message));
-        }
-
-        return Results.Ok(new ApiResponse(success, message));
+        var result = await twoFactorService.Verify2FACodeAsync(userId.Value, request.Code);
+        return result.ToHttpResult();
     }
 
     private static async Task<IResult> GenerateRecoveryCodes(
-        [FromServices] ITwoFactorAuthService twoFactorService,
+        ITwoFactorAuthService twoFactorService,
         ClaimsPrincipal user)
     {
-        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
-        {
+        var userId = GetUserIdFromClaims(user);
+        if (userId is null)
             return Results.Unauthorized();
-        }
 
-        var (success, message, data) = await twoFactorService.GenerateRecoveryCodesAsync(userId);
+        var result = await twoFactorService.GenerateRecoveryCodesAsync(userId.Value);
+        return result.ToHttpResult();
+    }
 
-        if (!success)
-        {
-            return Results.BadRequest(ErrorResponse.Create(message, message));
-        }
-        return Results.Ok(ApiResponse<GenerateRecoveryCodesResponse>.Ok(data, message));
-
+    private static Guid? GetUserIdFromClaims(ClaimsPrincipal user)
+    {
+        var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 }

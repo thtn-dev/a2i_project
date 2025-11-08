@@ -11,7 +11,7 @@ public interface ISubscriptionApplicationService
     ///     - One customer can only have one active subscription
     ///     - Must validate plan exists and is active
     /// </summary>
-    Task<StartSubscriptionResponse> StartSubscriptionAsync(
+    Task<Result<StartSubscriptionResponse>> StartSubscriptionAsync(
         StartSubscriptionRequest request,
         CancellationToken ct = default);
 
@@ -22,7 +22,7 @@ public interface ISubscriptionApplicationService
     ///     - Create subscription record in DB
     ///     - Send welcome email (future)
     /// </summary>
-    Task<SubscriptionDetailsResponse> CompleteCheckoutAsync(
+    Task<Result<SubscriptionDetailsResponse>> CompleteCheckoutAsync(
         string checkoutSessionId,
         CancellationToken ct = default);
 
@@ -33,7 +33,7 @@ public interface ISubscriptionApplicationService
     ///     - No refund policy
     ///     - Grace period: 7 days for failed payments
     /// </summary>
-    Task<CancelSubscriptionResponse> CancelSubscriptionAsync(
+    Task<Result<CancelSubscriptionResponse>> CancelSubscriptionAsync(
         Guid customerId,
         CancelSubscriptionRequest request,
         CancellationToken ct = default);
@@ -45,7 +45,7 @@ public interface ISubscriptionApplicationService
     ///     - Apply proration by default
     ///     - Update both Stripe and DB
     /// </summary>
-    Task<UpgradeSubscriptionResponse> UpgradeSubscriptionAsync(
+    Task<Result<UpgradeSubscriptionResponse>> UpgradeSubscriptionAsync(
         Guid customerId,
         UpgradeSubscriptionRequest request,
         CancellationToken ct = default);
@@ -53,7 +53,7 @@ public interface ISubscriptionApplicationService
     /// <summary>
     ///     Get customer's current subscription with plan details
     /// </summary>
-    Task<SubscriptionDetailsResponse?> GetCustomerSubscriptionAsync(
+    Task<Result<SubscriptionDetailsResponse>> GetCustomerSubscriptionAsync(
         Guid customerId,
         CancellationToken ct = default);
 }

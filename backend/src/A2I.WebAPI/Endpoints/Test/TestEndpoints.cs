@@ -27,11 +27,6 @@ public static class TestEndpoints
             .WithApiMetadata("Test business exception", "Throws a business exception to test error handling")
             .WithStandardResponses<TestData>();
 
-        // Test validation error
-        group.MapGet("/validation-error", TestValidationError)
-            .WithName("TestValidationError")
-            .WithApiMetadata("Test validation error", "Returns a validation error to test error formatting")
-            .WithStandardResponses<TestData>();
 
         // Test not found error
         group.MapGet("/not-found", TestNotFound)
@@ -84,23 +79,10 @@ public static class TestEndpoints
         throw new BusinessException("This is a test business exception");
     }
 
-    private static IResult TestValidationError()
-    {
-        return EndpointExtensions.BadRequest(
-            ErrorCodes.VALIDATION_FAILED,
-            "Validation failed",
-            new Dictionary<string, string[]>
-            {
-                ["email"] = new[] { "Email is required", "Email format is invalid" },
-                ["password"] = new[] { "Password must be at least 8 characters" }
-            });
-    }
 
     private static IResult TestNotFound()
     {
-        return EndpointExtensions.NotFound(
-            ErrorCodes.CUSTOMER_NOT_FOUND,
-            "Customer with ID '12345' not found");
+        return Results.NotFound();
     }
 
     private static IResult TestStripeError()
@@ -146,21 +128,7 @@ public static class TestEndpoints
 
     private static async Task<IResult> TestAsyncHelper()
     {
-        return await EndpointExtensions.ExecuteAsync(
-            async () =>
-            {
-                // Simulate async work
-                await Task.Delay(100);
-
-                return new TestData
-                {
-                    Id = IdGenHelper.NewGuidId(),
-                    Name = "Async Test",
-                    Description = "This was returned using ExecuteAsync helper",
-                    CreatedAt = DateTime.UtcNow
-                };
-            },
-            "Async operation completed successfully");
+        return Results.Ok();
     }
 }
 

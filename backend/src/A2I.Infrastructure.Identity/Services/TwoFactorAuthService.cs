@@ -3,17 +3,18 @@ using A2I.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Text;
 using System.Web;
+using A2I.Application.Common;
+using FluentResults;
 
 namespace A2I.Infrastructure.Identity.Services;
 
 public interface ITwoFactorAuthService
 {
-    Task<(bool Success, string Message, Enable2FAResponse? Data)> Enable2FAAsync(Guid userId);
-    Task<(bool Success, string Message)> Disable2FAAsync(Guid userId);
-    Task<(bool Success, string Message)> Verify2FACodeAsync(Guid userId, string code);
-    Task<(bool Success, string Message, GenerateRecoveryCodesResponse? Data)> GenerateRecoveryCodesAsync(Guid userId);
+    Task<Result<Enable2FAResponse>> Enable2FAAsync(Guid userId);
+    Task<Result> Disable2FAAsync(Guid userId);
+    Task<Result> Verify2FACodeAsync(Guid userId, string code);
+    Task<Result<GenerateRecoveryCodesResponse>> GenerateRecoveryCodesAsync(Guid userId);
 }
-
 public class TwoFactorAuthService : ITwoFactorAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
@@ -23,73 +24,57 @@ public class TwoFactorAuthService : ITwoFactorAuthService
         _userManager = userManager;
     }
 
-    public async Task<(bool Success, string Message, Enable2FAResponse? Data)> Enable2FAAsync(Guid userId)
+    public async Task<Result<Enable2FAResponse>> Enable2FAAsync(Guid userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-        {
-            return (false, "User not found", null);
-        }
+        
+        if (user is null)
+            return Errors.NotFound("User not found");
 
         if (user.TwoFactorEnabled)
-        {
-            return (false, "Two-factor authentication is already enabled", null);
-        }
+            return Errors.Conflict("Two-factor authentication is already enabled");
 
-        // Generate authenticator key
         await _userManager.ResetAuthenticatorKeyAsync(user);
         var authenticatorKey = await _userManager.GetAuthenticatorKeyAsync(user);
 
         if (string.IsNullOrEmpty(authenticatorKey))
-        {
-            return (false, "Failed to generate authenticator key", null);
-        }
+            return Errors.Unexpected("Failed to generate authenticator key");
 
-        // Format key for display (groups of 4)
         var formattedKey = FormatKey(authenticatorKey);
-
-        // Generate QR code URI for authenticator apps
         var authenticatorUri = GenerateQrCodeUri(user.Email!, authenticatorKey);
 
         var response = new Enable2FAResponse(formattedKey, authenticatorUri);
 
-        return (true, "Scan the QR code or enter the key manually in your authenticator app, then verify with a code", response);
+        return Result.Ok(response);
     }
 
-    public async Task<(bool Success, string Message)> Disable2FAAsync(Guid userId)
+    public async Task<Result> Disable2FAAsync(Guid userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-        {
-            return (false, "User not found");
-        }
+        
+        if (user is null)
+            return Errors.NotFound("User not found");
 
         if (!user.TwoFactorEnabled)
-        {
-            return (false, "Two-factor authentication is not enabled");
-        }
+            return Errors.Validation("Two-factor authentication is not enabled");
 
         var result = await _userManager.SetTwoFactorEnabledAsync(user, false);
+        
         if (!result.Succeeded)
-        {
-            return (false, "Failed to disable two-factor authentication");
-        }
+            return Errors.Unexpected("Failed to disable two-factor authentication");
 
-        // Reset authenticator key
         await _userManager.ResetAuthenticatorKeyAsync(user);
 
-        return (true, "Two-factor authentication has been disabled");
+        return Result.Ok();
     }
 
-    public async Task<(bool Success, string Message)> Verify2FACodeAsync(Guid userId, string code)
+    public async Task<Result> Verify2FACodeAsync(Guid userId, string code)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-        {
-            return (false, "User not found");
-        }
+        
+        if (user is null)
+            return Errors.NotFound("User not found");
 
-        // Remove spaces and validate format
         var verificationCode = code.Replace(" ", string.Empty).Replace("-", string.Empty);
 
         var isValid = await _userManager.VerifyTwoFactorTokenAsync(
@@ -98,46 +83,37 @@ public class TwoFactorAuthService : ITwoFactorAuthService
             verificationCode);
 
         if (!isValid)
-        {
-            return (false, "Invalid verification code");
-        }
+            return Errors.Validation("Invalid verification code");
 
-        // Enable 2FA if this is the first verification
         if (!user.TwoFactorEnabled)
         {
             var result = await _userManager.SetTwoFactorEnabledAsync(user, true);
+            
             if (!result.Succeeded)
-            {
-                return (false, "Failed to enable two-factor authentication");
-            }
+                return Errors.Unexpected("Failed to enable two-factor authentication");
         }
 
-        return (true, "Two-factor authentication verified successfully");
+        return Result.Ok();
     }
 
-    public async Task<(bool Success, string Message, GenerateRecoveryCodesResponse? Data)> GenerateRecoveryCodesAsync(Guid userId)
+    public async Task<Result<GenerateRecoveryCodesResponse>> GenerateRecoveryCodesAsync(Guid userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-        {
-            return (false, "User not found", null);
-        }
+        
+        if (user is null)
+            return Errors.NotFound("User not found");
 
         if (!user.TwoFactorEnabled)
-        {
-            return (false, "Two-factor authentication must be enabled first", null);
-        }
+            return Errors.Validation("Two-factor authentication must be enabled first");
 
         var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
 
-        if (recoveryCodes == null || !recoveryCodes.Any())
-        {
-            return (false, "Failed to generate recovery codes", null);
-        }
+        if (recoveryCodes is null || !recoveryCodes.Any())
+            return Errors.Unexpected("Failed to generate recovery codes");
 
         var response = new GenerateRecoveryCodesResponse(recoveryCodes.ToArray());
 
-        return (true, "Recovery codes generated successfully. Store them in a safe place.", response);
+        return Result.Ok(response);
     }
 
     private static string FormatKey(string key)
