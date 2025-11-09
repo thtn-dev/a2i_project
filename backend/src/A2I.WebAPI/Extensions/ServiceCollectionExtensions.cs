@@ -33,7 +33,7 @@ using StackExchange.Redis;
 
 namespace A2I.WebAPI.Extensions;
 
-public static class ServiceCollectionExtensions
+public static class SvcCollectionExtensions
 {
     public static void AddBackgroundJobServices(this IServiceCollection services)
     {

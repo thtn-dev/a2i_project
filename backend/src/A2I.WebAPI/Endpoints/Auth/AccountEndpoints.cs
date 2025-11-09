@@ -1,5 +1,6 @@
 using A2I.Application.Common;
 using A2I.Infrastructure.Identity.Models;
+using A2I.WebAPI.ApiFilters;
 using A2I.WebAPI.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,6 +13,7 @@ public static partial class AccountEndpoints
         // Password Management
         group.MapPost("/change-password", ChangePassword)
             .RequireAuthorization()
+            .WithValidation<ChangePasswordRequest>()
             .WithApiMetadata(
                 "Change password",
                 "Changes the password for the authenticated user.")

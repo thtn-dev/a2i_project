@@ -3,6 +3,7 @@ using A2I.Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
+using A2I.Application.Common;
 using FluentResults;
 
 namespace A2I.Infrastructure.Identity.Services;
@@ -36,7 +37,7 @@ public class AccountService : IAccountService
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
         {
-            return Result.Fail("User not found");
+            return Errors.NotFound("User not found");
         }
 
         var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
@@ -44,7 +45,7 @@ public class AccountService : IAccountService
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return Result.Fail($"Password change failed: {errors}");
+            return Errors.Validation("Password change failed: " + errors);
         }
 
         return Result.Ok();

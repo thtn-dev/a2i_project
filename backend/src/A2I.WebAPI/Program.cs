@@ -10,23 +10,22 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
+using FluentValidation;
 
 namespace A2I.WebAPI;
 
-public static class Program
+public class Program
 {
     public static async Task Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args)
-            .RegisterServices();
-
-        var app = builder.Build()
-            .RegisterPipelines();
-        
+        var builder = WebApplication.CreateBuilder(args);
+        RegisterServices(builder);
+        var app = builder.Build();
+        RegisterPipelines(app);
         await app.RunAsync();
     }
     
-    private static WebApplication RegisterPipelines(this WebApplication app)
+    private static void RegisterPipelines(WebApplication app)
     {
         if (!app.Environment.IsDevelopment())
         {
@@ -63,10 +62,9 @@ public static class Program
         app.MapGroup("/api/v1")
             .WithOpenApi()
             .MapV1Endpoints();
-        return app;
     }
     
-    private static WebApplicationBuilder RegisterServices(this WebApplicationBuilder builder)
+    private static void RegisterServices(WebApplicationBuilder builder)
     {
         // Core services
         builder.Services.AddAuthorization();
@@ -86,7 +84,7 @@ public static class Program
         builder.Services.AddIdentityServices(builder.Configuration);
         builder.Services.AddStripeServices(builder.Configuration);
         builder.Services.AddBackgroundJobServices();
-
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
         builder.Services.AddRateLimiter(rateLimiterOptions =>
         {
             rateLimiterOptions.AddFixedWindowLimiter("fixed", options =>
@@ -122,7 +120,7 @@ public static class Program
             {
                 var databaseSection = builder.Configuration.GetSection(DatabaseOptions.SectionName);
                 var dbOptions = databaseSection.Get<DatabaseOptions>();
-                var connectionString = ServiceCollectionExtensions.BuildConnectionString(dbOptions!);
+                var connectionString = SvcCollectionExtensions.BuildConnectionString(dbOptions!);
 
                 options.UseNpgsqlConnection(connectionString);
             }, new PostgreSqlStorageOptions
@@ -154,6 +152,5 @@ public static class Program
         builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
 
         builder.Services.ConfigureOpenApi();
-        return builder;
     }
 }
