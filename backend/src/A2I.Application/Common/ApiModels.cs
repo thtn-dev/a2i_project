@@ -1,15 +1,27 @@
 namespace A2I.Application.Common;
 
+public class ApiResponse
+{
+    public bool Success { get; set; } = true;
+    public string? Message { get; set; }
+
+    public static ApiResponse Ok(string? message = null)
+    {
+        return new ApiResponse
+        {
+            Success = true,
+            Message = message
+        };
+    }
+}
+
 /// <summary>
 ///     Standard API response wrapper for successful responses
 /// </summary>
 /// <typeparam name="T">Type of data being returned</typeparam>
-public class ApiResponse<T>
+public class ApiResponse<T> : ApiResponse
 {
-    public bool Success { get; set; } = true;
     public T? Data { get; set; }
-    public string? Message { get; set; }
-
     public static ApiResponse<T> Ok(T data, string? message = null)
     {
         return new ApiResponse<T>
@@ -22,41 +34,6 @@ public class ApiResponse<T>
 }
 
 /// <summary>
-///     Error response for failed requests
-/// </summary>
-public class ErrorResponse
-{
-    public bool Success { get; set; } = false;
-    public ErrorDetail Error { get; set; } = null!;
-
-    public static ErrorResponse Create(string code, string message,
-        Dictionary<string, string[]>? validationErrors = null, string? traceId = null)
-    {
-        return new ErrorResponse
-        {
-            Error = new ErrorDetail
-            {
-                Code = code,
-                Message = message,
-                ValidationErrors = validationErrors,
-                TraceId = traceId
-            }
-        };
-    }
-}
-
-/// <summary>
-///     Detailed error information
-/// </summary>
-public class ErrorDetail
-{
-    public string Code { get; set; } = null!;
-    public string Message { get; set; } = null!;
-    public Dictionary<string, string[]>? ValidationErrors { get; set; }
-    public string? TraceId { get; set; }
-}
-
-/// <summary>
 ///     Paginated response wrapper
 /// </summary>
 /// <typeparam name="T">Type of items in the collection</typeparam>
@@ -65,7 +42,7 @@ public class PaginatedResponse<T>
     public bool Success { get; set; } = true;
     public PaginatedData<T> Data { get; set; } = null!;
 
-    public static PaginatedResponse<T> Ok(List<T> items, PaginationMetadata pagination)
+    public static PaginatedResponse<T> Ok(IReadOnlyList<T> items, PaginationMetadata pagination)
     {
         return new PaginatedResponse<T>
         {
@@ -84,7 +61,7 @@ public class PaginatedResponse<T>
 /// </summary>
 public class PaginatedData<T>
 {
-    public List<T> Items { get; set; } = new();
+    public IReadOnlyList<T> Items { get; set; } = [];
     public PaginationMetadata Pagination { get; set; } = null!;
 }
 

@@ -1,6 +1,7 @@
 using A2I.Application.Common;
 using A2I.Infrastructure.Identity.Security;
 using A2I.WebAPI.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace A2I.WebAPI.Endpoints.Auth;
@@ -14,14 +15,14 @@ public static class JwksEndpoints
                 "Get JWKS",
                 "Retrieves the JSON Web Key Set (JWKS) for JWT token verification.")
             .Produces<object>()
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+            .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError);
         
         group.MapGet("/jwks/rotate", RotateKey)
             .WithApiMetadata(
                 "Rotate JWKS",
                 "Generates a new key pair and adds it to the JWKS.")
             .Produces<object>()
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+            .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError);
             
         return group;
     }

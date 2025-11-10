@@ -11,11 +11,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation" Version="12.1.0" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.0" />
         <PackageReference Include="Stripe.net" Version="49.0.0"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Features\" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.10" />
     </ItemGroup>
 
 </Project>

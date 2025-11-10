@@ -1,6 +1,6 @@
 using System.Text.Json;
+using A2I.Application.Common;
 using A2I.Application.Notifications;
-using A2I.Application.StripeAbstraction;
 using A2I.Application.StripeAbstraction.Checkout;
 using A2I.Application.StripeAbstraction.Subscriptions;
 using A2I.Application.Subscriptions;
@@ -13,55 +13,40 @@ using Microsoft.Extensions.Logging;
 
 namespace A2I.Infrastructure.Subscriptions;
 
-public sealed class SubscriptionApplicationService : ISubscriptionApplicationService
+public sealed class SubscriptionApplicationService(
+    ApplicationDbContext db,
+    IStripeCheckoutService checkoutService,
+    IStripeSubscriptionService subscriptionService,
+    IEmailService emailService,
+    ILogger<SubscriptionApplicationService> logger)
+    : ISubscriptionApplicationService
 {
-    private readonly IStripeCheckoutService _checkoutService;
-    private readonly ApplicationDbContext _db;
-    private readonly ILogger<SubscriptionApplicationService> _logger;
-    private readonly IStripeSubscriptionService _subscriptionService;
-    private readonly IEmailService _emailService;
-
-    public SubscriptionApplicationService(
-        ApplicationDbContext db,
-        IStripeCheckoutService checkoutService,
-        IStripeSubscriptionService subscriptionService,
-        IEmailService emailService,
-        ILogger<SubscriptionApplicationService> logger)
-    {
-        _db = db;
-        _checkoutService = checkoutService;
-        _subscriptionService = subscriptionService;
-        _emailService = emailService;
-        _logger = logger;
-    }
-
-
-    public async Task<StartSubscriptionResponse> StartSubscriptionAsync(
+    public async Task<Result<StartSubscriptionResponse>> StartSubscriptionAsync(
         StartSubscriptionRequest request,
         CancellationToken ct = default)
     {
-        var customer = await _db.Customers
+        var customer = await db.Customers
             .FirstOrDefaultAsync(c => c.Id == request.CustomerId, ct);
 
         if (customer is null)
-            throw new BusinessException($"Customer not found: {request.CustomerId}");
+            return Errors.NotFound($"Customer not found: {request.CustomerId}");
 
-        var plan = await _db.Plans
+        var plan = await db.Plans
             .FirstOrDefaultAsync(p => p.Id == request.PlanId && p.IsActive == true, ct);
 
         if (plan is null)
-            throw new BusinessException($"Plan not found or inactive: {request.PlanId}");
+            return Errors.NotFound($"Plan not found or inactive: {request.PlanId}");
 
-        var hasActive = await _db.Subscriptions
+        var hasActive = await db.Subscriptions
             .AnyAsync(
                 s => s.CustomerId == request.CustomerId &&
                      (s.Status == SubscriptionStatus.Active || s.Status == SubscriptionStatus.Trialing), ct);
 
         if (hasActive)
-            throw new BusinessException("Customer already has an active subscription");
+            return Errors.Conflict("Customer already has an active subscription");
 
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
-            throw new BusinessException("Customer does not have a Stripe customer ID");
+            return Errors.Validation("Customer does not have a Stripe customer ID");
 
         var checkoutRequest = new CreateCheckoutRequest
         {
@@ -78,62 +63,67 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         checkoutRequest.Metadata["customer_id"] = customer.Id.ToString();
         checkoutRequest.Metadata["plan_id"] = plan.Id.ToString();
 
-        var session = await _checkoutService.CreateCheckoutSessionAsync(checkoutRequest, ct);
+        var session = await checkoutService.CreateCheckoutSessionAsync(checkoutRequest, ct);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Created checkout session {SessionId} for customer {CustomerId} plan {PlanId}",
             session.Id, customer.Id, plan.Id);
 
-        return new StartSubscriptionResponse
+        return Result.Ok(new StartSubscriptionResponse
         {
             CheckoutSessionId = session.Id,
             CheckoutUrl = session.Url ?? string.Empty,
             ExpiresAt = session.ExpiresAt ?? DateTime.UtcNow.AddHours(24)
-        };
+        });
     }
 
-
-    public async Task<SubscriptionDetailsResponse> CompleteCheckoutAsync(
+    public async Task<Result<SubscriptionDetailsResponse>> CompleteCheckoutAsync(
         string checkoutSessionId,
         CancellationToken ct = default)
     {
-        var session = await _checkoutService.GetCheckoutSessionAsync(checkoutSessionId, ct);
+        var session = await checkoutService.GetCheckoutSessionAsync(checkoutSessionId, ct);
 
         if (session is null)
-            throw new BusinessException($"Checkout session not found: {checkoutSessionId}");
+            return Errors.NotFound($"Checkout session not found: {checkoutSessionId}");
 
         if (session.Status != "complete")
-            throw new BusinessException($"Checkout session not completed. Status: {session.Status}");
+            return Errors.Validation($"Checkout session not completed. Status: {session.Status}");
 
         if (string.IsNullOrWhiteSpace(session.SubscriptionId))
-            throw new BusinessException("Checkout session has no subscription ID");
+            return Errors.Validation("Checkout session has no subscription ID");
 
-        var existing = await _db.Subscriptions
+        var existing = await db.Subscriptions
             .FirstOrDefaultAsync(s => s.StripeSubscriptionId == session.SubscriptionId, ct);
 
         if (existing is not null)
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Subscription already exists for session {SessionId}: {SubId}",
                 checkoutSessionId, existing.Id);
             return await MapToDetailsResponse(existing, ct);
         }
 
-        var stripeSub = await _subscriptionService.GetSubscriptionAsync(session.SubscriptionId, ct);
+        var stripeSub = await subscriptionService.GetSubscriptionAsync(session.SubscriptionId, ct);
 
         if (stripeSub is null)
-            throw new BusinessException($"Stripe subscription not found: {session.SubscriptionId}");
+            return Errors.ExternalService($"Stripe subscription not found: {session.SubscriptionId}");
 
-        var customerId = Guid.Parse(stripeSub.Metadata?["customer_id"] ??
-                                    throw new BusinessException("Missing customer_id in metadata"));
-        var planId = Guid.Parse(stripeSub.Metadata?["plan_id"] ??
-                                throw new BusinessException("Missing plan_id in metadata"));
+        if (!stripeSub.Metadata.TryGetValue("customer_id", out var customerIdStr) ||
+            !Guid.TryParse(customerIdStr, out var customerId))
+            return Errors.Validation("Missing or invalid customer_id in metadata");
 
-        var customer = await _db.Customers.FindAsync([customerId], ct);
-        var plan = await _db.Plans.FindAsync([planId], ct);
+        if (!stripeSub.Metadata.TryGetValue("plan_id", out var planIdStr) ||
+            !Guid.TryParse(planIdStr, out var planId))
+            return Errors.Validation("Missing or invalid plan_id in metadata");
 
-        if (customer is null || plan is null)
-            throw new BusinessException("Customer or Plan not found");
+        var customer = await db.Customers.FindAsync([customerId], ct);
+        var plan = await db.Plans.FindAsync([planId], ct);
+
+        if (customer is null)
+            return Errors.NotFound($"Customer not found: {customerId}");
+
+        if (plan is null)
+            return Errors.NotFound($"Plan not found: {planId}");
 
         var subscription = new Subscription
         {
@@ -153,37 +143,33 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             Metadata = stripeSub.Metadata is not null ? JsonSerializer.Serialize(stripeSub.Metadata) : null
         };
 
-        _db.Subscriptions.Add(subscription);
-        await _db.SaveChangesAsync(ct);
+        db.Subscriptions.Add(subscription);
+        await db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Created subscription {SubId} from checkout {SessionId}",
             subscription.Id, checkoutSessionId);
 
         return await MapToDetailsResponse(subscription, ct);
     }
 
-    // ==================== CANCEL SUBSCRIPTION ====================
-
-    public async Task<CancelSubscriptionResponse> CancelSubscriptionAsync(
+    public async Task<Result<CancelSubscriptionResponse>> CancelSubscriptionAsync(
         Guid customerId,
         CancelSubscriptionRequest request,
         CancellationToken ct = default)
     {
-        var subscription = await _db.Subscriptions
+        var subscription = await db.Subscriptions
             .Include(s => s.Plan)
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, ct);
 
         if (subscription is null)
-            throw new BusinessException("No active subscription found for this customer");
+            return Errors.NotFound("No active subscription found for this customer");
 
-        // Cancel on Stripe (NO REFUND policy)
-        var canceled = await _subscriptionService.CancelSubscriptionAsync(
+        var canceled = await subscriptionService.CancelSubscriptionAsync(
             subscription.StripeSubscriptionId,
             request.CancelImmediately,
             ct);
 
-        // Update DB
         subscription.Status = MapSubscriptionStatus(canceled.Status);
         subscription.CancelAtPeriodEnd = canceled.CancelAtPeriodEnd;
         subscription.CancelAt = canceled.CancelAt;
@@ -200,19 +186,17 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             subscription.Metadata = JsonSerializer.Serialize(metadata);
         }
 
-        await _db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Canceled subscription {SubId} for customer {CustomerId}. Immediately={Immediately}",
             subscription.Id, customerId, request.CancelImmediately);
-
-        // TODO: Send cancellation email
 
         var message = request.CancelImmediately
             ? "Subscription canceled immediately"
             : $"Subscription will be canceled at period end: {subscription.CurrentPeriodEnd:yyyy-MM-dd}";
 
-        return new CancelSubscriptionResponse
+        return Result.Ok(new CancelSubscriptionResponse
         {
             SubscriptionId = subscription.Id,
             Status = subscription.Status.ToString(),
@@ -220,40 +204,38 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             CanceledAt = subscription.CanceledAt,
             CancelAtPeriodEnd = subscription.CancelAtPeriodEnd,
             Message = message
-        };
+        });
     }
 
-    public async Task<UpgradeSubscriptionResponse> UpgradeSubscriptionAsync(
+    public async Task<Result<UpgradeSubscriptionResponse>> UpgradeSubscriptionAsync(
         Guid customerId,
         UpgradeSubscriptionRequest request,
         CancellationToken ct = default)
     {
-        var subscription = await _db.Subscriptions
+        var subscription = await db.Subscriptions
             .Include(s => s.Plan)
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, ct);
 
         if (subscription is null)
-            throw new BusinessException("No active subscription found for this customer");
+            return Errors.NotFound("No active subscription found for this customer");
 
-        var newPlan = await _db.Plans
+        var newPlan = await db.Plans
             .FirstOrDefaultAsync(p => p.Id == request.NewPlanId && p.IsActive, ct);
 
         if (newPlan is null)
-            throw new BusinessException($"Plan not found or inactive: {request.NewPlanId}");
+            return Errors.NotFound($"Plan not found or inactive: {request.NewPlanId}");
 
         if (subscription.PlanId == request.NewPlanId)
-            throw new BusinessException("Customer is already on this plan");
+            return Errors.Validation("Customer is already on this plan");
 
-        // Rule: Cannot downgrade during trial
         if (subscription.IsInTrial && newPlan.Amount < subscription.Plan.Amount)
-            throw new BusinessException("Cannot downgrade plan during trial period");
+            return Errors.Validation("Cannot downgrade plan during trial period");
 
-        var updated = await _subscriptionService.ChangeSubscriptionPlanAsync(
+        var updated = await subscriptionService.ChangeSubscriptionPlanAsync(
             subscription.StripeSubscriptionId,
             newPlan.StripePriceId,
             ct);
 
-        // Calculate proration amount (approximation)
         var prorationAmount = request.ApplyProration
             ? CalculateProration(subscription, newPlan)
             : 0m;
@@ -262,13 +244,13 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
         subscription.PlanId = request.NewPlanId;
         subscription.Status = MapSubscriptionStatus(updated.Status);
 
-        await _db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(ct);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Upgraded subscription {SubId} from plan {OldPlanId} to {NewPlanId}",
             subscription.Id, oldPlanId, request.NewPlanId);
 
-        return new UpgradeSubscriptionResponse
+        return Result.Ok(new UpgradeSubscriptionResponse
         {
             SubscriptionId = subscription.Id,
             OldPlanId = oldPlanId,
@@ -278,38 +260,40 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
             Status = subscription.Status.ToString(),
             EffectiveDate = DateTime.UtcNow,
             Message = $"Successfully upgraded to {newPlan.Name}"
-        };
+        });
     }
 
-    public async Task<SubscriptionDetailsResponse?> GetCustomerSubscriptionAsync(
+    public async Task<Result<SubscriptionDetailsResponse>> GetCustomerSubscriptionAsync(
         Guid customerId,
         CancellationToken ct = default)
     {
-        var subscription = await _db.Subscriptions
+        var subscription = await db.Subscriptions
             .Include(s => s.Plan)
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && !s.IsDeleted, ct);
 
         if (subscription is null)
-            return null;
+            return Errors.NotFound($"No subscription found for customer {customerId}");
 
         return await MapToDetailsResponse(subscription, ct);
     }
 
-
-    private async Task<SubscriptionDetailsResponse> MapToDetailsResponse(
+    private async Task<Result<SubscriptionDetailsResponse>> MapToDetailsResponse(
         Subscription subscription,
         CancellationToken ct)
     {
-        // Ensure plan is loaded
         if (subscription.Plan is null)
-            subscription.Plan = await _db.Plans.FindAsync([subscription.PlanId], ct)
-                                ?? throw new BusinessException("Plan not found");
+        {
+            subscription.Plan = await db.Plans.FindAsync([subscription.PlanId], ct);
+            
+            if (subscription.Plan is null)
+                return Errors.NotFound($"Plan not found: {subscription.PlanId}");
+        }
 
         var features = string.IsNullOrWhiteSpace(subscription.Plan.Features)
             ? null
             : JsonSerializer.Deserialize<List<string>>(subscription.Plan.Features);
 
-        return new SubscriptionDetailsResponse
+        return Result.Ok(new SubscriptionDetailsResponse
         {
             Id = subscription.Id,
             CustomerId = subscription.CustomerId,
@@ -337,7 +321,7 @@ public sealed class SubscriptionApplicationService : ISubscriptionApplicationSer
                 TrialPeriodDays = subscription.Plan.TrialPeriodDays,
                 Features = features
             }
-        };
+        });
     }
 
     private static SubscriptionStatus MapSubscriptionStatus(string? stripeStatus)

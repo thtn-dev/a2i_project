@@ -23,45 +23,34 @@ public static class InvoiceEndpoints
             .WithApiMetadata(
                 "Get invoice details",
                 "Retrieves detailed information about a specific invoice including line items and payment attempts.")
-            .Produces<ApiResponse<InvoiceDetailsResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status403Forbidden)
-            .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
+            .WithStandardResponses<InvoiceDetailsResponse>();
 
         group.MapGet("/{customerId:guid}/{invoiceId:guid}/pdf", DownloadInvoicePdf)
             .WithName("DownloadInvoicePdf")
             .WithApiMetadata(
                 "Download invoice PDF",
                 "Gets a download URL for the invoice PDF. URL is hosted by Stripe and does not expire.")
-            .Produces<ApiResponse<InvoicePdfResponse>>()
-            .Produces<ErrorResponse>(StatusCodes.Status403Forbidden)
-            .Produces<ErrorResponse>(StatusCodes.Status404NotFound)
-            .Produces<ErrorResponse>(StatusCodes.Status500InternalServerError);
-
+            .WithStandardResponses<InvoicePdfResponse>();
+            
         return group;
     }
 
-    // ==================== 1. GET CUSTOMER INVOICES (PAGINATED) ====================
 
     private static async Task<IResult> GetCustomerInvoices(
         Guid customerId,
-        [AsParameters] GetInvoicesQueryParams queryParams,
+        [AsParameters] GetInvoicesRequest queryParams,
         IInvoiceApplicationService invoiceService,
         CancellationToken ct)
     {
-        // Validate pagination
         if (!EndpointExtensions.ValidatePagination(
                 queryParams.Page,
                 queryParams.PageSize,
                 out var validationError))
             return validationError!;
 
-        // Validate date range
         if (queryParams is { FromDate: not null, ToDate: not null } &&
             queryParams.FromDate > queryParams.ToDate)
-            return EndpointExtensions.BadRequest(
-                ErrorCodes.VALIDATION_RANGE,
-                "FromDate cannot be greater than ToDate");
+            return Results.BadRequest("FromDate cannot be greater than ToDate");
 
         var request = new GetInvoicesRequest
         {
@@ -71,16 +60,11 @@ public static class InvoiceEndpoints
             FromDate = queryParams.FromDate,
             ToDate = queryParams.ToDate
         };
+        var result = await invoiceService.GetCustomerInvoicesAsync(
+            customerId, request, ct);
 
-        return await EndpointExtensions.ExecutePaginatedAsync(async () =>
-        {
-            var response = await invoiceService.GetCustomerInvoicesAsync(
-                customerId, request, ct);
-            return (response.Items, response.Pagination);
-        });
+        return result.ToHttpResult();
     }
-
-    // ==================== 2. GET INVOICE DETAILS ====================
 
     private static async Task<IResult> GetInvoiceDetails(
         Guid customerId,
@@ -88,56 +72,19 @@ public static class InvoiceEndpoints
         IInvoiceApplicationService invoiceService,
         CancellationToken ct)
     {
-        return await EndpointExtensions.ExecuteAsync(
-            async () => await invoiceService.GetInvoiceDetailsAsync(
-                customerId, invoiceId, ct),
-            "Invoice details retrieved successfully");
+        var result = await invoiceService.GetInvoiceDetailsAsync(
+            customerId, invoiceId, ct);
+        return result.ToHttpResult();
     }
-
-    // ==================== 3. DOWNLOAD INVOICE PDF ====================
-
+    
     private static async Task<IResult> DownloadInvoicePdf(
         Guid customerId,
         Guid invoiceId,
         IInvoiceApplicationService invoiceService,
         CancellationToken ct)
     {
-        return await EndpointExtensions.ExecuteAsync(
-            async () => await invoiceService.DownloadInvoicePdfAsync(
-                customerId, invoiceId, ct),
-            "Invoice PDF URL retrieved successfully");
+        var result = await invoiceService.DownloadInvoicePdfAsync(
+            customerId, invoiceId, ct);
+        return result.ToHttpResult();
     }
-}
-
-// ==================== QUERY PARAMETERS ====================
-
-/// <summary>
-///     Query parameters for invoice listing
-/// </summary>
-public sealed class GetInvoicesQueryParams
-{
-    /// <summary>
-    ///     Page number (1-based)
-    /// </summary>
-    public int Page { get; set; } = 1;
-
-    /// <summary>
-    ///     Items per page (max 100)
-    /// </summary>
-    public int PageSize { get; set; } = 10;
-
-    /// <summary>
-    ///     Filter by invoice status (Draft, Open, Paid, Uncollectible, Void)
-    /// </summary>
-    public string? Status { get; set; }
-
-    /// <summary>
-    ///     Filter invoices created from this date
-    /// </summary>
-    public DateTime? FromDate { get; set; }
-
-    /// <summary>
-    ///     Filter invoices created until this date
-    /// </summary>
-    public DateTime? ToDate { get; set; }
 }

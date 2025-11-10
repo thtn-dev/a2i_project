@@ -1,36 +1,42 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace A2I.Application.Customers;
 
 // ==================== REQUESTS ====================
 
-public sealed class CreateOrUpdateCustomerRequest
+public record CreateOrUpdateCustomerRequest
 {
-    [Required] public Guid CustomerId { get; set; }
+    public Guid CustomerId { get; set; }
 
-    [Required] [EmailAddress] public required string Email { get; set; }
+    public required string Email { get; set; }
 
-    [MaxLength(100)] public string? FirstName { get; set; }
+    public string? FirstName { get; set; }
 
-    [MaxLength(100)] public string? LastName { get; set; }
+    public string? LastName { get; set; }
 
-    [Phone] public string? Phone { get; set; }
+    public string? Phone { get; set; }
 
-    [MaxLength(200)] public string? CompanyName { get; set; }
+    public string? CompanyName { get; set; }
 
     public string? PaymentMethodId { get; set; }
 
     public Dictionary<string, string>? Metadata { get; set; }
 }
 
-public sealed class UpdatePaymentMethodRequest
+public record UpdatePaymentMethodRequest
 {
-    [Required] public required string PaymentMethodId { get; set; }
+    public required string PaymentMethodId { get; set; }
 
     /// <summary>
     ///     Set as default payment method for future invoices
     /// </summary>
     public bool SetAsDefault { get; set; } = true;
+}
+
+public record GetPortalUrlRequest
+{
+    /// <summary>
+    ///     URL to redirect customer after they finish managing their subscription
+    /// </summary>
+    public string ReturnUrl { get; set; } = string.Empty;
 }
 
 // ==================== RESPONSES ====================
@@ -52,10 +58,10 @@ public sealed class CustomerDetailsResponse
     public SubscriptionSummaryDto? ActiveSubscription { get; set; }
 
     // Recent invoices (last 5)
-    public List<InvoiceSummaryDto> RecentInvoices { get; set; } = new();
+    public List<InvoiceSummaryDto> RecentInvoices { get; set; } = [];
 
     // Payment methods
-    public List<PaymentMethodDto> PaymentMethods { get; set; } = new();
+    public List<PaymentMethodDto> PaymentMethods { get; set; } = [];
     public string? DefaultPaymentMethodId { get; set; }
 }
 

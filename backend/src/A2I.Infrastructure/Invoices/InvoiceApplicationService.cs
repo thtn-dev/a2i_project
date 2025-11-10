@@ -8,31 +8,25 @@ using Microsoft.Extensions.Logging;
 
 namespace A2I.Infrastructure.Invoices;
 
-public sealed class InvoiceApplicationService : IInvoiceApplicationService
+public sealed class InvoiceApplicationService(
+    ApplicationDbContext db,
+    ILogger<InvoiceApplicationService> logger)
+    : IInvoiceApplicationService
 {
-    private readonly ApplicationDbContext _db;
-    private readonly ILogger<InvoiceApplicationService> _logger;
-
-    public InvoiceApplicationService(
-        ApplicationDbContext db,
-        ILogger<InvoiceApplicationService> logger)
-    {
-        _db = db;
-        _logger = logger;
-    }
-
-    public async Task<InvoiceListResponse> GetCustomerInvoicesAsync(
+    public async Task<Result<InvoiceListResponse>> GetCustomerInvoicesAsync(
         Guid customerId,
         GetInvoicesRequest request,
         CancellationToken ct = default)
     {
-        var customerExists = await _db.Customers
+        var customerExists = await db.Customers
             .AnyAsync(c => c.Id == customerId, ct);
 
         if (!customerExists)
-            throw new BusinessException($"Customer not found: {customerId}");
+        {
+            return Errors.NotFound($"Customer not found: {customerId}");
+        }
 
-        var query = _db.Invoices
+        var query = db.Invoices
             .Include(i => i.Subscription)
             .ThenInclude(s => s!.Plan)
             .Where(i => i.CustomerId == customerId);
@@ -82,11 +76,11 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             })
             .ToListAsync(ct);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Retrieved {Count} invoices for customer {CustomerId} (Page {Page}/{TotalPages})",
             invoices.Count, customerId, request.Page, totalPages);
 
-        return new InvoiceListResponse
+        return Result.Ok(new InvoiceListResponse
         {
             Items = invoices,
             Pagination = new PaginationMetadata
@@ -98,27 +92,29 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
                 HasPreviousPage = request.Page > 1,
                 HasNextPage = request.Page < totalPages
             }
-        };
+        });
     }
 
 
-    public async Task<InvoiceDetailsResponse> GetInvoiceDetailsAsync(
+    public async Task<Result<InvoiceDetailsResponse>> GetInvoiceDetailsAsync(
         Guid customerId,
         Guid invoiceId,
         CancellationToken ct = default)
     {
-        var invoice = await _db.Invoices
+        var invoice = await db.Invoices
             .Include(i => i.Customer)
             .Include(i => i.Subscription)
             .ThenInclude(s => s!.Plan)
             .FirstOrDefaultAsync(i => i.Id == invoiceId, ct);
 
         if (invoice is null)
-            throw new BusinessException($"Invoice not found: {invoiceId}");
+        {
+            return Errors.NotFound($"Invoice not found: {invoiceId}");
+        }
 
         if (invoice.CustomerId != customerId)
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 "Customer {CustomerId} attempted to access invoice {InvoiceId} belonging to {OwnerId}",
                 customerId, invoiceId, invoice.CustomerId);
             throw new BusinessException("You do not have permission to access this invoice");
@@ -170,28 +166,30 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
             LineItems = lineItems
         };
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Retrieved invoice details {InvoiceId} for customer {CustomerId}",
             invoiceId, customerId);
 
-        return response;
+        return Result.Ok(response);
     }
 
 
-    public async Task<InvoicePdfResponse> DownloadInvoicePdfAsync(
+    public async Task<Result<InvoicePdfResponse>> DownloadInvoicePdfAsync(
         Guid customerId,
         Guid invoiceId,
         CancellationToken ct = default)
     {
-        var invoice = await _db.Invoices
+        var invoice = await db.Invoices
             .FirstOrDefaultAsync(i => i.Id == invoiceId, ct);
 
         if (invoice is null)
-            throw new BusinessException($"Invoice not found: {invoiceId}");
+        {
+            return Errors.NotFound($"Invoice not found: {invoiceId}");
+        }
 
         if (invoice.CustomerId != customerId)
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 "Customer {CustomerId} attempted to download invoice {InvoiceId} belonging to {OwnerId}",
                 customerId, invoiceId, invoice.CustomerId);
             throw new BusinessException("You do not have permission to access this invoice");
@@ -199,22 +197,22 @@ public sealed class InvoiceApplicationService : IInvoiceApplicationService
 
         if (string.IsNullOrWhiteSpace(invoice.InvoicePdf))
         {
-            _logger.LogWarning(
+            logger.LogWarning(
                 "Invoice {InvoiceId} does not have a PDF URL",
                 invoiceId);
             throw new BusinessException("Invoice PDF is not available");
         }
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Retrieved PDF URL for invoice {InvoiceId} for customer {CustomerId}",
             invoiceId, customerId);
 
-        return new InvoicePdfResponse
+        return Result.Ok(new InvoicePdfResponse
         {
             PdfUrl = invoice.InvoicePdf,
             InvoiceNumber = invoice.InvoiceNumber,
             ExpiresAt = null, // Stripe URLs don't expire (they're permanent)
             Message = "Invoice PDF URL retrieved successfully"
-        };
+        });
     }
 }

@@ -12,7 +12,7 @@ public interface IInvoiceApplicationService
     ///     - Can filter by status, date range
     ///     - Ordered by created date (newest first)
     /// </summary>
-    Task<InvoiceListResponse> GetCustomerInvoicesAsync(
+    Task<Result<InvoiceListResponse>> GetCustomerInvoicesAsync(
         Guid customerId,
         GetInvoicesRequest request,
         CancellationToken ct = default);
@@ -24,7 +24,7 @@ public interface IInvoiceApplicationService
     ///     - Include subscription details if applicable
     ///     - Show payment attempts and status
     /// </summary>
-    Task<InvoiceDetailsResponse> GetInvoiceDetailsAsync(
+    Task<Result<InvoiceDetailsResponse>> GetInvoiceDetailsAsync(
         Guid customerId,
         Guid invoiceId,
         CancellationToken ct = default);
@@ -36,7 +36,7 @@ public interface IInvoiceApplicationService
     ///     - Return Stripe hosted invoice PDF URL
     ///     - URL is temporary (expires after some time)
     /// </summary>
-    Task<InvoicePdfResponse> DownloadInvoicePdfAsync(
+    Task<Result<InvoicePdfResponse>> DownloadInvoicePdfAsync(
         Guid customerId,
         Guid invoiceId,
         CancellationToken ct = default);

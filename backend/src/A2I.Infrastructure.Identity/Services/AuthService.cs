@@ -1,18 +1,21 @@
+using A2I.Application.Common;
 using A2I.Infrastructure.Identity.Entities;
 using A2I.Infrastructure.Identity.Models;
 using A2I.Infrastructure.Identity.Security;
+using FluentResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace A2I.Infrastructure.Identity.Services;
 
 public interface IAuthService
 {
-    Task<(bool Success, string Message, LoginResponse? Data)> RegisterAsync(RegisterRequest request);
-    Task<(bool Success, string Message, LoginResponse? Data)> LoginAsync(LoginRequest request, string ipAddress);
-    Task<(bool Success, string Message, LoginResponse? Data)> RefreshTokenAsync(string refreshToken, string ipAddress);
-    Task<(bool Success, string Message)> RevokeTokenAsync(string refreshToken, string ipAddress);
-    Task<UserInfo?> GetUserInfoAsync(Guid userId);
+    Task<Result<LoginResponse>> RegisterAsync(RegisterRequest request);
+    Task<Result<LoginResponse>> LoginAsync(LoginRequest request, string ipAddress);
+    Task<Result<LoginResponse>> RefreshTokenAsync(string refreshToken, string ipAddress);
+    Task<Result> RevokeTokenAsync(string refreshToken, string ipAddress);
+    Task<Result<UserInfo>> GetUserInfoAsync(Guid userId);
 }
 
 public class AuthService : IAuthService
@@ -20,68 +23,76 @@ public class AuthService : IAuthService
     private readonly AppIdentityDbContext _dbContext;
     private readonly IJwtService _jwtService;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IDistributedCache _cache;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IJwtService jwtService,
+        IDistributedCache cache,
         AppIdentityDbContext dbContext)
     {
         _userManager = userManager;
         _jwtService = jwtService;
         _dbContext = dbContext;
+        _cache = cache;
     }
 
-    public async Task<(bool Success, string Message, LoginResponse? Data)> RegisterAsync(RegisterRequest request)
+    public async Task<Result<LoginResponse>> RegisterAsync(RegisterRequest request)
     {
         // Validate passwords match
-        if (request.Password != request.ConfirmPassword) return (false, "Passwords do not match", null);
+        if (request.Password != request.ConfirmPassword)
+            return Errors.Validation("Passwords do not match");
 
         // Check if user already exists
         var existingUser = await _userManager.FindByNameAsync(request.Username);
-        if (existingUser != null) return (false, "Username already exists", null);
+        if (existingUser != null)
+            return Errors.Conflict("Username already exists");
 
         var existingEmail = await _userManager.FindByEmailAsync(request.Email);
-        if (existingEmail != null) return (false, "Email already exists", null);
+        if (existingEmail != null)
+            return Errors.Conflict("Email already exists");
 
         // Create new user
         var user = new ApplicationUser
         {
             UserName = request.Username,
             Email = request.Email,
-            EmailConfirmed = false // Require email confirmation
+            EmailConfirmed = false
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
-            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-            return (false, $"Registration failed: {errors}", null);
+            var errors = result.Errors.ToDictionary(x => x.Code, x => x.Description);
+            return Errors.Validation(errors);
         }
 
-        // Optionally add to default role
+        // Add to default role
         await _userManager.AddToRoleAsync(user, "User");
 
         // Generate email confirmation token
         var emailToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         // TODO: Send email confirmation link
 
-        return (true, "Registration successful. Please check your email to confirm your account.", null);
+        // Return success without LoginResponse (registration doesn't auto-login)
+        return Result.Ok<LoginResponse>(null!)
+            .WithSuccess("Registration successful. Please check your email to confirm your account.");
     }
 
-    public async Task<(bool Success, string Message, LoginResponse? Data)> LoginAsync(LoginRequest request,
-        string ipAddress)
+    public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, string ipAddress)
     {
         // Find user
         var user = await _userManager.FindByNameAsync(request.Username);
-        if (user == null) return (false, "Invalid username or password", null);
+        if (user == null)
+            return Errors.Unauthorized("Invalid username or password");
 
         // Check if account is locked out
         if (await _userManager.IsLockedOutAsync(user))
-            return (false, "Account is locked out. Please try again later.", null);
+            return Errors.Forbidden("Account is locked out. Please try again later.");
 
         // Check if email is confirmed (if required)
         if (!user.EmailConfirmed && _userManager.Options.SignIn.RequireConfirmedEmail)
-            return (false, "Email not confirmed. Please confirm your email first.", null);
+            return Errors.Unauthorized("Email not confirmed. Please confirm your email first.");
 
         // Check password
         var isPasswordValid = await _userManager.CheckPasswordAsync(user, request.Password);
@@ -93,9 +104,9 @@ public class AuthService : IAuthService
 
             // Check if account is now locked out after this failed attempt
             if (await _userManager.IsLockedOutAsync(user))
-                return (false, "Account is locked out due to multiple failed login attempts.", null);
+                return Errors.Forbidden("Account is locked out due to multiple failed login attempts.");
 
-            return (false, "Invalid username or password", null);
+            return Errors.Unauthorized("Invalid username or password");
         }
 
         // Reset failed login count on successful login
@@ -119,7 +130,7 @@ public class AuthService : IAuthService
             UserId = user.Id,
             Token = refreshTokenValue,
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(7), // 7 days expiration
+            ExpiresAt = DateTime.UtcNow.AddDays(7),
             CreatedByIp = ipAddress
         };
 
@@ -148,20 +159,20 @@ public class AuthService : IAuthService
             accessToken,
             refreshTokenValue,
             "Bearer",
-            3600, // 60 minutes in seconds
+            3600,
             userInfo);
 
-        return (true, "Login successful", loginResponse);
+        return Result.Ok(loginResponse);
     }
 
-    public async Task<(bool Success, string Message, LoginResponse? Data)> RefreshTokenAsync(string refreshToken,
-        string ipAddress)
+    public async Task<Result<LoginResponse>> RefreshTokenAsync(string refreshToken, string ipAddress)
     {
         var token = await _dbContext.RefreshTokens
             .Include(t => t.User)
             .SingleOrDefaultAsync(t => t.Token == refreshToken);
 
-        if (token == null || !token.IsActive) return (false, "Invalid or expired refresh token", null);
+        if (token == null || !token.IsActive)
+            return Errors.Unauthorized("Invalid or expired refresh token");
 
         var user = token.User;
 
@@ -210,15 +221,16 @@ public class AuthService : IAuthService
             3600,
             userInfo);
 
-        return (true, "Token refreshed successfully", loginResponse);
+        return Result.Ok(loginResponse);
     }
 
-    public async Task<(bool Success, string Message)> RevokeTokenAsync(string refreshToken, string ipAddress)
+    public async Task<Result> RevokeTokenAsync(string refreshToken, string ipAddress)
     {
         var token = await _dbContext.RefreshTokens
             .SingleOrDefaultAsync(t => t.Token == refreshToken);
 
-        if (token == null || !token.IsActive) return (false, "Invalid refresh token");
+        if (token == null || !token.IsActive)
+            return Errors.NotFound("Invalid refresh token");
 
         token.IsRevoked = true;
         token.RevokedAt = DateTime.UtcNow;
@@ -226,20 +238,40 @@ public class AuthService : IAuthService
 
         await _dbContext.SaveChangesAsync();
 
-        return (true, "Token revoked successfully");
+        return Result.Ok();
     }
 
-    public async Task<UserInfo?> GetUserInfoAsync(Guid userId)
+    public async Task<Result<UserInfo>> GetUserInfoAsync(Guid userId)
     {
+        var cacheKey = $"user_info_{userId}";
+        var cachedUserInfo = await _cache.GetStringAsync(cacheKey);
+        
+        if (cachedUserInfo != null)
+        {
+            var data = System.Text.Json.JsonSerializer.Deserialize<UserInfo>(cachedUserInfo);
+            return Result.Ok(data!);
+        }
+        
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null) return null;
-
-        return new UserInfo(
+        if (user == null)
+        {
+            return Errors.NotFound("User not found");
+        }
+        
+        var userInfo = new UserInfo(
             user.Id,
             user.UserName!,
             user.Email!,
             user.EmailConfirmed,
             user.PhoneNumber,
             user.TwoFactorEnabled);
+        
+        var serializedUserInfo = System.Text.Json.JsonSerializer.Serialize(userInfo);
+        await _cache.SetStringAsync(cacheKey, serializedUserInfo, new DistributedCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+        });
+        
+        return Result.Ok(userInfo);
     }
 }

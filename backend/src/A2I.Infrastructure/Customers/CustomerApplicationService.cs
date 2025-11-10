@@ -1,5 +1,5 @@
+using A2I.Application.Common;
 using A2I.Application.Customers;
-using A2I.Application.StripeAbstraction;
 using A2I.Application.StripeAbstraction.Customers;
 using A2I.Application.StripeAbstraction.Portal;
 using A2I.Infrastructure.Database;
@@ -8,34 +8,22 @@ using Microsoft.Extensions.Logging;
 
 namespace A2I.Infrastructure.Customers;
 
-public sealed class CustomerApplicationService : ICustomerApplicationService
+public sealed class CustomerApplicationService(
+    ApplicationDbContext db,
+    IStripeCustomerService customerService,
+    IStripePortalService portalService,
+    ILogger<CustomerApplicationService> logger)
+    : ICustomerApplicationService
 {
-    private readonly IStripeCustomerService _customerService;
-    private readonly ApplicationDbContext _db;
-    private readonly ILogger<CustomerApplicationService> _logger;
-    private readonly IStripePortalService _portalService;
-
-    public CustomerApplicationService(
-        ApplicationDbContext db,
-        IStripeCustomerService customerService,
-        IStripePortalService portalService,
-        ILogger<CustomerApplicationService> logger)
-    {
-        _db = db;
-        _customerService = customerService;
-        _portalService = portalService;
-        _logger = logger;
-    }
-
-    public async Task<CustomerDetailsResponse> CreateOrUpdateCustomerAsync(
+    public async Task<Result<CustomerDetailsResponse>> CreateOrUpdateCustomerAsync(
         CreateOrUpdateCustomerRequest request,
         CancellationToken ct = default)
     {
-        var customer = await _db.Customers
+        var customer = await db.Customers
             .FirstOrDefaultAsync(c => c.Id == request.CustomerId, ct);
 
         if (customer is null)
-            throw new BusinessException($"Customer not found: {request.CustomerId}");
+            return Errors.NotFound($"Customer not found: {request.CustomerId}");
 
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
         {
@@ -51,11 +39,11 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
 
             createRequest.Metadata["internal_customer_id"] = customer.Id.ToString();
 
-            var stripeCustomer = await _customerService.CreateCustomerAsync(createRequest, ct);
+            var stripeCustomer = await customerService.CreateCustomerAsync(createRequest, ct);
 
             customer.StripeCustomerId = stripeCustomer.Id;
 
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Created Stripe customer {StripeCustomerId} for customer {CustomerId}",
                 stripeCustomer.Id, customer.Id);
         }
@@ -71,9 +59,9 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
                 Metadata = request.Metadata
             };
 
-            await _customerService.UpdateCustomerAsync(customer.StripeCustomerId, updateRequest, ct);
+            await customerService.UpdateCustomerAsync(customer.StripeCustomerId, updateRequest, ct);
 
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Updated Stripe customer {StripeCustomerId} for customer {CustomerId}",
                 customer.StripeCustomerId, customer.Id);
         }
@@ -84,23 +72,23 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         customer.Phone = request.Phone;
         customer.CompanyName = request.CompanyName;
 
-        await _db.SaveChangesAsync(ct);
+        await db.SaveChangesAsync(ct);
 
         return await GetCustomerDetailsAsync(customer.Id, ct);
     }
 
-    public async Task<CustomerDetailsResponse> GetCustomerDetailsAsync(
+    public async Task<Result<CustomerDetailsResponse>> GetCustomerDetailsAsync(
         Guid customerId,
         CancellationToken ct = default)
     {
-        var customer = await _db.Customers
+        var customer = await db.Customers
             .Include(c => c.Subscriptions.Where(s => !s.IsDeleted))
             .ThenInclude(s => s.Plan)
             .Include(c => c.Invoices.Where(i => !i.IsDeleted))
             .FirstOrDefaultAsync(c => c.Id == customerId, ct);
 
         if (customer is null)
-            throw new BusinessException($"Customer not found: {customerId}");
+            return Errors.NotFound($"Customer not found: {customerId}");
 
         var activeSubscription = customer.Subscriptions
             .FirstOrDefault(s => s.IsActive);
@@ -146,9 +134,10 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
         string? defaultPaymentMethodId = null;
 
         if (!string.IsNullOrWhiteSpace(customer.StripeCustomerId))
+        {
             try
             {
-                var stripePMs = await _customerService.ListPaymentMethodsAsync(
+                var stripePMs = await customerService.ListPaymentMethodsAsync(
                     customer.StripeCustomerId, ct);
 
                 paymentMethods = stripePMs.Select(pm => new PaymentMethodDto
@@ -167,12 +156,13 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex,
+                logger.LogWarning(ex,
                     "Failed to get payment methods for customer {CustomerId}",
                     customerId);
             }
+        }
 
-        return new CustomerDetailsResponse
+        return Result.Ok(new CustomerDetailsResponse
         {
             Id = customer.Id,
             Email = customer.Email,
@@ -188,41 +178,41 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
             RecentInvoices = recentInvoices,
             PaymentMethods = paymentMethods,
             DefaultPaymentMethodId = defaultPaymentMethodId
-        };
+        });
     }
 
-    public async Task<UpdatePaymentMethodResponse> UpdatePaymentMethodAsync(
+    public async Task<Result<UpdatePaymentMethodResponse>> UpdatePaymentMethodAsync(
         Guid customerId,
         UpdatePaymentMethodRequest request,
         CancellationToken ct = default)
     {
-        var customer = await _db.Customers
+        var customer = await db.Customers
             .FirstOrDefaultAsync(c => c.Id == customerId, ct);
 
         if (customer is null)
-            throw new BusinessException($"Customer not found: {customerId}");
+            return Errors.NotFound($"Customer not found: {customerId}");
 
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
-            throw new BusinessException("Customer does not have a Stripe customer ID");
+            return Errors.Validation("Customer does not have a Stripe customer ID");
 
-        var result = await _customerService.AttachPaymentMethodAsync(
+        var result = await customerService.AttachPaymentMethodAsync(
             customer.StripeCustomerId,
             request.PaymentMethodId,
             ct);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Attached payment method {PaymentMethodId} to customer {CustomerId}. SetAsDefault={SetAsDefault}",
             request.PaymentMethodId, customerId, result.SetAsDefaultForInvoices);
 
-        var activeSubscription = await _db.Subscriptions
+        var activeSubscription = await db.Subscriptions
             .FirstOrDefaultAsync(s => s.CustomerId == customerId && s.IsActive, ct);
 
         if (activeSubscription is not null && request.SetAsDefault)
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Payment method will be used for subscription {SubId} on next billing cycle",
                 activeSubscription.Id);
 
-        return new UpdatePaymentMethodResponse
+        return Result.Ok(new UpdatePaymentMethodResponse
         {
             CustomerId = customer.StripeCustomerId,
             PaymentMethodId = request.PaymentMethodId,
@@ -230,38 +220,42 @@ public sealed class CustomerApplicationService : ICustomerApplicationService
             Message = result.SetAsDefaultForInvoices
                 ? "Payment method attached and set as default"
                 : "Payment method attached successfully"
-        };
+        });
     }
 
-    public async Task<CustomerPortalResponse> GetCustomerPortalUrlAsync(
+    public async Task<Result<CustomerPortalResponse>> GetCustomerPortalUrlAsync(
         Guid customerId,
         string returnUrl,
         CancellationToken ct = default)
     {
-        var customer = await _db.Customers
+        var customer = await db.Customers
             .FirstOrDefaultAsync(c => c.Id == customerId, ct);
 
         if (customer is null)
-            throw new BusinessException($"Customer not found: {customerId}");
+        {
+            return Errors.NotFound($"Customer not found: {customerId}");
+        }
 
         if (string.IsNullOrWhiteSpace(customer.StripeCustomerId))
-            throw new BusinessException("Customer does not have a Stripe customer ID. Please complete checkout first.");
+        {
+            return Errors.Validation("Customer does not have a Stripe customer ID");
+        }
 
-        var portalSession = await _portalService.CreatePortalSessionAsync(
+        var portalSession = await portalService.CreatePortalSessionAsync(
             customer.StripeCustomerId,
             returnUrl,
             ct);
 
-        _logger.LogInformation(
+        logger.LogInformation(
             "Created Stripe portal session {SessionId} for customer {CustomerId}",
             portalSession.Id, customerId);
 
-        return new CustomerPortalResponse
+        return Result.Ok(new CustomerPortalResponse
         {
             PortalUrl = portalSession.Url ?? string.Empty,
             PortalSessionId = portalSession.Id,
             Message =
                 "Portal session created successfully. Customer can manage subscription, payment methods, and view invoices."
-        };
+        });
     }
 }

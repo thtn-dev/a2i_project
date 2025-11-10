@@ -1,4 +1,3 @@
-using A2I.Application.Common.Caching;
 using A2I.Application.Customers;
 using A2I.Application.Invoices;
 using A2I.Application.Notifications;
@@ -34,7 +33,7 @@ using StackExchange.Redis;
 
 namespace A2I.WebAPI.Extensions;
 
-public static class ServiceCollectionExtensions
+public static class SvcCollectionExtensions
 {
     public static void AddBackgroundJobServices(this IServiceCollection services)
     {
@@ -46,7 +45,7 @@ public static class ServiceCollectionExtensions
             q.AddTrigger(opts => opts
                 .ForJob(jobKey)
                 .WithIdentity("KeyRotationTrigger")
-                .WithCronSchedule("0 0 2 */30 * ?")); // 2 AM mỗi 30 ngày
+                .WithCronSchedule("0 0 2 */30 * ?")); // 2 AM every 30 days
             // .WithSimpleSchedule(x => x.WithIntervalInHours(24).RepeatForever())); // Test: mỗi 24 giờ
         });
         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
@@ -103,7 +102,12 @@ public static class ServiceCollectionExtensions
             .AddEntityFrameworkStores<AppIdentityDbContext>()
             .AddDefaultTokenProviders();
         
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options =>
             {
                 var jwtSettings = configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>();
@@ -236,9 +240,29 @@ public static class ServiceCollectionExtensions
                 throw new ArgumentException("Redis connection string is required for Redis cache type.");
 
             services.AddSingleton<IConnectionMultiplexer>(_ =>
-                ConnectionMultiplexer.Connect(options.ConnectionString));
+            {
+                var muxer = ConnectionMultiplexer.Connect(
+                    new ConfigurationOptions{
+                        EndPoints= { {"redis-17046.crce185.ap-seast-1-1.ec2.redns.redis-cloud.com", 17046} },
+                        User="default",
+                        Password="FcJ2dUSeLKqFXTQEb7TtagbGeWwhzwex"
+                    }
+                );
+                return muxer;
+            });
 
-            services.AddSingleton<ICacheService, RedisCacheService>();
+            services.AddSingleton<IRedisDistributedCache, RedisDistributedCache>();
+            
+            services.AddStackExchangeRedisCache(redisOptions =>
+            {
+                redisOptions.ConfigurationOptions = new ConfigurationOptions
+                {
+                    EndPoints= { {"redis-17046.crce185.ap-seast-1-1.ec2.redns.redis-cloud.com", 17046} },
+                    User="default",
+                    Password="FcJ2dUSeLKqFXTQEb7TtagbGeWwhzwex"
+                };
+                redisOptions.InstanceName = options.InstanceName ?? "AppCache";
+            });
         }
         else
         {

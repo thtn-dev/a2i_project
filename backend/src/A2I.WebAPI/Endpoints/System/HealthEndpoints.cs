@@ -2,6 +2,7 @@ using System.Diagnostics;
 using A2I.Application.Common;
 using A2I.Infrastructure.Database;
 using A2I.WebAPI.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace A2I.WebAPI.Endpoints.System;
@@ -26,7 +27,7 @@ public static class HealthEndpoints
             .WithApiMetadata("Get detailed health status",
                 "Returns detailed health status including database and external services")
             .Produces<DetailedHealthResponse>()
-            .Produces<ErrorResponse>(StatusCodes.Status503ServiceUnavailable);
+            .Produces<ProblemDetails>(StatusCodes.Status503ServiceUnavailable);
 
         return group;
     }
