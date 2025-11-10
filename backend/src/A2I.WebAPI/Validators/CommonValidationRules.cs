@@ -19,7 +19,8 @@ public static class CommonValidationRules
     {
         return ruleBuilder
             .NotEmpty().WithMessage("Email cannot be empty")
-            .EmailAddress().WithMessage("Invalid email format");
+            .EmailAddress().WithMessage("Invalid email format")
+            .MaximumLength(256).WithMessage("Email cannot exceed 256 characters");
     }
 
     public static IRuleBuilder<T, string> Username<T>(this IRuleBuilder<T, string> ruleBuilder)

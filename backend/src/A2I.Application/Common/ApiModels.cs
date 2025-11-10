@@ -33,18 +33,6 @@ public class ApiResponse<T> : ApiResponse
     }
 }
 
-
-/// <summary>
-///     Detailed error information
-/// </summary>
-public class ErrorDetail
-{
-    public string Code { get; set; } = null!;
-    public string Message { get; set; } = null!;
-    public Dictionary<string, string[]>? ValidationErrors { get; set; }
-    public string? TraceId { get; set; }
-}
-
 /// <summary>
 ///     Paginated response wrapper
 /// </summary>

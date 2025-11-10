@@ -1,7 +1,5 @@
-using A2I.Application.Common;
 using A2I.Application.Customers;
 using A2I.WebAPI.Extensions;
-using FluentResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace A2I.WebAPI.Endpoints.Customers;
@@ -90,17 +88,4 @@ public static class CustomerEndpoints
         
         return result.ToHttpResult();
     }
-}
-
-// ==================== REQUEST MODELS ====================
-
-/// <summary>
-///     Request to get customer portal URL
-/// </summary>
-public sealed class GetPortalUrlRequest
-{
-    /// <summary>
-    ///     URL to redirect customer after they finish managing their subscription
-    /// </summary>
-    public string ReturnUrl { get; set; } = string.Empty;
 }

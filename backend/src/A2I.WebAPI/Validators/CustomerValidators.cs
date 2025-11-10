@@ -12,9 +12,7 @@ public sealed class CreateOrUpdateCustomerRequestValidator : AbstractValidator<C
             .NotEmpty().WithMessage("Customer ID cannot be empty");
 
         RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email cannot be empty")
-            .EmailAddress().WithMessage("Invalid email format")
-            .MaximumLength(256).WithMessage("Email cannot exceed 256 characters");
+            .Email();
 
         RuleFor(x => x.FirstName)
             .MaximumLength(100).WithMessage("First name cannot exceed 100 characters")
@@ -25,8 +23,7 @@ public sealed class CreateOrUpdateCustomerRequestValidator : AbstractValidator<C
             .When(x => !string.IsNullOrWhiteSpace(x.LastName));
 
         RuleFor(x => x.Phone)
-            .Matches(@"^(\+84|0)[0-9]{9,10}$").WithMessage("Invalid phone number format")
-            .When(x => !string.IsNullOrWhiteSpace(x.Phone));
+            .PhoneNumber();
 
         RuleFor(x => x.CompanyName)
             .MaximumLength(200).WithMessage("Company name cannot exceed 200 characters")
@@ -59,5 +56,16 @@ public sealed class UpdatePaymentMethodRequestValidator : AbstractValidator<Upda
         RuleFor(x => x.PaymentMethodId)
             .NotEmpty().WithMessage("Payment method ID cannot be empty")
             .Matches(@"^pm_[a-zA-Z0-9]+$").WithMessage("Invalid Stripe payment method ID format");
+    }
+}
+
+public sealed class GetPortalUrlRequestValidator : AbstractValidator<GetPortalUrlRequest>
+{
+    public GetPortalUrlRequestValidator()
+    {
+        RuleFor(x => x.ReturnUrl)
+            .NotEmpty().WithMessage("ReturnUrl cannot be empty")
+            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out _))
+            .WithMessage("ReturnUrl must be a valid absolute URL");
     }
 }

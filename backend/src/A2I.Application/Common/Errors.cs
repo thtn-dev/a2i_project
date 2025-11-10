@@ -40,6 +40,16 @@ public static class Errors
         return result;
     }
     
+    public static Result Validation(IDictionary<string, string> messages)
+    {
+        var result = Result.Fail(new ValidationError("One or more validation errors occurred."));
+        foreach (var message in messages)
+        {
+            result.WithError(new ValidationError($"{message.Key}: {message.Value}"));
+        }
+        return result;
+    }
+    
     public static Result Unauthorized(string message = "You are not authorized to perform this action.")
     {
         return Result.Fail(new UnauthorizedError(message));

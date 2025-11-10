@@ -63,7 +63,7 @@ public class AuthService : IAuthService
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
         {
-            var errors = result.Errors.Select(e => e.Description);
+            var errors = result.Errors.ToDictionary(x => x.Code, x => x.Description);
             return Errors.Validation(errors);
         }
 
