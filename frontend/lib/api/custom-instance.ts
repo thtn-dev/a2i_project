@@ -13,7 +13,6 @@ export const customInstance = async <T>(
 ): Promise<T> => {
   const { params, ...rest } = config || {};
 
-  // Build URL with query params
   const searchParams = new URLSearchParams();
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -26,7 +25,6 @@ export const customInstance = async <T>(
   const queryString = searchParams.toString();
   const fullUrl = `${API_BASE_URL}${url}${queryString ? `?${queryString}` : ""}`;
 
-  // Get auth token from localStorage (adjust based on your auth implementation)
   const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
 
   const response = await fetch(fullUrl, {
@@ -38,20 +36,24 @@ export const customInstance = async <T>(
     },
   });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: response.statusText,
-      status: response.status,
-    }));
-    throw error;
-  }
-
-  // Handle empty responses (204 No Content)
+  // Parse response data
+  let data;
   if (response.status === 204) {
-    return {} as T;
+    data = {};
+  } else {
+    data = await response.json();
   }
 
-  return response.json();
-};
+  // Return format that matches Orval's expectation
+  const result = {
+    data,
+    status: response.status,
+    headers: response.headers,
+  } as T;
 
-export default customInstance;
+  if (!response.ok) {
+    throw result; // Throw với format đầy đủ
+  }
+
+  return result;
+};

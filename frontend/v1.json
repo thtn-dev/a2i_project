@@ -27,30 +27,15 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": { }
               }
             }
           },
@@ -58,22 +43,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -100,30 +72,15 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
             "content": {
               "application/json": {
-                "schema": {
-
-                }
+                "schema": { }
               }
             }
           },
@@ -131,22 +88,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -174,22 +118,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -205,22 +136,9 @@
             "description": "Service Unavailable",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -258,22 +176,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -289,22 +194,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -320,22 +212,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -351,22 +230,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -404,22 +270,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -435,22 +288,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -466,22 +306,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -497,22 +324,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -551,22 +365,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -582,22 +383,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -613,22 +401,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -644,22 +419,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -708,22 +470,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -739,22 +488,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -770,22 +506,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -801,22 +524,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -865,22 +575,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -896,22 +593,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -927,22 +611,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -958,22 +629,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1010,22 +668,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1041,22 +686,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1072,22 +704,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1103,22 +722,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1157,22 +763,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1188,22 +781,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1219,22 +799,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1250,22 +817,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1314,22 +868,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1345,22 +886,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1376,22 +904,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1407,22 +922,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1471,22 +973,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1502,22 +991,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1533,22 +1009,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1564,22 +1027,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1663,22 +1113,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1694,22 +1131,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1725,22 +1149,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1788,22 +1199,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1819,22 +1217,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1850,22 +1235,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1881,22 +1253,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1944,22 +1303,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -1975,22 +1321,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2006,22 +1339,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2037,22 +1357,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2089,22 +1396,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2120,22 +1414,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2172,22 +1453,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2203,22 +1471,9 @@
             "description": "Unauthorized",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2255,22 +1510,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2286,22 +1528,9 @@
             "description": "Unauthorized",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2338,22 +1567,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2369,22 +1585,9 @@
             "description": "Unauthorized",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2411,22 +1614,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2463,22 +1653,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2494,22 +1671,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2546,22 +1710,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2577,22 +1728,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2629,22 +1767,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2660,22 +1785,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2712,22 +1824,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2743,22 +1842,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2795,22 +1881,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2826,22 +1899,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2868,22 +1928,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2918,22 +1965,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2949,22 +1983,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -2991,22 +2012,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3022,22 +2030,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3053,22 +2048,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3084,22 +2066,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3126,22 +2095,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3157,22 +2113,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3188,22 +2131,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3240,22 +2170,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3271,22 +2188,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3302,22 +2206,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3344,22 +2235,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3375,22 +2253,9 @@
             "description": "Bad Request",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3406,22 +2271,9 @@
             "description": "Not Found",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3437,22 +2289,9 @@
             "description": "Internal Server Error",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             },
@@ -3477,22 +2316,9 @@
             "description": "OK",
             "headers": {
               "X-Request-ID": {
-                "description": "Unique request identifier for tracking and debugging",
+                "description": "Request identifier for tracking",
                 "schema": {
-                  "type": "string",
-                  "format": "uuid"
-                }
-              },
-              "X-RateLimit-Limit": {
-                "description": "The maximum number of requests allowed in the current time window",
-                "schema": {
-                  "type": "integer"
-                }
-              },
-              "X-RateLimit-Remaining": {
-                "description": "The number of requests remaining in the current time window",
-                "schema": {
-                  "type": "integer"
+                  "type": "string"
                 }
               }
             }
@@ -3516,277 +2342,199 @@
         }
       },
       "ApiResponseOfCancelSubscriptionResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CancelSubscriptionResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing CancelSubscriptionResponse"
+        }
       },
       "ApiResponseOfCustomerDetailsResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CustomerDetailsResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing CustomerDetailsResponse"
+        }
       },
       "ApiResponseOfCustomerPortalResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/CustomerPortalResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing CustomerPortalResponse"
+        }
       },
       "ApiResponseOfEnable2FAResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/Enable2FAResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing Enable2FAResponse"
+        }
       },
       "ApiResponseOfGenerateRecoveryCodesResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/GenerateRecoveryCodesResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing GenerateRecoveryCodesResponse"
+        }
       },
       "ApiResponseOfInvoiceDetailsResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/InvoiceDetailsResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing InvoiceDetailsResponse"
+        }
       },
       "ApiResponseOfInvoicePdfResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/InvoicePdfResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing InvoicePdfResponse"
+        }
       },
       "ApiResponseOfLoginResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/LoginResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing LoginResponse"
+        }
       },
       "ApiResponseOfStartSubscriptionResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/StartSubscriptionResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing StartSubscriptionResponse"
+        }
       },
       "ApiResponseOfSubscriptionDetailsResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/SubscriptionDetailsResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing SubscriptionDetailsResponse"
+        }
       },
       "ApiResponseOfUpdatePaymentMethodResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/UpdatePaymentMethodResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing UpdatePaymentMethodResponse"
+        }
       },
       "ApiResponseOfUpgradeSubscriptionResponse": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/UpgradeSubscriptionResponse"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing UpgradeSubscriptionResponse"
+        }
       },
       "ApiResponseOfUserInfo": {
-        "required": [
-          "success"
-        ],
         "type": "object",
         "properties": {
           "data": {
             "$ref": "#/components/schemas/UserInfo2"
           },
           "success": {
-            "type": "boolean",
-            "description": "Indicates whether the operation was successful"
+            "type": "boolean"
           },
           "message": {
             "type": "string",
-            "description": "Optional message providing additional context",
             "nullable": true
           }
-        },
-        "description": "Standard API response wrapper containing UserInfo"
+        }
       },
       "CancelSubscriptionRequest": {
         "type": "object",
