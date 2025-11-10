@@ -16,27 +16,27 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [user, setUser] = useState<UserInfo | null>(() => {
+    // Initialize user state from localStorage on mount
+    if (typeof window !== "undefined") {
+      const accessToken = localStorage.getItem("accessToken");
+      const storedUser = localStorage.getItem("user");
 
-  useEffect(() => {
-    // Check if user is already logged in on mount
-    const accessToken = localStorage.getItem("accessToken");
-    const storedUser = localStorage.getItem("user");
-
-    if (accessToken && storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse user data:", error);
-        localStorage.removeItem("user");
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+      if (accessToken && storedUser) {
+        try {
+          return JSON.parse(storedUser);
+        } catch (error) {
+          console.error("Failed to parse user data:", error);
+          localStorage.removeItem("user");
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+        }
       }
     }
-    setIsLoading(false);
-  }, []);
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const login = (accessToken: string, refreshToken: string, user: UserInfo) => {
     localStorage.setItem("accessToken", accessToken);

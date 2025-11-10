@@ -27,6 +27,8 @@ public class Program
     
     private static void RegisterPipelines(WebApplication app)
     {
+        // CORS
+        app.UseCors();
         if (!app.Environment.IsDevelopment())
         {
             app.UseRateLimiter();
@@ -77,6 +79,17 @@ public class Program
                 context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
                 context.ProblemDetails.Extensions["timestamp"] = DateTime.UtcNow;
             };
+        });
+        
+        // CORS
+        builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            });
         });
 
         // Database & Infrastructure

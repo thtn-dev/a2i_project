@@ -2,7 +2,8 @@
  * Custom fetch instance with authentication and error handling
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5087";
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5087";
+const API_BASE_URL = "";
 
 export type ErrorType<Error> = Error;
 
