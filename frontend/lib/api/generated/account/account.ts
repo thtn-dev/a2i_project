@@ -5,10 +5,7 @@
  * API for managing Stripe subscriptions, customers, and invoices
  * OpenAPI spec version: v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -21,7 +18,7 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
 
 import type {
@@ -33,674 +30,661 @@ import type {
   ProblemDetails,
   ResendEmailConfirmationRequest,
   ResetPasswordRequest,
-  UpdateProfileRequest
+  UpdateProfileRequest,
 } from '.././model';
 
 import { customInstance } from '../../custom-instance';
 import type { ErrorType } from '../../custom-instance';
 
-
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Changes the password for the authenticated user.
  * @summary Change password
  */
-export type postApiV1AccountChangePasswordResponse200 = {
-  data: ApiResponse
-  status: 200
-}
-
-export type postApiV1AccountChangePasswordResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-    
-export type postApiV1AccountChangePasswordResponseSuccess = (postApiV1AccountChangePasswordResponse200) & {
-  headers: Headers;
+export const postApiV1AccountChangePassword = (
+  changePasswordRequest: ChangePasswordRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponse>(
+    {
+      url: `/api/v1/account/change-password`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: changePasswordRequest,
+      signal,
+    },
+    options,
+  );
 };
-export type postApiV1AccountChangePasswordResponseError = (postApiV1AccountChangePasswordResponse400) & {
-  headers: Headers;
+
+export const getPostApiV1AccountChangePasswordMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiV1AccountChangePassword>>,
+    TError,
+    { data: ChangePasswordRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiV1AccountChangePassword>>,
+  TError,
+  { data: ChangePasswordRequest },
+  TContext
+> => {
+  const mutationKey = ['postApiV1AccountChangePassword'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiV1AccountChangePassword>>,
+    { data: ChangePasswordRequest }
+  > = props => {
+    const { data } = props ?? {};
+
+    return postApiV1AccountChangePassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
 };
 
-export type postApiV1AccountChangePasswordResponse = (postApiV1AccountChangePasswordResponseSuccess | postApiV1AccountChangePasswordResponseError)
+export type PostApiV1AccountChangePasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiV1AccountChangePassword>>
+>;
+export type PostApiV1AccountChangePasswordMutationBody = ChangePasswordRequest;
+export type PostApiV1AccountChangePasswordMutationError = ErrorType<ProblemDetails>;
 
-export const getPostApiV1AccountChangePasswordUrl = () => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/account/change-password`
-}
-
-export const postApiV1AccountChangePassword = async (changePasswordRequest: ChangePasswordRequest, options?: RequestInit): Promise<postApiV1AccountChangePasswordResponse> => {
-  
-  return customInstance<postApiV1AccountChangePasswordResponse>(getPostApiV1AccountChangePasswordUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      changePasswordRequest,)
-  }
-);}
-
-
-
-
-export const getPostApiV1AccountChangePasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountChangePassword>>, TError,{data: ChangePasswordRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountChangePassword>>, TError,{data: ChangePasswordRequest}, TContext> => {
-
-const mutationKey = ['postApiV1AccountChangePassword'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AccountChangePassword>>, {data: ChangePasswordRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiV1AccountChangePassword(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiV1AccountChangePasswordMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AccountChangePassword>>>
-    export type PostApiV1AccountChangePasswordMutationBody = ChangePasswordRequest
-    export type PostApiV1AccountChangePasswordMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Change password
  */
-export const usePostApiV1AccountChangePassword = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountChangePassword>>, TError,{data: ChangePasswordRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiV1AccountChangePassword>>,
-        TError,
-        {data: ChangePasswordRequest},
-        TContext
-      > => {
+export const usePostApiV1AccountChangePassword = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiV1AccountChangePassword>>,
+      TError,
+      { data: ChangePasswordRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiV1AccountChangePassword>>,
+  TError,
+  { data: ChangePasswordRequest },
+  TContext
+> => {
+  const mutationOptions = getPostApiV1AccountChangePasswordMutationOptions(options);
 
-      const mutationOptions = getPostApiV1AccountChangePasswordMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Sends a password reset link to the user's email.
  * @summary Forgot password
  */
-export type postApiV1AccountForgotPasswordResponse200 = {
-  data: ApiResponse
-  status: 200
-}
-
-export type postApiV1AccountForgotPasswordResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-    
-export type postApiV1AccountForgotPasswordResponseSuccess = (postApiV1AccountForgotPasswordResponse200) & {
-  headers: Headers;
+export const postApiV1AccountForgotPassword = (
+  forgotPasswordRequest: ForgotPasswordRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponse>(
+    {
+      url: `/api/v1/account/forgot-password`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: forgotPasswordRequest,
+      signal,
+    },
+    options,
+  );
 };
-export type postApiV1AccountForgotPasswordResponseError = (postApiV1AccountForgotPasswordResponse400) & {
-  headers: Headers;
+
+export const getPostApiV1AccountForgotPasswordMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>,
+    TError,
+    { data: ForgotPasswordRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>,
+  TError,
+  { data: ForgotPasswordRequest },
+  TContext
+> => {
+  const mutationKey = ['postApiV1AccountForgotPassword'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>,
+    { data: ForgotPasswordRequest }
+  > = props => {
+    const { data } = props ?? {};
+
+    return postApiV1AccountForgotPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
 };
 
-export type postApiV1AccountForgotPasswordResponse = (postApiV1AccountForgotPasswordResponseSuccess | postApiV1AccountForgotPasswordResponseError)
+export type PostApiV1AccountForgotPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>
+>;
+export type PostApiV1AccountForgotPasswordMutationBody = ForgotPasswordRequest;
+export type PostApiV1AccountForgotPasswordMutationError = ErrorType<ProblemDetails>;
 
-export const getPostApiV1AccountForgotPasswordUrl = () => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/account/forgot-password`
-}
-
-export const postApiV1AccountForgotPassword = async (forgotPasswordRequest: ForgotPasswordRequest, options?: RequestInit): Promise<postApiV1AccountForgotPasswordResponse> => {
-  
-  return customInstance<postApiV1AccountForgotPasswordResponse>(getPostApiV1AccountForgotPasswordUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      forgotPasswordRequest,)
-  }
-);}
-
-
-
-
-export const getPostApiV1AccountForgotPasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>, TError,{data: ForgotPasswordRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>, TError,{data: ForgotPasswordRequest}, TContext> => {
-
-const mutationKey = ['postApiV1AccountForgotPassword'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>, {data: ForgotPasswordRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiV1AccountForgotPassword(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiV1AccountForgotPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>>
-    export type PostApiV1AccountForgotPasswordMutationBody = ForgotPasswordRequest
-    export type PostApiV1AccountForgotPasswordMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Forgot password
  */
-export const usePostApiV1AccountForgotPassword = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>, TError,{data: ForgotPasswordRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>,
-        TError,
-        {data: ForgotPasswordRequest},
-        TContext
-      > => {
+export const usePostApiV1AccountForgotPassword = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>,
+      TError,
+      { data: ForgotPasswordRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiV1AccountForgotPassword>>,
+  TError,
+  { data: ForgotPasswordRequest },
+  TContext
+> => {
+  const mutationOptions = getPostApiV1AccountForgotPasswordMutationOptions(options);
 
-      const mutationOptions = getPostApiV1AccountForgotPasswordMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Resets the user's password using a valid reset token.
  * @summary Reset password
  */
-export type postApiV1AccountResetPasswordResponse200 = {
-  data: ApiResponse
-  status: 200
-}
-
-export type postApiV1AccountResetPasswordResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-    
-export type postApiV1AccountResetPasswordResponseSuccess = (postApiV1AccountResetPasswordResponse200) & {
-  headers: Headers;
+export const postApiV1AccountResetPassword = (
+  resetPasswordRequest: ResetPasswordRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponse>(
+    {
+      url: `/api/v1/account/reset-password`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: resetPasswordRequest,
+      signal,
+    },
+    options,
+  );
 };
-export type postApiV1AccountResetPasswordResponseError = (postApiV1AccountResetPasswordResponse400) & {
-  headers: Headers;
+
+export const getPostApiV1AccountResetPasswordMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiV1AccountResetPassword>>,
+    TError,
+    { data: ResetPasswordRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiV1AccountResetPassword>>,
+  TError,
+  { data: ResetPasswordRequest },
+  TContext
+> => {
+  const mutationKey = ['postApiV1AccountResetPassword'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiV1AccountResetPassword>>,
+    { data: ResetPasswordRequest }
+  > = props => {
+    const { data } = props ?? {};
+
+    return postApiV1AccountResetPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
 };
 
-export type postApiV1AccountResetPasswordResponse = (postApiV1AccountResetPasswordResponseSuccess | postApiV1AccountResetPasswordResponseError)
+export type PostApiV1AccountResetPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiV1AccountResetPassword>>
+>;
+export type PostApiV1AccountResetPasswordMutationBody = ResetPasswordRequest;
+export type PostApiV1AccountResetPasswordMutationError = ErrorType<ProblemDetails>;
 
-export const getPostApiV1AccountResetPasswordUrl = () => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/account/reset-password`
-}
-
-export const postApiV1AccountResetPassword = async (resetPasswordRequest: ResetPasswordRequest, options?: RequestInit): Promise<postApiV1AccountResetPasswordResponse> => {
-  
-  return customInstance<postApiV1AccountResetPasswordResponse>(getPostApiV1AccountResetPasswordUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      resetPasswordRequest,)
-  }
-);}
-
-
-
-
-export const getPostApiV1AccountResetPasswordMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountResetPassword>>, TError,{data: ResetPasswordRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountResetPassword>>, TError,{data: ResetPasswordRequest}, TContext> => {
-
-const mutationKey = ['postApiV1AccountResetPassword'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AccountResetPassword>>, {data: ResetPasswordRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiV1AccountResetPassword(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiV1AccountResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AccountResetPassword>>>
-    export type PostApiV1AccountResetPasswordMutationBody = ResetPasswordRequest
-    export type PostApiV1AccountResetPasswordMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Reset password
  */
-export const usePostApiV1AccountResetPassword = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountResetPassword>>, TError,{data: ResetPasswordRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiV1AccountResetPassword>>,
-        TError,
-        {data: ResetPasswordRequest},
-        TContext
-      > => {
+export const usePostApiV1AccountResetPassword = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiV1AccountResetPassword>>,
+      TError,
+      { data: ResetPasswordRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiV1AccountResetPassword>>,
+  TError,
+  { data: ResetPasswordRequest },
+  TContext
+> => {
+  const mutationOptions = getPostApiV1AccountResetPasswordMutationOptions(options);
 
-      const mutationOptions = getPostApiV1AccountResetPasswordMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Confirms the user's email address using a confirmation token.
  * @summary Confirm email
  */
-export type postApiV1AccountConfirmEmailResponse200 = {
-  data: ApiResponse
-  status: 200
-}
-
-export type postApiV1AccountConfirmEmailResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-    
-export type postApiV1AccountConfirmEmailResponseSuccess = (postApiV1AccountConfirmEmailResponse200) & {
-  headers: Headers;
+export const postApiV1AccountConfirmEmail = (
+  confirmEmailRequest: ConfirmEmailRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponse>(
+    {
+      url: `/api/v1/account/confirm-email`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: confirmEmailRequest,
+      signal,
+    },
+    options,
+  );
 };
-export type postApiV1AccountConfirmEmailResponseError = (postApiV1AccountConfirmEmailResponse400) & {
-  headers: Headers;
+
+export const getPostApiV1AccountConfirmEmailMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>,
+    TError,
+    { data: ConfirmEmailRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>,
+  TError,
+  { data: ConfirmEmailRequest },
+  TContext
+> => {
+  const mutationKey = ['postApiV1AccountConfirmEmail'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>,
+    { data: ConfirmEmailRequest }
+  > = props => {
+    const { data } = props ?? {};
+
+    return postApiV1AccountConfirmEmail(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
 };
 
-export type postApiV1AccountConfirmEmailResponse = (postApiV1AccountConfirmEmailResponseSuccess | postApiV1AccountConfirmEmailResponseError)
+export type PostApiV1AccountConfirmEmailMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>
+>;
+export type PostApiV1AccountConfirmEmailMutationBody = ConfirmEmailRequest;
+export type PostApiV1AccountConfirmEmailMutationError = ErrorType<ProblemDetails>;
 
-export const getPostApiV1AccountConfirmEmailUrl = () => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/account/confirm-email`
-}
-
-export const postApiV1AccountConfirmEmail = async (confirmEmailRequest: ConfirmEmailRequest, options?: RequestInit): Promise<postApiV1AccountConfirmEmailResponse> => {
-  
-  return customInstance<postApiV1AccountConfirmEmailResponse>(getPostApiV1AccountConfirmEmailUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      confirmEmailRequest,)
-  }
-);}
-
-
-
-
-export const getPostApiV1AccountConfirmEmailMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>, TError,{data: ConfirmEmailRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>, TError,{data: ConfirmEmailRequest}, TContext> => {
-
-const mutationKey = ['postApiV1AccountConfirmEmail'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>, {data: ConfirmEmailRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiV1AccountConfirmEmail(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiV1AccountConfirmEmailMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>>
-    export type PostApiV1AccountConfirmEmailMutationBody = ConfirmEmailRequest
-    export type PostApiV1AccountConfirmEmailMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Confirm email
  */
-export const usePostApiV1AccountConfirmEmail = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>, TError,{data: ConfirmEmailRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>,
-        TError,
-        {data: ConfirmEmailRequest},
-        TContext
-      > => {
+export const usePostApiV1AccountConfirmEmail = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>,
+      TError,
+      { data: ConfirmEmailRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiV1AccountConfirmEmail>>,
+  TError,
+  { data: ConfirmEmailRequest },
+  TContext
+> => {
+  const mutationOptions = getPostApiV1AccountConfirmEmailMutationOptions(options);
 
-      const mutationOptions = getPostApiV1AccountConfirmEmailMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Resends the email confirmation link.
  * @summary Resend email confirmation
  */
-export type postApiV1AccountResendEmailConfirmationResponse200 = {
-  data: ApiResponse
-  status: 200
-}
-
-export type postApiV1AccountResendEmailConfirmationResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-    
-export type postApiV1AccountResendEmailConfirmationResponseSuccess = (postApiV1AccountResendEmailConfirmationResponse200) & {
-  headers: Headers;
+export const postApiV1AccountResendEmailConfirmation = (
+  resendEmailConfirmationRequest: ResendEmailConfirmationRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponse>(
+    {
+      url: `/api/v1/account/resend-email-confirmation`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: resendEmailConfirmationRequest,
+      signal,
+    },
+    options,
+  );
 };
-export type postApiV1AccountResendEmailConfirmationResponseError = (postApiV1AccountResendEmailConfirmationResponse400) & {
-  headers: Headers;
+
+export const getPostApiV1AccountResendEmailConfirmationMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>,
+    TError,
+    { data: ResendEmailConfirmationRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>,
+  TError,
+  { data: ResendEmailConfirmationRequest },
+  TContext
+> => {
+  const mutationKey = ['postApiV1AccountResendEmailConfirmation'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>,
+    { data: ResendEmailConfirmationRequest }
+  > = props => {
+    const { data } = props ?? {};
+
+    return postApiV1AccountResendEmailConfirmation(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
 };
 
-export type postApiV1AccountResendEmailConfirmationResponse = (postApiV1AccountResendEmailConfirmationResponseSuccess | postApiV1AccountResendEmailConfirmationResponseError)
+export type PostApiV1AccountResendEmailConfirmationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>
+>;
+export type PostApiV1AccountResendEmailConfirmationMutationBody = ResendEmailConfirmationRequest;
+export type PostApiV1AccountResendEmailConfirmationMutationError = ErrorType<ProblemDetails>;
 
-export const getPostApiV1AccountResendEmailConfirmationUrl = () => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/account/resend-email-confirmation`
-}
-
-export const postApiV1AccountResendEmailConfirmation = async (resendEmailConfirmationRequest: ResendEmailConfirmationRequest, options?: RequestInit): Promise<postApiV1AccountResendEmailConfirmationResponse> => {
-  
-  return customInstance<postApiV1AccountResendEmailConfirmationResponse>(getPostApiV1AccountResendEmailConfirmationUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      resendEmailConfirmationRequest,)
-  }
-);}
-
-
-
-
-export const getPostApiV1AccountResendEmailConfirmationMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>, TError,{data: ResendEmailConfirmationRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>, TError,{data: ResendEmailConfirmationRequest}, TContext> => {
-
-const mutationKey = ['postApiV1AccountResendEmailConfirmation'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>, {data: ResendEmailConfirmationRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiV1AccountResendEmailConfirmation(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiV1AccountResendEmailConfirmationMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>>
-    export type PostApiV1AccountResendEmailConfirmationMutationBody = ResendEmailConfirmationRequest
-    export type PostApiV1AccountResendEmailConfirmationMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Resend email confirmation
  */
-export const usePostApiV1AccountResendEmailConfirmation = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>, TError,{data: ResendEmailConfirmationRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>,
-        TError,
-        {data: ResendEmailConfirmationRequest},
-        TContext
-      > => {
+export const usePostApiV1AccountResendEmailConfirmation = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>,
+      TError,
+      { data: ResendEmailConfirmationRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiV1AccountResendEmailConfirmation>>,
+  TError,
+  { data: ResendEmailConfirmationRequest },
+  TContext
+> => {
+  const mutationOptions = getPostApiV1AccountResendEmailConfirmationMutationOptions(options);
 
-      const mutationOptions = getPostApiV1AccountResendEmailConfirmationMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Gets information about the authenticated user.
  * @summary Get current user
  */
-export type getApiV1AccountMeResponse200 = {
-  data: ApiResponseOfUserInfo
-  status: 200
-}
-    
-export type getApiV1AccountMeResponseSuccess = (getApiV1AccountMeResponse200) & {
-  headers: Headers;
+export const getApiV1AccountMe = (
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponseOfUserInfo>(
+    { url: `/api/v1/account/me`, method: 'GET', signal },
+    options,
+  );
 };
-;
-
-export type getApiV1AccountMeResponse = (getApiV1AccountMeResponseSuccess)
-
-export const getGetApiV1AccountMeUrl = () => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/account/me`
-}
-
-export const getApiV1AccountMe = async ( options?: RequestInit): Promise<getApiV1AccountMeResponse> => {
-  
-  return customInstance<getApiV1AccountMeResponse>(getGetApiV1AccountMeUrl(),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-
 
 export const getGetApiV1AccountMeQueryKey = () => {
-    return [
-    `http://localhost:5087/api/v1/account/me`
-    ] as const;
-    }
+  return [`/api/v1/account/me`] as const;
+};
 
-    
-export const getGetApiV1AccountMeQueryOptions = <TData = Awaited<ReturnType<typeof getApiV1AccountMe>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetApiV1AccountMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiV1AccountMe>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>>;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiV1AccountMeQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiV1AccountMeQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1AccountMe>>> = ({ signal }) =>
+    getApiV1AccountMe(requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiV1AccountMe>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1AccountMe>>> = ({ signal }) => getApiV1AccountMe({ signal, ...requestOptions });
+export type GetApiV1AccountMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiV1AccountMe>>
+>;
+export type GetApiV1AccountMeQueryError = ErrorType<unknown>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiV1AccountMeQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1AccountMe>>>
-export type GetApiV1AccountMeQueryError = ErrorType<unknown>
-
-
-export function useGetApiV1AccountMe<TData = Awaited<ReturnType<typeof getApiV1AccountMe>>, TError = ErrorType<unknown>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>> & Pick<
+export function useGetApiV1AccountMe<
+  TData = Awaited<ReturnType<typeof getApiV1AccountMe>>,
+  TError = ErrorType<unknown>,
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>> &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1AccountMe>>,
           TError,
           Awaited<ReturnType<typeof getApiV1AccountMe>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1AccountMe<TData = Awaited<ReturnType<typeof getApiV1AccountMe>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetApiV1AccountMe<
+  TData = Awaited<ReturnType<typeof getApiV1AccountMe>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>> &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiV1AccountMe>>,
           TError,
           Awaited<ReturnType<typeof getApiV1AccountMe>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiV1AccountMe<TData = Awaited<ReturnType<typeof getApiV1AccountMe>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetApiV1AccountMe<
+  TData = Awaited<ReturnType<typeof getApiV1AccountMe>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Get current user
  */
 
-export function useGetApiV1AccountMe<TData = Awaited<ReturnType<typeof getApiV1AccountMe>>, TError = ErrorType<unknown>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiV1AccountMe<
+  TData = Awaited<ReturnType<typeof getApiV1AccountMe>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1AccountMe>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetApiV1AccountMeQueryOptions(options);
 
-  const queryOptions = getGetApiV1AccountMeQueryOptions(options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Updates the authenticated user's profile information.
  * @summary Update profile
  */
-export type putApiV1AccountMeResponse200 = {
-  data: ApiResponseOfUserInfo
-  status: 200
-}
-
-export type putApiV1AccountMeResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-    
-export type putApiV1AccountMeResponseSuccess = (putApiV1AccountMeResponse200) & {
-  headers: Headers;
-};
-export type putApiV1AccountMeResponseError = (putApiV1AccountMeResponse400) & {
-  headers: Headers;
+export const putApiV1AccountMe = (
+  updateProfileRequest: UpdateProfileRequest,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<ApiResponseOfUserInfo>(
+    {
+      url: `/api/v1/account/me`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateProfileRequest,
+    },
+    options,
+  );
 };
 
-export type putApiV1AccountMeResponse = (putApiV1AccountMeResponseSuccess | putApiV1AccountMeResponseError)
+export const getPutApiV1AccountMeMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putApiV1AccountMe>>,
+    TError,
+    { data: UpdateProfileRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putApiV1AccountMe>>,
+  TError,
+  { data: UpdateProfileRequest },
+  TContext
+> => {
+  const mutationKey = ['putApiV1AccountMe'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPutApiV1AccountMeUrl = () => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putApiV1AccountMe>>,
+    { data: UpdateProfileRequest }
+  > = props => {
+    const { data } = props ?? {};
 
+    return putApiV1AccountMe(data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/account/me`
-}
+export type PutApiV1AccountMeMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putApiV1AccountMe>>
+>;
+export type PutApiV1AccountMeMutationBody = UpdateProfileRequest;
+export type PutApiV1AccountMeMutationError = ErrorType<ProblemDetails>;
 
-export const putApiV1AccountMe = async (updateProfileRequest: UpdateProfileRequest, options?: RequestInit): Promise<putApiV1AccountMeResponse> => {
-  
-  return customInstance<putApiV1AccountMeResponse>(getPutApiV1AccountMeUrl(),
-  {      
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      updateProfileRequest,)
-  }
-);}
-
-
-
-
-export const getPutApiV1AccountMeMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1AccountMe>>, TError,{data: UpdateProfileRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putApiV1AccountMe>>, TError,{data: UpdateProfileRequest}, TContext> => {
-
-const mutationKey = ['putApiV1AccountMe'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiV1AccountMe>>, {data: UpdateProfileRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  putApiV1AccountMe(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutApiV1AccountMeMutationResult = NonNullable<Awaited<ReturnType<typeof putApiV1AccountMe>>>
-    export type PutApiV1AccountMeMutationBody = UpdateProfileRequest
-    export type PutApiV1AccountMeMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Update profile
  */
-export const usePutApiV1AccountMe = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiV1AccountMe>>, TError,{data: UpdateProfileRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putApiV1AccountMe>>,
-        TError,
-        {data: UpdateProfileRequest},
-        TContext
-      > => {
+export const usePutApiV1AccountMe = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putApiV1AccountMe>>,
+      TError,
+      { data: UpdateProfileRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putApiV1AccountMe>>,
+  TError,
+  { data: UpdateProfileRequest },
+  TContext
+> => {
+  const mutationOptions = getPutApiV1AccountMeMutationOptions(options);
 
-      const mutationOptions = getPutApiV1AccountMeMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

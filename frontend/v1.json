@@ -17,9 +17,7 @@
   "paths": {
     "/.well-known/jwks.json": {
       "get": {
-        "tags": [
-          "JwksEndpoints"
-        ],
+        "tags": ["JwksEndpoints"],
         "summary": "Get JWKS",
         "description": "Retrieves the JSON Web Key Set (JWKS) for JWT token verification.",
         "responses": {
@@ -35,7 +33,7 @@
             },
             "content": {
               "application/json": {
-                "schema": { }
+                "schema": {}
               }
             }
           },
@@ -62,9 +60,7 @@
     },
     "/jwks/rotate": {
       "get": {
-        "tags": [
-          "JwksEndpoints"
-        ],
+        "tags": ["JwksEndpoints"],
         "summary": "Rotate JWKS",
         "description": "Generates a new key pair and adds it to the JWKS.",
         "responses": {
@@ -80,7 +76,7 @@
             },
             "content": {
               "application/json": {
-                "schema": { }
+                "schema": {}
               }
             }
           },
@@ -107,9 +103,7 @@
     },
     "/api/v1/health/detailed": {
       "get": {
-        "tags": [
-          "System"
-        ],
+        "tags": ["System"],
         "summary": "Get detailed health status",
         "description": "Returns detailed health status including database and external services",
         "operationId": "GetDetailedHealth",
@@ -155,9 +149,7 @@
     },
     "/api/v1/subscriptions/start": {
       "post": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Start new subscription",
         "description": "Creates a Stripe checkout session for starting a new subscription. Returns checkout URL for payment.",
         "operationId": "StartSubscription",
@@ -249,9 +241,7 @@
     },
     "/api/v1/subscriptions/complete": {
       "post": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Complete checkout session",
         "description": "Verifies checkout session and creates subscription in database after successful payment.",
         "operationId": "CompleteCheckout",
@@ -343,9 +333,7 @@
     },
     "/api/v1/subscriptions/{customerId}": {
       "get": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Get customer subscription",
         "description": "Retrieves the current subscription details for a customer, including plan information.",
         "operationId": "GetCustomerSubscription",
@@ -438,9 +426,7 @@
     },
     "/api/v1/subscriptions/{customerId}/cancel": {
       "post": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Cancel subscription",
         "description": "Cancels a customer's subscription. Can cancel immediately or at period end (default).",
         "operationId": "CancelSubscription",
@@ -543,9 +529,7 @@
     },
     "/api/v1/subscriptions/{customerId}/upgrade": {
       "post": {
-        "tags": [
-          "Subscriptions"
-        ],
+        "tags": ["Subscriptions"],
         "summary": "Upgrade subscription",
         "description": "Changes customer's subscription plan. Applies proration by default. Cannot downgrade during trial.",
         "operationId": "UpgradeSubscription",
@@ -648,9 +632,7 @@
     },
     "/api/v1/customers": {
       "post": {
-        "tags": [
-          "Customers"
-        ],
+        "tags": ["Customers"],
         "summary": "Create or update customer",
         "description": "Creates a new customer in both database and Stripe, or updates existing customer information.",
         "requestBody": {
@@ -741,9 +723,7 @@
     },
     "/api/v1/customers/{customerId}": {
       "get": {
-        "tags": [
-          "Customers"
-        ],
+        "tags": ["Customers"],
         "summary": "Get customer details",
         "description": "Retrieves complete customer information including active subscription, recent invoices, and payment methods.",
         "operationId": "GetCustomerDetails",
@@ -836,9 +816,7 @@
     },
     "/api/v1/customers/{customerId}/payment-method": {
       "put": {
-        "tags": [
-          "Customers"
-        ],
+        "tags": ["Customers"],
         "summary": "Update payment method",
         "description": "Attaches a new payment method to the customer and optionally sets it as default for future invoices.",
         "operationId": "UpdatePaymentMethod",
@@ -941,9 +919,7 @@
     },
     "/api/v1/customers/{customerId}/portal": {
       "post": {
-        "tags": [
-          "Customers"
-        ],
+        "tags": ["Customers"],
         "summary": "Get customer portal URL",
         "description": "Creates a Stripe Customer Portal session for self-service management of subscription, invoices, and payment methods.",
         "operationId": "GetCustomerPortalUrl",
@@ -1046,9 +1022,7 @@
     },
     "/api/v1/invoices/{customerId}": {
       "get": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "Get customer invoices",
         "description": "Retrieves paginated list of invoices for a customer with optional filtering by status and date range.",
         "operationId": "GetCustomerInvoices",
@@ -1168,9 +1142,7 @@
     },
     "/api/v1/invoices/{customerId}/{invoiceId}": {
       "get": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "Get invoice details",
         "description": "Retrieves detailed information about a specific invoice including line items and payment attempts.",
         "operationId": "GetInvoiceDetails",
@@ -1272,9 +1244,7 @@
     },
     "/api/v1/invoices/{customerId}/{invoiceId}/pdf": {
       "get": {
-        "tags": [
-          "Invoices"
-        ],
+        "tags": ["Invoices"],
         "summary": "Download invoice PDF",
         "description": "Gets a download URL for the invoice PDF. URL is hosted by Stripe and does not expire.",
         "operationId": "DownloadInvoicePdf",
@@ -1376,9 +1346,7 @@
     },
     "/api/v1/auth/register": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Register user",
         "description": "Creates a new user account.",
         "requestBody": {
@@ -1433,9 +1401,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "User login",
         "description": "Authenticates a user and returns JWT and refresh tokens.",
         "requestBody": {
@@ -1490,9 +1456,7 @@
     },
     "/api/v1/auth/refresh-token": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Refresh access token",
         "description": "Generates a new access token using a valid refresh token.",
         "requestBody": {
@@ -1547,9 +1511,7 @@
     },
     "/api/v1/auth/revoke-token": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "Revoke refresh token",
         "description": "Revokes a refresh token to prevent its future use.",
         "requestBody": {
@@ -1604,9 +1566,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
+        "tags": ["Auth"],
         "summary": "User logout",
         "description": "Revokes all active refresh tokens for the current user.",
         "responses": {
@@ -1633,9 +1593,7 @@
     },
     "/api/v1/account/change-password": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "summary": "Change password",
         "description": "Changes the password for the authenticated user.",
         "requestBody": {
@@ -1690,9 +1648,7 @@
     },
     "/api/v1/account/forgot-password": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "summary": "Forgot password",
         "description": "Sends a password reset link to the user's email.",
         "requestBody": {
@@ -1747,9 +1703,7 @@
     },
     "/api/v1/account/reset-password": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "summary": "Reset password",
         "description": "Resets the user's password using a valid reset token.",
         "requestBody": {
@@ -1804,9 +1758,7 @@
     },
     "/api/v1/account/confirm-email": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "summary": "Confirm email",
         "description": "Confirms the user's email address using a confirmation token.",
         "requestBody": {
@@ -1861,9 +1813,7 @@
     },
     "/api/v1/account/resend-email-confirmation": {
       "post": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "summary": "Resend email confirmation",
         "description": "Resends the email confirmation link.",
         "requestBody": {
@@ -1918,9 +1868,7 @@
     },
     "/api/v1/account/me": {
       "get": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "summary": "Get current user",
         "description": "Gets information about the authenticated user.",
         "responses": {
@@ -1945,9 +1893,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Account"
-        ],
+        "tags": ["Account"],
         "summary": "Update profile",
         "description": "Updates the authenticated user's profile information.",
         "requestBody": {
@@ -2002,9 +1948,7 @@
     },
     "/api/v1/2fa/enable": {
       "post": {
-        "tags": [
-          "Two-Factor Authentication"
-        ],
+        "tags": ["Two-Factor Authentication"],
         "summary": "Enable 2FA",
         "description": "Enables two-factor authentication and returns QR code data.",
         "responses": {
@@ -2085,9 +2029,7 @@
     },
     "/api/v1/2fa/disable": {
       "post": {
-        "tags": [
-          "Two-Factor Authentication"
-        ],
+        "tags": ["Two-Factor Authentication"],
         "summary": "Disable 2FA",
         "description": "Disables two-factor authentication.",
         "responses": {
@@ -2150,9 +2092,7 @@
     },
     "/api/v1/2fa/verify": {
       "post": {
-        "tags": [
-          "Two-Factor Authentication"
-        ],
+        "tags": ["Two-Factor Authentication"],
         "summary": "Verify 2FA code",
         "description": "Verifies a two-factor authentication code from authenticator app.",
         "requestBody": {
@@ -2225,9 +2165,7 @@
     },
     "/api/v1/2fa/recovery-codes": {
       "post": {
-        "tags": [
-          "Two-Factor Authentication"
-        ],
+        "tags": ["Two-Factor Authentication"],
         "summary": "Generate recovery codes",
         "description": "Generates new recovery codes for two-factor authentication.",
         "responses": {
@@ -2308,9 +2246,7 @@
     },
     "/api/webhooks/stripe": {
       "post": {
-        "tags": [
-          "StripeWebhook"
-        ],
+        "tags": ["StripeWebhook"],
         "responses": {
           "200": {
             "description": "OK",
@@ -2579,11 +2515,7 @@
         "nullable": true
       },
       "ChangePasswordRequest": {
-        "required": [
-          "currentPassword",
-          "newPassword",
-          "confirmNewPassword"
-        ],
+        "required": ["currentPassword", "newPassword", "confirmNewPassword"],
         "type": "object",
         "properties": {
           "currentPassword": {
@@ -2598,9 +2530,7 @@
         }
       },
       "CompleteCheckoutRequest": {
-        "required": [
-          "checkoutSessionId"
-        ],
+        "required": ["checkoutSessionId"],
         "type": "object",
         "properties": {
           "checkoutSessionId": {
@@ -2629,10 +2559,7 @@
         }
       },
       "ConfirmEmailRequest": {
-        "required": [
-          "userId",
-          "token"
-        ],
+        "required": ["userId", "token"],
         "type": "object",
         "properties": {
           "userId": {
@@ -2644,9 +2571,7 @@
         }
       },
       "CreateOrUpdateCustomerRequest": {
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "type": "object",
         "properties": {
           "customerId": {
@@ -2748,9 +2673,7 @@
         "nullable": true
       },
       "CustomerPortalResponse": {
-        "required": [
-          "portalUrl"
-        ],
+        "required": ["portalUrl"],
         "type": "object",
         "properties": {
           "portalUrl": {
@@ -2791,10 +2714,7 @@
         }
       },
       "Enable2FAResponse": {
-        "required": [
-          "sharedKey",
-          "authenticatorUri"
-        ],
+        "required": ["sharedKey", "authenticatorUri"],
         "type": "object",
         "properties": {
           "sharedKey": {
@@ -2808,9 +2728,7 @@
         "nullable": true
       },
       "ForgotPasswordRequest": {
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "type": "object",
         "properties": {
           "email": {
@@ -2819,9 +2737,7 @@
         }
       },
       "GenerateRecoveryCodesResponse": {
-        "required": [
-          "recoveryCodes"
-        ],
+        "required": ["recoveryCodes"],
         "type": "object",
         "properties": {
           "recoveryCodes": {
@@ -3062,9 +2978,7 @@
         }
       },
       "InvoicePdfResponse": {
-        "required": [
-          "pdfUrl"
-        ],
+        "required": ["pdfUrl"],
         "type": "object",
         "properties": {
           "pdfUrl": {
@@ -3141,10 +3055,7 @@
         }
       },
       "LoginRequest": {
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "type": "object",
         "properties": {
           "username": {
@@ -3160,13 +3071,7 @@
         }
       },
       "LoginResponse": {
-        "required": [
-          "accessToken",
-          "refreshToken",
-          "tokenType",
-          "expiresIn",
-          "user"
-        ],
+        "required": ["accessToken", "refreshToken", "tokenType", "expiresIn", "user"],
         "type": "object",
         "properties": {
           "accessToken": {
@@ -3339,9 +3244,7 @@
         }
       },
       "RefreshTokenRequest": {
-        "required": [
-          "refreshToken"
-        ],
+        "required": ["refreshToken"],
         "type": "object",
         "properties": {
           "refreshToken": {
@@ -3350,12 +3253,7 @@
         }
       },
       "RegisterRequest": {
-        "required": [
-          "username",
-          "email",
-          "password",
-          "confirmPassword"
-        ],
+        "required": ["username", "email", "password", "confirmPassword"],
         "type": "object",
         "properties": {
           "username": {
@@ -3373,9 +3271,7 @@
         }
       },
       "ResendEmailConfirmationRequest": {
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "type": "object",
         "properties": {
           "email": {
@@ -3384,12 +3280,7 @@
         }
       },
       "ResetPasswordRequest": {
-        "required": [
-          "email",
-          "token",
-          "newPassword",
-          "confirmNewPassword"
-        ],
+        "required": ["email", "token", "newPassword", "confirmNewPassword"],
         "type": "object",
         "properties": {
           "email": {
@@ -3407,12 +3298,7 @@
         }
       },
       "StartSubscriptionRequest": {
-        "required": [
-          "customerId",
-          "planId",
-          "successUrl",
-          "cancelUrl"
-        ],
+        "required": ["customerId", "planId", "successUrl", "cancelUrl"],
         "type": "object",
         "properties": {
           "customerId": {
@@ -3444,10 +3330,7 @@
         }
       },
       "StartSubscriptionResponse": {
-        "required": [
-          "checkoutSessionId",
-          "checkoutUrl"
-        ],
+        "required": ["checkoutSessionId", "checkoutUrl"],
         "type": "object",
         "properties": {
           "checkoutSessionId": {
@@ -3576,9 +3459,7 @@
         "nullable": true
       },
       "UpdatePaymentMethodRequest": {
-        "required": [
-          "paymentMethodId"
-        ],
+        "required": ["paymentMethodId"],
         "type": "object",
         "properties": {
           "paymentMethodId": {
@@ -3609,10 +3490,7 @@
         "nullable": true
       },
       "UpdateProfileRequest": {
-        "required": [
-          "email",
-          "phoneNumber"
-        ],
+        "required": ["email", "phoneNumber"],
         "type": "object",
         "properties": {
           "email": {
@@ -3626,9 +3504,7 @@
         }
       },
       "UpgradeSubscriptionRequest": {
-        "required": [
-          "newPlanId"
-        ],
+        "required": ["newPlanId"],
         "type": "object",
         "properties": {
           "newPlanId": {
@@ -3745,9 +3621,7 @@
         "nullable": true
       },
       "Verify2FARequest": {
-        "required": [
-          "code"
-        ],
+        "required": ["code"],
         "type": "object",
         "properties": {
           "code": {

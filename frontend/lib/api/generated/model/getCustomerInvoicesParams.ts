@@ -7,17 +7,17 @@
  */
 
 export type GetCustomerInvoicesParams = {
-/**
- * @minimum 1
- * @maximum 2147483647
- */
-Page: number;
-/**
- * @minimum 1
- * @maximum 100
- */
-PageSize: number;
-Status?: string;
-FromDate?: string;
-ToDate?: string;
+  /**
+   * @minimum 1
+   * @maximum 2147483647
+   */
+  Page: number;
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  PageSize: number;
+  Status?: string;
+  FromDate?: string;
+  ToDate?: string;
 };

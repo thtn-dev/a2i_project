@@ -5,10 +5,7 @@
  * API for managing Stripe subscriptions, customers, and invoices
  * OpenAPI spec version: v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -21,7 +18,7 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
 
 import type {
@@ -33,551 +30,495 @@ import type {
   CompleteCheckoutRequest,
   ProblemDetails,
   StartSubscriptionRequest,
-  UpgradeSubscriptionRequest
+  UpgradeSubscriptionRequest,
 } from '.././model';
 
 import { customInstance } from '../../custom-instance';
 import type { ErrorType } from '../../custom-instance';
 
-
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Creates a Stripe checkout session for starting a new subscription. Returns checkout URL for payment.
  * @summary Start new subscription
  */
-export type startSubscriptionResponse200 = {
-  data: ApiResponseOfStartSubscriptionResponse
-  status: 200
-}
-
-export type startSubscriptionResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type startSubscriptionResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type startSubscriptionResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type startSubscriptionResponseSuccess = (startSubscriptionResponse200) & {
-  headers: Headers;
-};
-export type startSubscriptionResponseError = (startSubscriptionResponse400 | startSubscriptionResponse404 | startSubscriptionResponse500) & {
-  headers: Headers;
+export const startSubscription = (
+  startSubscriptionRequest: StartSubscriptionRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponseOfStartSubscriptionResponse>(
+    {
+      url: `/api/v1/subscriptions/start`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: startSubscriptionRequest,
+      signal,
+    },
+    options,
+  );
 };
 
-export type startSubscriptionResponse = (startSubscriptionResponseSuccess | startSubscriptionResponseError)
+export const getStartSubscriptionMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof startSubscription>>,
+    TError,
+    { data: StartSubscriptionRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof startSubscription>>,
+  TError,
+  { data: StartSubscriptionRequest },
+  TContext
+> => {
+  const mutationKey = ['startSubscription'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getStartSubscriptionUrl = () => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof startSubscription>>,
+    { data: StartSubscriptionRequest }
+  > = props => {
+    const { data } = props ?? {};
 
+    return startSubscription(data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/subscriptions/start`
-}
+export type StartSubscriptionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof startSubscription>>
+>;
+export type StartSubscriptionMutationBody = StartSubscriptionRequest;
+export type StartSubscriptionMutationError = ErrorType<ProblemDetails>;
 
-export const startSubscription = async (startSubscriptionRequest: StartSubscriptionRequest, options?: RequestInit): Promise<startSubscriptionResponse> => {
-  
-  return customInstance<startSubscriptionResponse>(getStartSubscriptionUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      startSubscriptionRequest,)
-  }
-);}
-
-
-
-
-export const getStartSubscriptionMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startSubscription>>, TError,{data: StartSubscriptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof startSubscription>>, TError,{data: StartSubscriptionRequest}, TContext> => {
-
-const mutationKey = ['startSubscription'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startSubscription>>, {data: StartSubscriptionRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  startSubscription(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type StartSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof startSubscription>>>
-    export type StartSubscriptionMutationBody = StartSubscriptionRequest
-    export type StartSubscriptionMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Start new subscription
  */
-export const useStartSubscription = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startSubscription>>, TError,{data: StartSubscriptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof startSubscription>>,
-        TError,
-        {data: StartSubscriptionRequest},
-        TContext
-      > => {
+export const useStartSubscription = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof startSubscription>>,
+      TError,
+      { data: StartSubscriptionRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof startSubscription>>,
+  TError,
+  { data: StartSubscriptionRequest },
+  TContext
+> => {
+  const mutationOptions = getStartSubscriptionMutationOptions(options);
 
-      const mutationOptions = getStartSubscriptionMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Verifies checkout session and creates subscription in database after successful payment.
  * @summary Complete checkout session
  */
-export type completeCheckoutResponse200 = {
-  data: ApiResponseOfSubscriptionDetailsResponse
-  status: 200
-}
-
-export type completeCheckoutResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type completeCheckoutResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type completeCheckoutResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type completeCheckoutResponseSuccess = (completeCheckoutResponse200) & {
-  headers: Headers;
-};
-export type completeCheckoutResponseError = (completeCheckoutResponse400 | completeCheckoutResponse404 | completeCheckoutResponse500) & {
-  headers: Headers;
+export const completeCheckout = (
+  completeCheckoutRequest: CompleteCheckoutRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponseOfSubscriptionDetailsResponse>(
+    {
+      url: `/api/v1/subscriptions/complete`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: completeCheckoutRequest,
+      signal,
+    },
+    options,
+  );
 };
 
-export type completeCheckoutResponse = (completeCheckoutResponseSuccess | completeCheckoutResponseError)
+export const getCompleteCheckoutMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof completeCheckout>>,
+    TError,
+    { data: CompleteCheckoutRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof completeCheckout>>,
+  TError,
+  { data: CompleteCheckoutRequest },
+  TContext
+> => {
+  const mutationKey = ['completeCheckout'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getCompleteCheckoutUrl = () => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof completeCheckout>>,
+    { data: CompleteCheckoutRequest }
+  > = props => {
+    const { data } = props ?? {};
 
+    return completeCheckout(data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/subscriptions/complete`
-}
+export type CompleteCheckoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof completeCheckout>>
+>;
+export type CompleteCheckoutMutationBody = CompleteCheckoutRequest;
+export type CompleteCheckoutMutationError = ErrorType<ProblemDetails>;
 
-export const completeCheckout = async (completeCheckoutRequest: CompleteCheckoutRequest, options?: RequestInit): Promise<completeCheckoutResponse> => {
-  
-  return customInstance<completeCheckoutResponse>(getCompleteCheckoutUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      completeCheckoutRequest,)
-  }
-);}
-
-
-
-
-export const getCompleteCheckoutMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeCheckout>>, TError,{data: CompleteCheckoutRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof completeCheckout>>, TError,{data: CompleteCheckoutRequest}, TContext> => {
-
-const mutationKey = ['completeCheckout'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeCheckout>>, {data: CompleteCheckoutRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  completeCheckout(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CompleteCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof completeCheckout>>>
-    export type CompleteCheckoutMutationBody = CompleteCheckoutRequest
-    export type CompleteCheckoutMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Complete checkout session
  */
-export const useCompleteCheckout = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeCheckout>>, TError,{data: CompleteCheckoutRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof completeCheckout>>,
-        TError,
-        {data: CompleteCheckoutRequest},
-        TContext
-      > => {
+export const useCompleteCheckout = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof completeCheckout>>,
+      TError,
+      { data: CompleteCheckoutRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof completeCheckout>>,
+  TError,
+  { data: CompleteCheckoutRequest },
+  TContext
+> => {
+  const mutationOptions = getCompleteCheckoutMutationOptions(options);
 
-      const mutationOptions = getCompleteCheckoutMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Retrieves the current subscription details for a customer, including plan information.
  * @summary Get customer subscription
  */
-export type getCustomerSubscriptionResponse200 = {
-  data: ApiResponseOfSubscriptionDetailsResponse
-  status: 200
-}
-
-export type getCustomerSubscriptionResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type getCustomerSubscriptionResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type getCustomerSubscriptionResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type getCustomerSubscriptionResponseSuccess = (getCustomerSubscriptionResponse200) & {
-  headers: Headers;
-};
-export type getCustomerSubscriptionResponseError = (getCustomerSubscriptionResponse400 | getCustomerSubscriptionResponse404 | getCustomerSubscriptionResponse500) & {
-  headers: Headers;
-};
-
-export type getCustomerSubscriptionResponse = (getCustomerSubscriptionResponseSuccess | getCustomerSubscriptionResponseError)
-
-export const getGetCustomerSubscriptionUrl = (customerId: string,) => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/subscriptions/${customerId}`
-}
-
-export const getCustomerSubscription = async (customerId: string, options?: RequestInit): Promise<getCustomerSubscriptionResponse> => {
-  
-  return customInstance<getCustomerSubscriptionResponse>(getGetCustomerSubscriptionUrl(customerId),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-
-
-export const getGetCustomerSubscriptionQueryKey = (customerId?: string,) => {
-    return [
-    `http://localhost:5087/api/v1/subscriptions/${customerId}`
-    ] as const;
-    }
-
-    
-export const getGetCustomerSubscriptionQueryOptions = <TData = Awaited<ReturnType<typeof getCustomerSubscription>>, TError = ErrorType<ProblemDetails>>(customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getCustomerSubscription = (
+  customerId: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
+  return customInstance<ApiResponseOfSubscriptionDetailsResponse>(
+    { url: `/api/v1/subscriptions/${customerId}`, method: 'GET', signal },
+    options,
+  );
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const getGetCustomerSubscriptionQueryKey = (customerId?: string) => {
+  return [`/api/v1/subscriptions/${customerId}`] as const;
+};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetCustomerSubscriptionQueryKey(customerId);
+export const getGetCustomerSubscriptionQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCustomerSubscription>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  
+  const queryKey = queryOptions?.queryKey ?? getGetCustomerSubscriptionQueryKey(customerId);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerSubscription>>> = ({ signal }) => getCustomerSubscription(customerId, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerSubscription>>> = ({
+    signal,
+  }) => getCustomerSubscription(customerId, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, enabled: !!customerId, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCustomerSubscription>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetCustomerSubscriptionQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCustomerSubscription>>
+>;
+export type GetCustomerSubscriptionQueryError = ErrorType<ProblemDetails>;
 
-   return  { queryKey, queryFn, enabled: !!(customerId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetCustomerSubscriptionQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerSubscription>>>
-export type GetCustomerSubscriptionQueryError = ErrorType<ProblemDetails>
-
-
-export function useGetCustomerSubscription<TData = Awaited<ReturnType<typeof getCustomerSubscription>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>> & Pick<
+export function useGetCustomerSubscription<
+  TData = Awaited<ReturnType<typeof getCustomerSubscription>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCustomerSubscription>>,
           TError,
           Awaited<ReturnType<typeof getCustomerSubscription>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCustomerSubscription<TData = Awaited<ReturnType<typeof getCustomerSubscription>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerSubscription<
+  TData = Awaited<ReturnType<typeof getCustomerSubscription>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCustomerSubscription>>,
           TError,
           Awaited<ReturnType<typeof getCustomerSubscription>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCustomerSubscription<TData = Awaited<ReturnType<typeof getCustomerSubscription>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerSubscription<
+  TData = Awaited<ReturnType<typeof getCustomerSubscription>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Get customer subscription
  */
 
-export function useGetCustomerSubscription<TData = Awaited<ReturnType<typeof getCustomerSubscription>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetCustomerSubscription<
+  TData = Awaited<ReturnType<typeof getCustomerSubscription>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCustomerSubscription>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetCustomerSubscriptionQueryOptions(customerId, options);
 
-  const queryOptions = getGetCustomerSubscriptionQueryOptions(customerId,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Cancels a customer's subscription. Can cancel immediately or at period end (default).
  * @summary Cancel subscription
  */
-export type cancelSubscriptionResponse200 = {
-  data: ApiResponseOfCancelSubscriptionResponse
-  status: 200
-}
-
-export type cancelSubscriptionResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type cancelSubscriptionResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type cancelSubscriptionResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type cancelSubscriptionResponseSuccess = (cancelSubscriptionResponse200) & {
-  headers: Headers;
-};
-export type cancelSubscriptionResponseError = (cancelSubscriptionResponse400 | cancelSubscriptionResponse404 | cancelSubscriptionResponse500) & {
-  headers: Headers;
+export const cancelSubscription = (
+  customerId: string,
+  cancelSubscriptionRequest: CancelSubscriptionRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponseOfCancelSubscriptionResponse>(
+    {
+      url: `/api/v1/subscriptions/${customerId}/cancel`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: cancelSubscriptionRequest,
+      signal,
+    },
+    options,
+  );
 };
 
-export type cancelSubscriptionResponse = (cancelSubscriptionResponseSuccess | cancelSubscriptionResponseError)
+export const getCancelSubscriptionMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof cancelSubscription>>,
+    TError,
+    { customerId: string; data: CancelSubscriptionRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof cancelSubscription>>,
+  TError,
+  { customerId: string; data: CancelSubscriptionRequest },
+  TContext
+> => {
+  const mutationKey = ['cancelSubscription'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getCancelSubscriptionUrl = (customerId: string,) => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof cancelSubscription>>,
+    { customerId: string; data: CancelSubscriptionRequest }
+  > = props => {
+    const { customerId, data } = props ?? {};
 
+    return cancelSubscription(customerId, data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/subscriptions/${customerId}/cancel`
-}
+export type CancelSubscriptionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof cancelSubscription>>
+>;
+export type CancelSubscriptionMutationBody = CancelSubscriptionRequest;
+export type CancelSubscriptionMutationError = ErrorType<ProblemDetails>;
 
-export const cancelSubscription = async (customerId: string,
-    cancelSubscriptionRequest: CancelSubscriptionRequest, options?: RequestInit): Promise<cancelSubscriptionResponse> => {
-  
-  return customInstance<cancelSubscriptionResponse>(getCancelSubscriptionUrl(customerId),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      cancelSubscriptionRequest,)
-  }
-);}
-
-
-
-
-export const getCancelSubscriptionMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSubscription>>, TError,{customerId: string;data: CancelSubscriptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof cancelSubscription>>, TError,{customerId: string;data: CancelSubscriptionRequest}, TContext> => {
-
-const mutationKey = ['cancelSubscription'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelSubscription>>, {customerId: string;data: CancelSubscriptionRequest}> = (props) => {
-          const {customerId,data} = props ?? {};
-
-          return  cancelSubscription(customerId,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type CancelSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof cancelSubscription>>>
-    export type CancelSubscriptionMutationBody = CancelSubscriptionRequest
-    export type CancelSubscriptionMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Cancel subscription
  */
-export const useCancelSubscription = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelSubscription>>, TError,{customerId: string;data: CancelSubscriptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof cancelSubscription>>,
-        TError,
-        {customerId: string;data: CancelSubscriptionRequest},
-        TContext
-      > => {
+export const useCancelSubscription = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof cancelSubscription>>,
+      TError,
+      { customerId: string; data: CancelSubscriptionRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof cancelSubscription>>,
+  TError,
+  { customerId: string; data: CancelSubscriptionRequest },
+  TContext
+> => {
+  const mutationOptions = getCancelSubscriptionMutationOptions(options);
 
-      const mutationOptions = getCancelSubscriptionMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Changes customer's subscription plan. Applies proration by default. Cannot downgrade during trial.
  * @summary Upgrade subscription
  */
-export type upgradeSubscriptionResponse200 = {
-  data: ApiResponseOfUpgradeSubscriptionResponse
-  status: 200
-}
-
-export type upgradeSubscriptionResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type upgradeSubscriptionResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type upgradeSubscriptionResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type upgradeSubscriptionResponseSuccess = (upgradeSubscriptionResponse200) & {
-  headers: Headers;
-};
-export type upgradeSubscriptionResponseError = (upgradeSubscriptionResponse400 | upgradeSubscriptionResponse404 | upgradeSubscriptionResponse500) & {
-  headers: Headers;
+export const upgradeSubscription = (
+  customerId: string,
+  upgradeSubscriptionRequest: UpgradeSubscriptionRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponseOfUpgradeSubscriptionResponse>(
+    {
+      url: `/api/v1/subscriptions/${customerId}/upgrade`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: upgradeSubscriptionRequest,
+      signal,
+    },
+    options,
+  );
 };
 
-export type upgradeSubscriptionResponse = (upgradeSubscriptionResponseSuccess | upgradeSubscriptionResponseError)
+export const getUpgradeSubscriptionMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof upgradeSubscription>>,
+    TError,
+    { customerId: string; data: UpgradeSubscriptionRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof upgradeSubscription>>,
+  TError,
+  { customerId: string; data: UpgradeSubscriptionRequest },
+  TContext
+> => {
+  const mutationKey = ['upgradeSubscription'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getUpgradeSubscriptionUrl = (customerId: string,) => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof upgradeSubscription>>,
+    { customerId: string; data: UpgradeSubscriptionRequest }
+  > = props => {
+    const { customerId, data } = props ?? {};
 
+    return upgradeSubscription(customerId, data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/subscriptions/${customerId}/upgrade`
-}
+export type UpgradeSubscriptionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof upgradeSubscription>>
+>;
+export type UpgradeSubscriptionMutationBody = UpgradeSubscriptionRequest;
+export type UpgradeSubscriptionMutationError = ErrorType<ProblemDetails>;
 
-export const upgradeSubscription = async (customerId: string,
-    upgradeSubscriptionRequest: UpgradeSubscriptionRequest, options?: RequestInit): Promise<upgradeSubscriptionResponse> => {
-  
-  return customInstance<upgradeSubscriptionResponse>(getUpgradeSubscriptionUrl(customerId),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      upgradeSubscriptionRequest,)
-  }
-);}
-
-
-
-
-export const getUpgradeSubscriptionMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upgradeSubscription>>, TError,{customerId: string;data: UpgradeSubscriptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof upgradeSubscription>>, TError,{customerId: string;data: UpgradeSubscriptionRequest}, TContext> => {
-
-const mutationKey = ['upgradeSubscription'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upgradeSubscription>>, {customerId: string;data: UpgradeSubscriptionRequest}> = (props) => {
-          const {customerId,data} = props ?? {};
-
-          return  upgradeSubscription(customerId,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpgradeSubscriptionMutationResult = NonNullable<Awaited<ReturnType<typeof upgradeSubscription>>>
-    export type UpgradeSubscriptionMutationBody = UpgradeSubscriptionRequest
-    export type UpgradeSubscriptionMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Upgrade subscription
  */
-export const useUpgradeSubscription = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upgradeSubscription>>, TError,{customerId: string;data: UpgradeSubscriptionRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof upgradeSubscription>>,
-        TError,
-        {customerId: string;data: UpgradeSubscriptionRequest},
-        TContext
-      > => {
+export const useUpgradeSubscription = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof upgradeSubscription>>,
+      TError,
+      { customerId: string; data: UpgradeSubscriptionRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof upgradeSubscription>>,
+  TError,
+  { customerId: string; data: UpgradeSubscriptionRequest },
+  TContext
+> => {
+  const mutationOptions = getUpgradeSubscriptionMutationOptions(options);
 
-      const mutationOptions = getUpgradeSubscriptionMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

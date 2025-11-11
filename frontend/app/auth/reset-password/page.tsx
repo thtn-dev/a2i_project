@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { usePostApiV1AccountResetPassword } from "@/lib/api/generated/account/account";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { usePostApiV1AccountResetPassword } from '@/lib/api/generated/account/account';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -16,25 +16,25 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useState, useEffect } from "react";
+} from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 
 const resetPasswordSchema = z
   .object({
-    email: z.string().email("Email không hợp lệ"),
-    token: z.string().min(1, "Token không hợp lệ"),
+    email: z.string().email('Email không hợp lệ'),
+    token: z.string().min(1, 'Token không hợp lệ'),
     newPassword: z
       .string()
-      .min(6, "Password phải có ít nhất 6 ký tự")
+      .min(6, 'Password phải có ít nhất 6 ký tự')
       .regex(
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số"
+        'Password phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số',
       ),
-    confirmNewPassword: z.string().min(1, "Vui lòng xác nhận password"),
+    confirmNewPassword: z.string().min(1, 'Vui lòng xác nhận password'),
   })
-  .refine((data) => data.newPassword === data.confirmNewPassword, {
-    message: "Password không khớp",
-    path: ["confirmNewPassword"],
+  .refine(data => data.newPassword === data.confirmNewPassword, {
+    message: 'Password không khớp',
+    path: ['confirmNewPassword'],
   });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
@@ -42,8 +42,8 @@ type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   const {
     register,
@@ -58,39 +58,34 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     // Get email and token from URL query parameters
-    const email = searchParams.get("email");
-    const token = searchParams.get("token");
+    const email = searchParams.get('email');
+    const token = searchParams.get('token');
 
-    if (email) setValue("email", email);
-    if (token) setValue("token", token);
+    if (email) setValue('email', email);
+    if (token) setValue('token', token);
 
     if (!email || !token) {
-      setErrorMessage(
-        "Link không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu link mới."
-      );
+      setErrorMessage('Link không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu link mới.');
     }
   }, [searchParams, setValue]);
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     try {
-      setErrorMessage("");
-      setSuccessMessage("");
+      setErrorMessage('');
+      setSuccessMessage('');
 
       await resetPasswordMutation.mutateAsync({ data });
 
-      setSuccessMessage(
-        "Đặt lại mật khẩu thành công! Đang chuyển đến trang đăng nhập..."
-      );
+      setSuccessMessage('Đặt lại mật khẩu thành công! Đang chuyển đến trang đăng nhập...');
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        router.push("/auth/login");
+        router.push('/auth/login');
       }, 2000);
     } catch (error: any) {
-      console.error("Reset password error:", error);
+      console.error('Reset password error:', error);
       setErrorMessage(
-        error?.message ||
-          "Không thể đặt lại mật khẩu. Link có thể đã hết hạn hoặc không hợp lệ."
+        error?.message || 'Không thể đặt lại mật khẩu. Link có thể đã hết hạn hoặc không hợp lệ.',
       );
     }
   };
@@ -108,17 +103,13 @@ export default function ResetPasswordPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {errorMessage && (
               <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
-                <p className="text-sm text-red-800 dark:text-red-400">
-                  {errorMessage}
-                </p>
+                <p className="text-sm text-red-800 dark:text-red-400">{errorMessage}</p>
               </div>
             )}
 
             {successMessage && (
               <div className="rounded-md bg-green-50 p-3 dark:bg-green-900/20">
-                <p className="text-sm text-green-800 dark:text-green-400">
-                  {successMessage}
-                </p>
+                <p className="text-sm text-green-800 dark:text-green-400">{successMessage}</p>
               </div>
             )}
 
@@ -130,13 +121,13 @@ export default function ResetPasswordPage() {
                 id="email"
                 type="email"
                 placeholder="Email của bạn"
-                {...register("email")}
+                {...register('email')}
                 error={errors.email?.message}
                 disabled
               />
             </div>
 
-            <input type="hidden" {...register("token")} />
+            <input type="hidden" {...register('token')} />
 
             <div className="space-y-2">
               <Label htmlFor="newPassword" required>
@@ -146,7 +137,7 @@ export default function ResetPasswordPage() {
                 id="newPassword"
                 type="password"
                 placeholder="Nhập mật khẩu mới"
-                {...register("newPassword")}
+                {...register('newPassword')}
                 error={errors.newPassword?.message}
               />
             </div>
@@ -159,16 +150,12 @@ export default function ResetPasswordPage() {
                 id="confirmNewPassword"
                 type="password"
                 placeholder="Nhập lại mật khẩu mới"
-                {...register("confirmNewPassword")}
+                {...register('confirmNewPassword')}
                 error={errors.confirmNewPassword?.message}
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={resetPasswordMutation.isPending}
-            >
+            <Button type="submit" className="w-full" isLoading={resetPasswordMutation.isPending}>
               Đặt lại mật khẩu
             </Button>
 
@@ -184,7 +171,7 @@ export default function ResetPasswordPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Chưa nhận được email?{" "}
+            Chưa nhận được email?{' '}
             <Link
               href="/auth/forgot-password"
               className="text-blue-600 hover:underline dark:text-blue-400"

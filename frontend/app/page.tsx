@@ -1,15 +1,9 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useAuth } from "@/lib/providers/auth-provider";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import Link from 'next/link';
+import { useAuth } from '@/lib/providers/auth-provider';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Home() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
@@ -27,12 +21,10 @@ export default function Home() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center">
-            {isAuthenticated ? "Chào mừng trở lại!" : "Chào mừng"}
+            {isAuthenticated ? 'Chào mừng trở lại!' : 'Chào mừng'}
           </CardTitle>
           <CardDescription className="text-center">
-            {isAuthenticated
-              ? "Bạn đã đăng nhập thành công"
-              : "Vui lòng đăng nhập để tiếp tục"}
+            {isAuthenticated ? 'Bạn đã đăng nhập thành công' : 'Vui lòng đăng nhập để tiếp tục'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -44,47 +36,39 @@ export default function Home() {
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Username:
-                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">Username:</span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
                       {user.username}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Email:
-                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">Email:</span>
                     <span className="font-medium text-gray-900 dark:text-gray-100">
                       {user.email}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Email xác thực:
-                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">Email xác thực:</span>
                     <span
                       className={`font-medium ${
                         user.emailConfirmed
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-yellow-600 dark:text-yellow-400"
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-yellow-600 dark:text-yellow-400'
                       }`}
                     >
-                      {user.emailConfirmed ? "Đã xác thực" : "Chưa xác thực"}
+                      {user.emailConfirmed ? 'Đã xác thực' : 'Chưa xác thực'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      2FA:
-                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">2FA:</span>
                     <span
                       className={`font-medium ${
                         user.twoFactorEnabled
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-gray-600 dark:text-gray-400"
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
-                      {user.twoFactorEnabled ? "Đã bật" : "Chưa bật"}
+                      {user.twoFactorEnabled ? 'Đã bật' : 'Chưa bật'}
                     </span>
                   </div>
                 </div>

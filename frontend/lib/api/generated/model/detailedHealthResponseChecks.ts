@@ -7,4 +7,4 @@
  */
 import type { ComponentHealth } from './componentHealth';
 
-export type DetailedHealthResponseChecks = {[key: string]: ComponentHealth};
+export type DetailedHealthResponseChecks = { [key: string]: ComponentHealth };

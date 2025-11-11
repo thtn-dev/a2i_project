@@ -24,6 +24,106 @@ public class Program
         RegisterPipelines(app);
         await app.RunAsync();
     }
+    private static void RegisterServices(WebApplicationBuilder builder)
+        {
+            // Core services
+            builder.Services.AddAuthorization();
+            builder.Services.AddControllers();
+            builder.Services.AddProblemDetails(options =>
+            {
+                options.CustomizeProblemDetails = context =>
+                {
+                    context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
+                    context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                    context.ProblemDetails.Extensions["timestamp"] = DateTime.UtcNow;
+                };
+            });
+            
+            // CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+    
+            // Database & Infrastructure
+            builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
+            builder.Services.AddIdentityServices(builder.Configuration);
+            builder.Services.AddStripeServices(builder.Configuration);
+            builder.Services.AddBackgroundJobServices();
+            builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+            builder.Services.AddRateLimiter(rateLimiterOptions =>
+            {
+                rateLimiterOptions.AddFixedWindowLimiter("fixed", options =>
+                {
+                    options.PermitLimit = 10;
+                    options.Window = TimeSpan.FromSeconds(10);
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    options.QueueLimit = 5;
+                });
+    
+                rateLimiterOptions.AddSlidingWindowLimiter("sliding", options =>
+                {
+                    options.PermitLimit = 20;
+                    options.Window = TimeSpan.FromSeconds(30);
+                    options.SegmentsPerWindow = 6;
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    options.QueueLimit = 10;
+                });
+    
+                rateLimiterOptions.AddFixedWindowLimiter("login_fixed", options =>
+                {
+                    options.PermitLimit = 3;
+                    options.Window = TimeSpan.FromMinutes(3);
+                    options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+                    options.QueueLimit = 0;
+                });
+            });
+    
+            // Hangfire for background jobs
+            builder.Services.AddHangfire(config =>
+            {
+                config.UsePostgreSqlStorage(options =>
+                {
+                    var databaseSection = builder.Configuration.GetSection(DatabaseOptions.SectionName);
+                    var dbOptions = databaseSection.Get<DatabaseOptions>();
+                    var connectionString = SvcCollectionExtensions.BuildConnectionString(dbOptions!);
+    
+                    options.UseNpgsqlConnection(connectionString);
+                }, new PostgreSqlStorageOptions
+                {
+                    PrepareSchemaIfNecessary = true,
+                    InvisibilityTimeout = TimeSpan.FromMinutes(30),
+                    QueuePollInterval = TimeSpan.FromSeconds(15),
+                    UseNativeDatabaseTransactions = true,
+                    EnableTransactionScopeEnlistment = true
+                });
+                config.UseSimpleAssemblyNameTypeSerializer();
+                config.UseRecommendedSerializerSettings();
+            });
+    
+            builder.Services.AddHangfireServer(options =>
+            {
+                options.WorkerCount = 5;
+                options.Queues = ["stripe-webhooks", "emails", "default"];
+            });
+            
+            builder.Services.AddCacheService(options =>
+            {
+                options.CacheType = CacheType.Redis;
+                options.ConnectionString = "redis://default:FcJ2dUSeLKqFXTQEb7TtagbGeWwhzwex@redis-17046.crce185.ap-seast-1-1.ec2.redns.redis-cloud.com:17046";
+                options.DefaultExpirationMinutes = 30;
+                options.InstanceName = "A2I_Cache_";
+            });
+    
+            builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
+    
+            builder.Services.ConfigureOpenApi();
+        }
     
     private static void RegisterPipelines(WebApplication app)
     {
@@ -45,7 +145,6 @@ public class Program
                 options.Theme = ScalarTheme.Purple;
             });
         }
-
         app.UseHangfireDashboard("/hangfire", new DashboardOptions
         {
             // Authorization = new[] { new HangfireAuthorizationFilter() }
@@ -58,7 +157,9 @@ public class Program
         // ===== API ENDPOINTS =====
         app.MapControllers();
         app.MapGroup("/")
-            .MapJwksEndpoints();
+            .MapJwksEndpoints()
+            .ExcludeFromDescription();
+            
         
         // ===== API v1 ENDPOINTS =====
         app.MapGroup("/api/v1")
@@ -66,104 +167,4 @@ public class Program
             .MapV1Endpoints();
     }
     
-    private static void RegisterServices(WebApplicationBuilder builder)
-    {
-        // Core services
-        builder.Services.AddAuthorization();
-        builder.Services.AddControllers();
-        builder.Services.AddProblemDetails(options =>
-        {
-            options.CustomizeProblemDetails = context =>
-            {
-                context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
-                context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
-                context.ProblemDetails.Extensions["timestamp"] = DateTime.UtcNow;
-            };
-        });
-        
-        // CORS
-        builder.Services.AddCors(options =>
-        {
-            options.AddDefaultPolicy(policy =>
-            {
-                policy.AllowAnyOrigin()
-                      .AllowAnyHeader()
-                      .AllowAnyMethod();
-            });
-        });
-
-        // Database & Infrastructure
-        builder.Services.AddDatabaseServices(builder.Configuration, builder.Environment);
-        builder.Services.AddIdentityServices(builder.Configuration);
-        builder.Services.AddStripeServices(builder.Configuration);
-        builder.Services.AddBackgroundJobServices();
-        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-        builder.Services.AddRateLimiter(rateLimiterOptions =>
-        {
-            rateLimiterOptions.AddFixedWindowLimiter("fixed", options =>
-            {
-                options.PermitLimit = 10;
-                options.Window = TimeSpan.FromSeconds(10);
-                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                options.QueueLimit = 5;
-            });
-
-            rateLimiterOptions.AddSlidingWindowLimiter("sliding", options =>
-            {
-                options.PermitLimit = 20;
-                options.Window = TimeSpan.FromSeconds(30);
-                options.SegmentsPerWindow = 6;
-                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                options.QueueLimit = 10;
-            });
-
-            rateLimiterOptions.AddFixedWindowLimiter("login_fixed", options =>
-            {
-                options.PermitLimit = 3;
-                options.Window = TimeSpan.FromMinutes(3);
-                options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-                options.QueueLimit = 0;
-            });
-        });
-
-        // Hangfire for background jobs
-        builder.Services.AddHangfire(config =>
-        {
-            config.UsePostgreSqlStorage(options =>
-            {
-                var databaseSection = builder.Configuration.GetSection(DatabaseOptions.SectionName);
-                var dbOptions = databaseSection.Get<DatabaseOptions>();
-                var connectionString = SvcCollectionExtensions.BuildConnectionString(dbOptions!);
-
-                options.UseNpgsqlConnection(connectionString);
-            }, new PostgreSqlStorageOptions
-            {
-                PrepareSchemaIfNecessary = true,
-                InvisibilityTimeout = TimeSpan.FromMinutes(30),
-                QueuePollInterval = TimeSpan.FromSeconds(15),
-                UseNativeDatabaseTransactions = true,
-                EnableTransactionScopeEnlistment = true
-            });
-            config.UseSimpleAssemblyNameTypeSerializer();
-            config.UseRecommendedSerializerSettings();
-        });
-
-        builder.Services.AddHangfireServer(options =>
-        {
-            options.WorkerCount = 5;
-            options.Queues = ["stripe-webhooks", "emails", "default"];
-        });
-        
-        builder.Services.AddCacheService(options =>
-        {
-            options.CacheType = CacheType.Redis;
-            options.ConnectionString = "redis://default:FcJ2dUSeLKqFXTQEb7TtagbGeWwhzwex@redis-17046.crce185.ap-seast-1-1.ec2.redns.redis-cloud.com:17046";
-            options.DefaultExpirationMinutes = 30;
-            options.InstanceName = "A2I_Cache_";
-        });
-
-        builder.Services.AddScoped<IStripeWebhookJob, StripeWebhookJob>();
-
-        builder.Services.ConfigureOpenApi();
-    }
 }

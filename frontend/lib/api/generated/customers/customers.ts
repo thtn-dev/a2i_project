@@ -5,10 +5,7 @@
  * API for managing Stripe subscriptions, customers, and invoices
  * OpenAPI spec version: v1
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -21,7 +18,7 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
+  UseQueryResult,
 } from '@tanstack/react-query';
 
 import type {
@@ -31,450 +28,397 @@ import type {
   CreateOrUpdateCustomerRequest,
   GetPortalUrlRequest,
   ProblemDetails,
-  UpdatePaymentMethodRequest
+  UpdatePaymentMethodRequest,
 } from '.././model';
 
 import { customInstance } from '../../custom-instance';
 import type { ErrorType } from '../../custom-instance';
 
-
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Creates a new customer in both database and Stripe, or updates existing customer information.
  * @summary Create or update customer
  */
-export type postApiV1CustomersResponse200 = {
-  data: ApiResponseOfCustomerDetailsResponse
-  status: 200
-}
-
-export type postApiV1CustomersResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type postApiV1CustomersResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type postApiV1CustomersResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type postApiV1CustomersResponseSuccess = (postApiV1CustomersResponse200) & {
-  headers: Headers;
-};
-export type postApiV1CustomersResponseError = (postApiV1CustomersResponse400 | postApiV1CustomersResponse404 | postApiV1CustomersResponse500) & {
-  headers: Headers;
+export const postApiV1Customers = (
+  createOrUpdateCustomerRequest: CreateOrUpdateCustomerRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponseOfCustomerDetailsResponse>(
+    {
+      url: `/api/v1/customers`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createOrUpdateCustomerRequest,
+      signal,
+    },
+    options,
+  );
 };
 
-export type postApiV1CustomersResponse = (postApiV1CustomersResponseSuccess | postApiV1CustomersResponseError)
+export const getPostApiV1CustomersMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiV1Customers>>,
+    TError,
+    { data: CreateOrUpdateCustomerRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiV1Customers>>,
+  TError,
+  { data: CreateOrUpdateCustomerRequest },
+  TContext
+> => {
+  const mutationKey = ['postApiV1Customers'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiV1CustomersUrl = () => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiV1Customers>>,
+    { data: CreateOrUpdateCustomerRequest }
+  > = props => {
+    const { data } = props ?? {};
 
+    return postApiV1Customers(data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/customers`
-}
+export type PostApiV1CustomersMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiV1Customers>>
+>;
+export type PostApiV1CustomersMutationBody = CreateOrUpdateCustomerRequest;
+export type PostApiV1CustomersMutationError = ErrorType<ProblemDetails>;
 
-export const postApiV1Customers = async (createOrUpdateCustomerRequest: CreateOrUpdateCustomerRequest, options?: RequestInit): Promise<postApiV1CustomersResponse> => {
-  
-  return customInstance<postApiV1CustomersResponse>(getPostApiV1CustomersUrl(),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      createOrUpdateCustomerRequest,)
-  }
-);}
-
-
-
-
-export const getPostApiV1CustomersMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Customers>>, TError,{data: CreateOrUpdateCustomerRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiV1Customers>>, TError,{data: CreateOrUpdateCustomerRequest}, TContext> => {
-
-const mutationKey = ['postApiV1Customers'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1Customers>>, {data: CreateOrUpdateCustomerRequest}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiV1Customers(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiV1CustomersMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1Customers>>>
-    export type PostApiV1CustomersMutationBody = CreateOrUpdateCustomerRequest
-    export type PostApiV1CustomersMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Create or update customer
  */
-export const usePostApiV1Customers = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiV1Customers>>, TError,{data: CreateOrUpdateCustomerRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiV1Customers>>,
-        TError,
-        {data: CreateOrUpdateCustomerRequest},
-        TContext
-      > => {
+export const usePostApiV1Customers = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiV1Customers>>,
+      TError,
+      { data: CreateOrUpdateCustomerRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiV1Customers>>,
+  TError,
+  { data: CreateOrUpdateCustomerRequest },
+  TContext
+> => {
+  const mutationOptions = getPostApiV1CustomersMutationOptions(options);
 
-      const mutationOptions = getPostApiV1CustomersMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Retrieves complete customer information including active subscription, recent invoices, and payment methods.
  * @summary Get customer details
  */
-export type getCustomerDetailsResponse200 = {
-  data: ApiResponseOfCustomerDetailsResponse
-  status: 200
-}
-
-export type getCustomerDetailsResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type getCustomerDetailsResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type getCustomerDetailsResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type getCustomerDetailsResponseSuccess = (getCustomerDetailsResponse200) & {
-  headers: Headers;
-};
-export type getCustomerDetailsResponseError = (getCustomerDetailsResponse400 | getCustomerDetailsResponse404 | getCustomerDetailsResponse500) & {
-  headers: Headers;
-};
-
-export type getCustomerDetailsResponse = (getCustomerDetailsResponseSuccess | getCustomerDetailsResponseError)
-
-export const getGetCustomerDetailsUrl = (customerId: string,) => {
-
-
-  
-
-  return `http://localhost:5087/api/v1/customers/${customerId}`
-}
-
-export const getCustomerDetails = async (customerId: string, options?: RequestInit): Promise<getCustomerDetailsResponse> => {
-  
-  return customInstance<getCustomerDetailsResponse>(getGetCustomerDetailsUrl(customerId),
-  {      
-    ...options,
-    method: 'GET'
-    
-    
-  }
-);}
-
-
-
-
-
-export const getGetCustomerDetailsQueryKey = (customerId?: string,) => {
-    return [
-    `http://localhost:5087/api/v1/customers/${customerId}`
-    ] as const;
-    }
-
-    
-export const getGetCustomerDetailsQueryOptions = <TData = Awaited<ReturnType<typeof getCustomerDetails>>, TError = ErrorType<ProblemDetails>>(customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getCustomerDetails = (
+  customerId: string,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
+  return customInstance<ApiResponseOfCustomerDetailsResponse>(
+    { url: `/api/v1/customers/${customerId}`, method: 'GET', signal },
+    options,
+  );
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const getGetCustomerDetailsQueryKey = (customerId?: string) => {
+  return [`/api/v1/customers/${customerId}`] as const;
+};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetCustomerDetailsQueryKey(customerId);
+export const getGetCustomerDetailsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCustomerDetails>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  
+  const queryKey = queryOptions?.queryKey ?? getGetCustomerDetailsQueryKey(customerId);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerDetails>>> = ({ signal }) => getCustomerDetails(customerId, { signal, ...requestOptions });
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCustomerDetails>>> = ({ signal }) =>
+    getCustomerDetails(customerId, requestOptions, signal);
 
-      
+  return { queryKey, queryFn, enabled: !!customerId, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCustomerDetails>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetCustomerDetailsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCustomerDetails>>
+>;
+export type GetCustomerDetailsQueryError = ErrorType<ProblemDetails>;
 
-   return  { queryKey, queryFn, enabled: !!(customerId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetCustomerDetailsQueryResult = NonNullable<Awaited<ReturnType<typeof getCustomerDetails>>>
-export type GetCustomerDetailsQueryError = ErrorType<ProblemDetails>
-
-
-export function useGetCustomerDetails<TData = Awaited<ReturnType<typeof getCustomerDetails>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>> & Pick<
+export function useGetCustomerDetails<
+  TData = Awaited<ReturnType<typeof getCustomerDetails>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>> &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCustomerDetails>>,
           TError,
           Awaited<ReturnType<typeof getCustomerDetails>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCustomerDetails<TData = Awaited<ReturnType<typeof getCustomerDetails>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>> & Pick<
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerDetails<
+  TData = Awaited<ReturnType<typeof getCustomerDetails>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getCustomerDetails>>,
           TError,
           Awaited<ReturnType<typeof getCustomerDetails>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetCustomerDetails<TData = Awaited<ReturnType<typeof getCustomerDetails>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetCustomerDetails<
+  TData = Awaited<ReturnType<typeof getCustomerDetails>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary Get customer details
  */
 
-export function useGetCustomerDetails<TData = Awaited<ReturnType<typeof getCustomerDetails>>, TError = ErrorType<ProblemDetails>>(
- customerId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetCustomerDetails<
+  TData = Awaited<ReturnType<typeof getCustomerDetails>>,
+  TError = ErrorType<ProblemDetails>,
+>(
+  customerId: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getCustomerDetails>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetCustomerDetailsQueryOptions(customerId, options);
 
-  const queryOptions = getGetCustomerDetailsQueryOptions(customerId,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Attaches a new payment method to the customer and optionally sets it as default for future invoices.
  * @summary Update payment method
  */
-export type updatePaymentMethodResponse200 = {
-  data: ApiResponseOfUpdatePaymentMethodResponse
-  status: 200
-}
-
-export type updatePaymentMethodResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type updatePaymentMethodResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type updatePaymentMethodResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type updatePaymentMethodResponseSuccess = (updatePaymentMethodResponse200) & {
-  headers: Headers;
-};
-export type updatePaymentMethodResponseError = (updatePaymentMethodResponse400 | updatePaymentMethodResponse404 | updatePaymentMethodResponse500) & {
-  headers: Headers;
+export const updatePaymentMethod = (
+  customerId: string,
+  updatePaymentMethodRequest: UpdatePaymentMethodRequest,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<ApiResponseOfUpdatePaymentMethodResponse>(
+    {
+      url: `/api/v1/customers/${customerId}/payment-method`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: updatePaymentMethodRequest,
+    },
+    options,
+  );
 };
 
-export type updatePaymentMethodResponse = (updatePaymentMethodResponseSuccess | updatePaymentMethodResponseError)
+export const getUpdatePaymentMethodMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePaymentMethod>>,
+    TError,
+    { customerId: string; data: UpdatePaymentMethodRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePaymentMethod>>,
+  TError,
+  { customerId: string; data: UpdatePaymentMethodRequest },
+  TContext
+> => {
+  const mutationKey = ['updatePaymentMethod'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getUpdatePaymentMethodUrl = (customerId: string,) => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePaymentMethod>>,
+    { customerId: string; data: UpdatePaymentMethodRequest }
+  > = props => {
+    const { customerId, data } = props ?? {};
 
+    return updatePaymentMethod(customerId, data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/customers/${customerId}/payment-method`
-}
+export type UpdatePaymentMethodMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePaymentMethod>>
+>;
+export type UpdatePaymentMethodMutationBody = UpdatePaymentMethodRequest;
+export type UpdatePaymentMethodMutationError = ErrorType<ProblemDetails>;
 
-export const updatePaymentMethod = async (customerId: string,
-    updatePaymentMethodRequest: UpdatePaymentMethodRequest, options?: RequestInit): Promise<updatePaymentMethodResponse> => {
-  
-  return customInstance<updatePaymentMethodResponse>(getUpdatePaymentMethodUrl(customerId),
-  {      
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      updatePaymentMethodRequest,)
-  }
-);}
-
-
-
-
-export const getUpdatePaymentMethodMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{customerId: string;data: UpdatePaymentMethodRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{customerId: string;data: UpdatePaymentMethodRequest}, TContext> => {
-
-const mutationKey = ['updatePaymentMethod'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePaymentMethod>>, {customerId: string;data: UpdatePaymentMethodRequest}> = (props) => {
-          const {customerId,data} = props ?? {};
-
-          return  updatePaymentMethod(customerId,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type UpdatePaymentMethodMutationResult = NonNullable<Awaited<ReturnType<typeof updatePaymentMethod>>>
-    export type UpdatePaymentMethodMutationBody = UpdatePaymentMethodRequest
-    export type UpdatePaymentMethodMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Update payment method
  */
-export const useUpdatePaymentMethod = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePaymentMethod>>, TError,{customerId: string;data: UpdatePaymentMethodRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof updatePaymentMethod>>,
-        TError,
-        {customerId: string;data: UpdatePaymentMethodRequest},
-        TContext
-      > => {
+export const useUpdatePaymentMethod = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updatePaymentMethod>>,
+      TError,
+      { customerId: string; data: UpdatePaymentMethodRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updatePaymentMethod>>,
+  TError,
+  { customerId: string; data: UpdatePaymentMethodRequest },
+  TContext
+> => {
+  const mutationOptions = getUpdatePaymentMethodMutationOptions(options);
 
-      const mutationOptions = getUpdatePaymentMethodMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Creates a Stripe Customer Portal session for self-service management of subscription, invoices, and payment methods.
  * @summary Get customer portal URL
  */
-export type getCustomerPortalUrlResponse200 = {
-  data: ApiResponseOfCustomerPortalResponse
-  status: 200
-}
-
-export type getCustomerPortalUrlResponse400 = {
-  data: ProblemDetails
-  status: 400
-}
-
-export type getCustomerPortalUrlResponse404 = {
-  data: ProblemDetails
-  status: 404
-}
-
-export type getCustomerPortalUrlResponse500 = {
-  data: ProblemDetails
-  status: 500
-}
-    
-export type getCustomerPortalUrlResponseSuccess = (getCustomerPortalUrlResponse200) & {
-  headers: Headers;
-};
-export type getCustomerPortalUrlResponseError = (getCustomerPortalUrlResponse400 | getCustomerPortalUrlResponse404 | getCustomerPortalUrlResponse500) & {
-  headers: Headers;
+export const getCustomerPortalUrl = (
+  customerId: string,
+  getPortalUrlRequest: GetPortalUrlRequest,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
+) => {
+  return customInstance<ApiResponseOfCustomerPortalResponse>(
+    {
+      url: `/api/v1/customers/${customerId}/portal`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: getPortalUrlRequest,
+      signal,
+    },
+    options,
+  );
 };
 
-export type getCustomerPortalUrlResponse = (getCustomerPortalUrlResponseSuccess | getCustomerPortalUrlResponseError)
+export const getGetCustomerPortalUrlMutationOptions = <
+  TError = ErrorType<ProblemDetails>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof getCustomerPortalUrl>>,
+    TError,
+    { customerId: string; data: GetPortalUrlRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof getCustomerPortalUrl>>,
+  TError,
+  { customerId: string; data: GetPortalUrlRequest },
+  TContext
+> => {
+  const mutationKey = ['getCustomerPortalUrl'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getGetCustomerPortalUrlUrl = (customerId: string,) => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof getCustomerPortalUrl>>,
+    { customerId: string; data: GetPortalUrlRequest }
+  > = props => {
+    const { customerId, data } = props ?? {};
 
+    return getCustomerPortalUrl(customerId, data, requestOptions);
+  };
 
-  
+  return { mutationFn, ...mutationOptions };
+};
 
-  return `http://localhost:5087/api/v1/customers/${customerId}/portal`
-}
+export type GetCustomerPortalUrlMutationResult = NonNullable<
+  Awaited<ReturnType<typeof getCustomerPortalUrl>>
+>;
+export type GetCustomerPortalUrlMutationBody = GetPortalUrlRequest;
+export type GetCustomerPortalUrlMutationError = ErrorType<ProblemDetails>;
 
-export const getCustomerPortalUrl = async (customerId: string,
-    getPortalUrlRequest: GetPortalUrlRequest, options?: RequestInit): Promise<getCustomerPortalUrlResponse> => {
-  
-  return customInstance<getCustomerPortalUrlResponse>(getGetCustomerPortalUrlUrl(customerId),
-  {      
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(
-      getPortalUrlRequest,)
-  }
-);}
-
-
-
-
-export const getGetCustomerPortalUrlMutationOptions = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getCustomerPortalUrl>>, TError,{customerId: string;data: GetPortalUrlRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof getCustomerPortalUrl>>, TError,{customerId: string;data: GetPortalUrlRequest}, TContext> => {
-
-const mutationKey = ['getCustomerPortalUrl'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-      
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof getCustomerPortalUrl>>, {customerId: string;data: GetPortalUrlRequest}> = (props) => {
-          const {customerId,data} = props ?? {};
-
-          return  getCustomerPortalUrl(customerId,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type GetCustomerPortalUrlMutationResult = NonNullable<Awaited<ReturnType<typeof getCustomerPortalUrl>>>
-    export type GetCustomerPortalUrlMutationBody = GetPortalUrlRequest
-    export type GetCustomerPortalUrlMutationError = ErrorType<ProblemDetails>
-
-    /**
+/**
  * @summary Get customer portal URL
  */
-export const useGetCustomerPortalUrl = <TError = ErrorType<ProblemDetails>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof getCustomerPortalUrl>>, TError,{customerId: string;data: GetPortalUrlRequest}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof getCustomerPortalUrl>>,
-        TError,
-        {customerId: string;data: GetPortalUrlRequest},
-        TContext
-      > => {
+export const useGetCustomerPortalUrl = <TError = ErrorType<ProblemDetails>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof getCustomerPortalUrl>>,
+      TError,
+      { customerId: string; data: GetPortalUrlRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof getCustomerPortalUrl>>,
+  TError,
+  { customerId: string; data: GetPortalUrlRequest },
+  TContext
+> => {
+  const mutationOptions = getGetCustomerPortalUrlMutationOptions(options);
 
-      const mutationOptions = getGetCustomerPortalUrlMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

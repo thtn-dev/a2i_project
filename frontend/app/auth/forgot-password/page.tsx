@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import Link from "next/link";
-import { usePostApiV1AccountForgotPassword } from "@/lib/api/generated/account/account";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import Link from 'next/link';
+import { usePostApiV1AccountForgotPassword } from '@/lib/api/generated/account/account';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -15,18 +15,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useState } from "react";
+} from '@/components/ui/card';
+import { useState } from 'react';
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Email không hợp lệ"),
+  email: z.string().email('Email không hợp lệ'),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
 
   const {
     register,
@@ -40,19 +40,16 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      setErrorMessage("");
-      setSuccessMessage("");
+      setErrorMessage('');
+      setSuccessMessage('');
 
       await forgotPasswordMutation.mutateAsync({ data });
 
-      setSuccessMessage(
-        "Email khôi phục mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư của bạn."
-      );
+      setSuccessMessage('Email khôi phục mật khẩu đã được gửi! Vui lòng kiểm tra hộp thư của bạn.');
     } catch (error: any) {
-      console.error("Forgot password error:", error);
+      console.error('Forgot password error:', error);
       setErrorMessage(
-        error?.message ||
-          "Không thể gửi email khôi phục. Vui lòng kiểm tra lại địa chỉ email."
+        error?.message || 'Không thể gửi email khôi phục. Vui lòng kiểm tra lại địa chỉ email.',
       );
     }
   };
@@ -70,17 +67,13 @@ export default function ForgotPasswordPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {errorMessage && (
               <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
-                <p className="text-sm text-red-800 dark:text-red-400">
-                  {errorMessage}
-                </p>
+                <p className="text-sm text-red-800 dark:text-red-400">{errorMessage}</p>
               </div>
             )}
 
             {successMessage && (
               <div className="rounded-md bg-green-50 p-3 dark:bg-green-900/20">
-                <p className="text-sm text-green-800 dark:text-green-400">
-                  {successMessage}
-                </p>
+                <p className="text-sm text-green-800 dark:text-green-400">{successMessage}</p>
               </div>
             )}
 
@@ -92,16 +85,12 @@ export default function ForgotPasswordPage() {
                 id="email"
                 type="email"
                 placeholder="Nhập email của bạn"
-                {...register("email")}
+                {...register('email')}
                 error={errors.email?.message}
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={forgotPasswordMutation.isPending}
-            >
+            <Button type="submit" className="w-full" isLoading={forgotPasswordMutation.isPending}>
               Gửi email khôi phục
             </Button>
 
@@ -117,7 +106,7 @@ export default function ForgotPasswordPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Chưa có tài khoản?{" "}
+            Chưa có tài khoản?{' '}
             <Link
               href="/auth/register"
               className="text-blue-600 hover:underline dark:text-blue-400"

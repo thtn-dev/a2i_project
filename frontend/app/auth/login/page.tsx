@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useAuth } from "@/lib/providers/auth-provider";
-import { usePostApiV1AuthLogin } from "@/lib/api/generated/auth/auth";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/lib/providers/auth-provider';
+import { usePostApiV1AuthLogin } from '@/lib/api/generated/auth/auth';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -17,12 +17,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useEffect, useState } from "react";
+} from '@/components/ui/card';
+import { useEffect, useState } from 'react';
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username là bắt buộc"),
-  password: z.string().min(6, "Password phải có ít nhất 6 ký tự"),
+  username: z.string().min(1, 'Username là bắt buộc'),
+  password: z.string().min(6, 'Password phải có ít nhất 6 ký tự'),
   rememberMe: z.boolean().optional(),
 });
 
@@ -31,7 +31,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated } = useAuth();
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const {
     register,
@@ -48,25 +48,23 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/");
+      router.push('/');
     }
   }, [isAuthenticated, router]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setErrorMessage("");
+      setErrorMessage('');
       const response = await loginMutation.mutateAsync({ data });
 
       if (response.status === 200 && response.data.data) {
         const loginData = response.data.data;
         login(loginData.accessToken, loginData.refreshToken, loginData.user);
-        router.push("/");
+        router.push('/');
       }
     } catch (error: any) {
-      console.error("Login error:", error);
-      setErrorMessage(
-        error?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin."
-      );
+      console.error('Login error:', error);
+      setErrorMessage(error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
     }
   };
 
@@ -83,9 +81,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {errorMessage && (
               <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
-                <p className="text-sm text-red-800 dark:text-red-400">
-                  {errorMessage}
-                </p>
+                <p className="text-sm text-red-800 dark:text-red-400">{errorMessage}</p>
               </div>
             )}
 
@@ -97,7 +93,7 @@ export default function LoginPage() {
                 id="username"
                 type="text"
                 placeholder="Nhập username"
-                {...register("username")}
+                {...register('username')}
                 error={errors.username?.message}
               />
             </div>
@@ -110,7 +106,7 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 placeholder="Nhập password"
-                {...register("password")}
+                {...register('password')}
                 error={errors.password?.message}
               />
             </div>
@@ -120,7 +116,7 @@ export default function LoginPage() {
                 <input
                   id="rememberMe"
                   type="checkbox"
-                  {...register("rememberMe")}
+                  {...register('rememberMe')}
                   className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <Label htmlFor="rememberMe" className="cursor-pointer">
@@ -131,23 +127,19 @@ export default function LoginPage() {
               <Link
                 href="/auth/forgot-password"
                 className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-              >Đăng nhập thất bại
-                Quên mật khẩu?
+              >
+                Đăng nhập thất bại Quên mật khẩu?
               </Link>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={loginMutation.isPending}
-            >
+            <Button type="submit" className="w-full" isLoading={loginMutation.isPending}>
               Đăng nhập
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            Chưa có tài khoản?{" "}
+            Chưa có tài khoản?{' '}
             <Link
               href="/auth/register"
               className="text-blue-600 hover:underline dark:text-blue-400"

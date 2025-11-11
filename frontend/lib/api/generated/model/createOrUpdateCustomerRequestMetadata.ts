@@ -9,4 +9,4 @@
 /**
  * @nullable
  */
-export type CreateOrUpdateCustomerRequestMetadata = {[key: string]: string} | null;
+export type CreateOrUpdateCustomerRequestMetadata = { [key: string]: string } | null;

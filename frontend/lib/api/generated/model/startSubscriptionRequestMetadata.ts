@@ -9,4 +9,4 @@
 /**
  * @nullable
  */
-export type StartSubscriptionRequestMetadata = {[key: string]: string} | null;
+export type StartSubscriptionRequestMetadata = { [key: string]: string } | null;

@@ -12,6 +12,7 @@ namespace A2I.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/webhooks")]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class StripeWebhookController(
     IEventIdempotencyStore idempotencyStore,
     IOptions<StripeOptions> options,

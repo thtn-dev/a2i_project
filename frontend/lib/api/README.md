@@ -23,9 +23,9 @@ lib/api/
 ### Queries (GET requests)
 
 ```tsx
-"use client";
+'use client';
 
-import { useGetCustomerDetails } from "@/lib/api/generated/customers/customers";
+import { useGetCustomerDetails } from '@/lib/api/generated/customers/customers';
 
 export function CustomerDetails({ customerId }: { customerId: string }) {
   const { data, isLoading, error, refetch } = useGetCustomerDetails(customerId);
@@ -46,9 +46,9 @@ export function CustomerDetails({ customerId }: { customerId: string }) {
 ### Mutations (POST/PUT/DELETE requests)
 
 ```tsx
-"use client";
+'use client';
 
-import { useLoginUser } from "@/lib/api/generated/auth/auth";
+import { useLoginUser } from '@/lib/api/generated/auth/auth';
 
 export function LoginForm() {
   const { mutate: login, isPending, error } = useLoginUser();
@@ -60,22 +60,22 @@ export function LoginForm() {
     login(
       {
         data: {
-          username: formData.get("username") as string,
-          password: formData.get("password") as string,
+          username: formData.get('username') as string,
+          password: formData.get('password') as string,
           rememberMe: false,
         },
       },
       {
-        onSuccess: (response) => {
+        onSuccess: response => {
           // Store tokens
-          localStorage.setItem("accessToken", response.data?.accessToken || "");
-          localStorage.setItem("refreshToken", response.data?.refreshToken || "");
+          localStorage.setItem('accessToken', response.data?.accessToken || '');
+          localStorage.setItem('refreshToken', response.data?.refreshToken || '');
           // Redirect or update UI
         },
-        onError: (error) => {
-          console.error("Login failed:", error);
+        onError: error => {
+          console.error('Login failed:', error);
         },
-      }
+      },
     );
   };
 
@@ -84,7 +84,7 @@ export function LoginForm() {
       <input name="username" type="text" required />
       <input name="password" type="password" required />
       <button type="submit" disabled={isPending}>
-        {isPending ? "Logging in..." : "Login"}
+        {isPending ? 'Logging in...' : 'Login'}
       </button>
       {error && <p>Error: {error.message}</p>}
     </form>
@@ -95,7 +95,7 @@ export function LoginForm() {
 ### With Query Options
 
 ```tsx
-import { useGetCustomerInvoices } from "@/lib/api/generated/invoices/invoices";
+import { useGetCustomerInvoices } from '@/lib/api/generated/invoices/invoices';
 
 export function InvoiceList({ customerId }: { customerId: string }) {
   const { data } = useGetCustomerInvoices(
@@ -103,19 +103,19 @@ export function InvoiceList({ customerId }: { customerId: string }) {
     {
       Page: 1,
       PageSize: 10,
-      Status: "paid",
+      Status: 'paid',
     },
     {
       query: {
         staleTime: 5 * 60 * 1000, // 5 minutes
         refetchInterval: 30 * 1000, // Refetch every 30 seconds
       },
-    }
+    },
   );
 
   return (
     <ul>
-      {data?.data?.items?.map((invoice) => (
+      {data?.data?.items?.map(invoice => (
         <li key={invoice.id}>{invoice.invoiceNumber}</li>
       ))}
     </ul>
@@ -140,14 +140,14 @@ pnpm generate:api
 The custom instance automatically adds the Bearer token from localStorage to all requests. To set the token after login:
 
 ```ts
-localStorage.setItem("accessToken", token);
+localStorage.setItem('accessToken', token);
 ```
 
 To clear on logout:
 
 ```ts
-localStorage.removeItem("accessToken");
-localStorage.removeItem("refreshToken");
+localStorage.removeItem('accessToken');
+localStorage.removeItem('refreshToken');
 ```
 
 ## Error Handling

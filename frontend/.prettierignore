@@ -1,0 +1,21 @@
+# dependencies
+node_modules
+
+# Next.js build output
+.next
+out
+build
+
+# production
+dist
+
+# misc
+coverage
+.DS_Store
+.vscode
+
+# lockfile
+pnpm-lock.yaml
+
+# public svgs (if you treat them as code)
+public/**/*.svg
