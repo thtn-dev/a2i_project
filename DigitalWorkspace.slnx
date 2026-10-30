@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Host/Host.csproj" />
+    <Project Path="src/Shell.Abstractions/Shell.Abstractions.csproj" />
+    <Project Path="src/Shell.Core/Shell.Core.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Products.Contracts/">
+    <Project Path="src/Modules/Products.Contracts/Modules.Products.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Products/">
+    <Project Path="src/Modules/Products/Modules.Products.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Shell.IntegrationTests/Shell.IntegrationTests.csproj" />
+    <Project Path="tests/Shell.UnitTests/Shell.UnitTests.csproj" />
+  </Folder>
+</Solution>

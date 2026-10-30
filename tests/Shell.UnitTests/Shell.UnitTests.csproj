@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="NetArchTest.Rules" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Shell.Core\Shell.Core.csproj" />
+    <!-- Module assemblies must be in the output for discovery and architecture tests. -->
+    <ProjectReference Include="..\..\src\Modules\Products\Modules.Products.csproj" />
+  </ItemGroup>
+
+</Project>

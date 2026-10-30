@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Public contract of the Products module: the only Products assembly other modules may reference. -->
+
+</Project>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <AssemblyName>Host</AssemblyName>
+    <!-- Avoid clashing with Microsoft.Extensions.Hosting.Host -->
+    <RootNamespace>Shell.Host</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shell.Core\Shell.Core.csproj" />
+    <!-- Modules are referenced only so their assemblies are copied to the output; they are discovered by scanning. -->
+    <ProjectReference Include="..\Modules\Products\Modules.Products.csproj" />
+  </ItemGroup>
+
+</Project>

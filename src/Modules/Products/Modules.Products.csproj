@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Only needed by `dotnet ef migrations add`; not flowed to consumers. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shell.Abstractions\Shell.Abstractions.csproj" />
+    <ProjectReference Include="..\Products.Contracts\Modules.Products.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
