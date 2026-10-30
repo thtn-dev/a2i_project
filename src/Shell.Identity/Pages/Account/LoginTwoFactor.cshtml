@@ -1,0 +1,15 @@
+@page "/account/login-2fa"
+@model Shell.Identity.Pages.Account.LoginTwoFactorModel
+@{
+    ViewData["Title"] = "Two-factor authentication";
+}
+@if (Model.Error is not null)
+{
+    <p class="error">@Model.Error</p>
+}
+<form method="post">
+    <input type="hidden" asp-for="ReturnUrl" />
+    <label>Code from your authenticator app <input asp-for="Code" autocomplete="one-time-code" inputmode="numeric" required /></label>
+    <button type="submit">Verify</button>
+</form>
+<p><a href="/account/login-recovery?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "/")">Use a recovery code</a></p>

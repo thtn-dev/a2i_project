@@ -1,0 +1,32 @@
+@page "/account/logins"
+@model Shell.Identity.Pages.Account.LoginsModel
+@{
+    ViewData["Title"] = "Linked logins";
+}
+@if (Model.Error is not null)
+{
+    <p class="error">@Model.Error</p>
+}
+<ul>
+    @foreach (var login in Model.Linked)
+    {
+        <li>
+            @login.ProviderDisplayName
+            <form method="post" asp-page-handler="Remove" style="display:inline">
+                <input type="hidden" name="provider" value="@login.LoginProvider" />
+                <input type="hidden" name="key" value="@login.ProviderKey" />
+                <button type="submit">Remove</button>
+            </form>
+        </li>
+    }
+</ul>
+@if (Model.Available.Count > 0)
+{
+    <form method="post" asp-page-handler="Link">
+        @foreach (var provider in Model.Available)
+        {
+            <button type="submit" name="provider" value="@provider.Name">Link @provider.DisplayName</button>
+        }
+    </form>
+}
+<p><a href="/">Back</a></p>

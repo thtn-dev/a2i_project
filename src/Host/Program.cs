@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -6,6 +8,7 @@ using Shell.Core;
 using Shell.Core.Data;
 using Shell.Core.Modules;
 using Shell.Host;
+using Shell.Identity;
 
 // Static logger used for start-up and fatal errors only; the host builds its own logger below.
 Log.Logger = new LoggerConfiguration()
@@ -15,9 +18,16 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
-    // `dotnet Host.dll migrate` migrates (and optionally seeds) the databases and exits; never done on normal start-up.
-    var migrate = args is ["migrate", ..];
-    var builder = WebApplication.CreateBuilder(migrate ? args[1..] : args);
+    // One-shot commands, run instead of the web host (see IdentityCommands for the account ones):
+    //   migrate                   migrate (and optionally seed) the databases; never done on normal start-up
+    //   disable-user <email>      block sign-in and revoke every grant;  enable-user <email>
+    var (command, operand, hostArgs) = args switch
+    {
+        ["migrate", .. var rest] => ("migrate", null, rest),
+        [var name and ("disable-user" or "enable-user"), var value, .. var rest] => (name, value, rest),
+        _ => ((string?)null, (string?)null, args),
+    };
+    var builder = WebApplication.CreateBuilder(hostArgs);
 
     builder.Services.AddSerilog(
         (services, logger) => logger
@@ -29,19 +39,42 @@ try
 
     var catalog = ModuleLoader.LoadFromDirectory(AppContext.BaseDirectory);
     builder.Services.AddShell(builder.Configuration, catalog);
+    builder.Services.AddShellIdentity(builder.Configuration);
     builder.Services.AddProblemDetails();
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen(options => options.OperationFilter<TenantHostHeaderOperationFilter>());
+    builder.Services.AddSwaggerGen(options =>
+    {
+        options.OperationFilter<TenantHostHeaderOperationFilter>();
+        // Paste an access token obtained from the authorization server (tenants whose auth mode is optional also work without).
+        options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme { Type = SecuritySchemeType.Http, Scheme = "bearer" });
+        options.AddSecurityRequirement(document => new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("bearer", document)] = [] });
+    });
+    builder.Services.AddOptions<ForwardedHeadersOptions>().Configure<IOptions<ShellOptions>>((forwarded, shell) =>
+    {
+        forwarded.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        if (shell.Value.TrustForwardedHeaders)
+        {
+            forwarded.KnownIPNetworks.Clear();
+            forwarded.KnownProxies.Clear();
+        }
+    });
     builder.Services.AddOptions<HostOptions>()
         .Configure<IOptions<ShellOptions>>((host, shell) => host.ShutdownTimeout = TimeSpan.FromSeconds(shell.Value.ShutdownTimeoutSeconds));
 
     await using var app = builder.Build();
 
-    if (migrate)
+    if (command == "migrate")
     {
         await app.Services.GetRequiredService<MigrationRunner>().RunAsync(CancellationToken.None);
         return 0;
     }
+
+    if (command is not null)
+    {
+        return await IdentityCommands.RunAsync(app.Services, command, operand!, CancellationToken.None);
+    }
+
+    app.UseForwardedHeaders();
 
     if (app.Environment.IsDevelopment())
     {
@@ -60,8 +93,10 @@ try
         : context.Request.Path.StartsWithSegments("/health") ? LogEventLevel.Verbose
         : LogEventLevel.Information);
     app.UseTenantResolution();
+    app.UseShellIdentity();
 
     app.MapShellHealthChecks();
+    app.MapShellIdentity();
     app.MapModules();
 
     app.Logger.LogInformation("Loaded modules in order: {Modules}", catalog.Modules.Select(m => m.Id));

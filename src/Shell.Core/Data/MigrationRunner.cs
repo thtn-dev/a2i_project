@@ -13,13 +13,15 @@ namespace Shell.Core.Data;
 
 /// <summary>
 /// The <c>migrate</c> command (never run at application start-up):
-/// catalog DB → demo seed (optional) → every module DbContext on the shared DB → the same on each Silo tenant DB.
+/// catalog DB → demo seed (optional) → <see cref="IMigrationStep"/>s (platform data in the catalog DB, e.g. identity)
+/// → every module DbContext on the shared DB → the same on each Silo tenant DB.
 /// A PostgreSQL advisory lock on the catalog DB makes concurrent runs wait for each other.
 /// </summary>
 public sealed class MigrationRunner(
     IOptions<ConnectionStringsOptions> connectionStrings,
     IOptions<TenancyOptions> tenancy,
     IEnumerable<ModuleDbContextRegistration> contexts,
+    IEnumerable<IMigrationStep> steps,
     IServiceScopeFactory scopeFactory,
     ILogger<MigrationRunner> logger)
 {
@@ -39,6 +41,12 @@ public sealed class MigrationRunner(
         try
         {
             await MigrateCatalogAsync(cancellationToken);
+
+            foreach (var step in steps)
+            {
+                logger.LogInformation("Running migration step {Step}", step.GetType().Name);
+                await step.RunAsync(cancellationToken);
+            }
 
             await MigrateModulesAsync(tenant: null, "shared database", cancellationToken);
 
@@ -122,4 +130,13 @@ public sealed class MigrationRunner(
         command.Parameters.AddWithValue("key", AdvisoryLockKey);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
+}
+
+/// <summary>
+/// Extra work of the migrate command, run inside the migration lock right after the catalog DB (and demo tenants) are ready.
+/// Lets platform components (e.g. Shell.Identity) migrate and seed their own data without Shell.Core depending on them.
+/// </summary>
+public interface IMigrationStep
+{
+    Task RunAsync(CancellationToken cancellationToken);
 }

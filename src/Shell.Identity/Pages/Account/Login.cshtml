@@ -1,0 +1,28 @@
+@page
+@model Shell.Identity.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Sign in";
+}
+@if (Model.Error is not null)
+{
+    <p class="error">@Model.Error</p>
+}
+<form method="post">
+    <input type="hidden" asp-for="ReturnUrl" />
+    <label>Email <input asp-for="Email" type="email" autocomplete="username" required /></label>
+    <label>Password <input asp-for="Password" type="password" autocomplete="current-password" required /></label>
+    <button type="submit">Sign in</button>
+</form>
+@if (Model.ExternalProviders.Count > 0)
+{
+    <form method="post" asp-page="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">
+        @foreach (var provider in Model.ExternalProviders)
+        {
+            <button type="submit" name="provider" value="@provider.Name">Continue with @provider.DisplayName</button>
+        }
+    </form>
+}
+<p>
+    <a href="/account/register?returnUrl=@Uri.EscapeDataString(Model.ReturnUrl ?? "/")">Create an account</a> ·
+    <a href="/account/forgot-password">Forgot password?</a>
+</p>

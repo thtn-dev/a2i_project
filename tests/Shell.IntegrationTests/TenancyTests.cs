@@ -2,10 +2,13 @@ using System.Net;
 using System.Net.Http.Json;
 using Modules.Products.Contracts;
 using Shell.Core.Tenancy;
+using Shell.Identity.Data;
 
 namespace Shell.IntegrationTests;
 
-/// <summary>End to end: migrate command, tenant resolution, Pool vs Silo storage.</summary>
+/// <summary>
+/// End to end: migrate command, tenant resolution, Pool vs Silo storage. Calls use alice's tokens (member of A and B).
+/// </summary>
 [Collection(PostgresCollection.Name)]
 public class TenancyTests(PostgresFixture db)
 {
@@ -21,8 +24,13 @@ public class TenancyTests(PostgresFixture db)
         await using var host = db.CreateHost();
         await PostgresFixture.MigrateAsync(host);
 
-        Assert.Equal(2, await db.CountAsync(db.CatalogConnectionString, "SELECT count(*) FROM catalog.tenants"));
-        Assert.Equal(1, await db.CountAsync(db.CatalogConnectionString, "SELECT count(*) FROM catalog.tenants WHERE is_isolated_db"));
+        const string demoTenants = $"""
+            SELECT count(*) FROM catalog.tenants t JOIN catalog.tenant_domains d ON d.tenant_id = t.id
+            WHERE d.domain IN ('{TenantA}', '{TenantB}')
+            """;
+        Assert.Equal(2, await db.CountAsync(db.CatalogConnectionString, demoTenants));
+        Assert.Equal(1, await db.CountAsync(db.CatalogConnectionString, demoTenants + " AND t.is_isolated_db"));
+        Assert.Equal(2, await db.CountAsync(db.CatalogConnectionString, $"SELECT count(*) FROM identity.users WHERE email IN ('{DemoUserSeeder.Alice}', '{DemoUserSeeder.Bob}')"));
 
         const string productsTable =
             "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'products' AND table_name IN ('products', '__ef_migrations_history')";
@@ -35,21 +43,24 @@ public class TenancyTests(PostgresFixture db)
     {
         await using var host = db.CreateHost();
         var client = host.CreateClient();
+        var alice = new OidcTestClient(host);
+        var tokenA = await AliceTokenAsync(alice, TenantA);
+        var tokenB = await AliceTokenAsync(alice, TenantB);
         var nameA = $"A-{Guid.NewGuid()}";
         var nameB = $"B-{Guid.NewGuid()}";
 
-        var createdA = await CreateProductAsync(client, TenantA, nameA);
-        await CreateProductAsync(client, TenantB, nameB);
+        var createdA = await CreateProductAsync(client, TenantA, nameA, tokenA);
+        await CreateProductAsync(client, TenantB, nameB, tokenB);
 
-        var seenByA = await ListProductsAsync(client, TenantA);
-        var seenByB = await ListProductsAsync(client, TenantB);
+        var seenByA = await ListProductsAsync(client, TenantA, tokenA);
+        var seenByB = await ListProductsAsync(client, TenantB, tokenB);
         Assert.Contains(nameA, seenByA);
         Assert.DoesNotContain(nameB, seenByA);
         Assert.Contains(nameB, seenByB);
         Assert.DoesNotContain(nameA, seenByB);
 
         // A's product id is invisible to B.
-        Assert.Equal(HttpStatusCode.NotFound, (await SendAsync(client, HttpMethod.Get, $"/api/products/{createdA.Id}", TenantB)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await SendAsync(client, HttpMethod.Get, $"/api/products/{createdA.Id}", TenantB, tokenB)).StatusCode);
 
         // Pool tenant A → shared DB; Silo tenant B → its own DB only.
         Assert.Equal(1, await db.CountAsync(db.SharedConnectionString, $"SELECT count(*) FROM products.products WHERE name = '{nameA}'"));
@@ -62,6 +73,7 @@ public class TenancyTests(PostgresFixture db)
     {
         await using var host = db.CreateHost();
         var client = host.CreateClient(new() { BaseAddress = new Uri($"http://{TenantB}") });
+        client.DefaultRequestHeaders.Authorization = new("Bearer", await AliceTokenAsync(new OidcTestClient(host), TenantB));
         var name = $"by-host-{Guid.NewGuid()}";
 
         var response = await client.PostAsJsonAsync("/api/products", new CreateProductRequest(name, 1m), Ct);
@@ -102,30 +114,42 @@ public class TenancyTests(PostgresFixture db)
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/products", Ct)).StatusCode); // host "localhost" is no tenant
     }
 
-    private static async Task<ProductDto> CreateProductAsync(HttpClient client, string tenant, string name)
+    private async Task<string> AliceTokenAsync(OidcTestClient browser, string domain) =>
+        (await browser.GetTokensAsync(DemoUserSeeder.Alice, DemoUserSeeder.Password, await db.TenantIdAsync(domain), domain)).AccessToken!;
+
+    private static async Task<ProductDto> CreateProductAsync(HttpClient client, string tenant, string name, string? accessToken = null)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/products")
         {
             Content = JsonContent.Create(new CreateProductRequest(name, 9.99m)),
         };
         request.Headers.Add(TenantResolutionMiddleware.TenantHostHeader, tenant);
+        if (accessToken is not null)
+        {
+            request.Headers.Authorization = new("Bearer", accessToken);
+        }
 
         var response = await client.SendAsync(request, Ct);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         return (await response.Content.ReadFromJsonAsync<ProductDto>(Ct))!;
     }
 
-    private static async Task<List<string>> ListProductsAsync(HttpClient client, string tenant)
+    private static async Task<List<string>> ListProductsAsync(HttpClient client, string tenant, string? accessToken = null)
     {
-        var response = await SendAsync(client, HttpMethod.Get, "/api/products", tenant);
+        var response = await SendAsync(client, HttpMethod.Get, "/api/products", tenant, accessToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         return (await response.Content.ReadFromJsonAsync<List<ProductDto>>(Ct))!.Select(p => p.Name).ToList();
     }
 
-    private static async Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string url, string tenant)
+    private static async Task<HttpResponseMessage> SendAsync(HttpClient client, HttpMethod method, string url, string tenant, string? accessToken = null)
     {
         using var request = new HttpRequestMessage(method, url);
         request.Headers.Add(TenantResolutionMiddleware.TenantHostHeader, tenant);
+        if (accessToken is not null)
+        {
+            request.Headers.Authorization = new("Bearer", accessToken);
+        }
+
         return await client.SendAsync(request, Ct);
     }
 }

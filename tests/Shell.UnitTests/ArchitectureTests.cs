@@ -7,11 +7,12 @@ namespace Shell.UnitTests;
 
 /// <summary>
 /// A module may only reach another module through its <c>X.Contracts</c> assembly,
-/// and must not depend on the shell internals (Shell.Core, Host).
+/// and must not depend on the shell internals (Shell.Core, Shell.Identity, Host): only on Shell.Abstractions
+/// (e.g. <c>ICurrentUser</c> for the caller).
 /// </summary>
 public class ArchitectureTests
 {
-    private static readonly string[] ShellInternals = ["Shell.Core", "Shell.Host"];
+    private static readonly string[] ShellInternals = ["Shell.Core", "Shell.Identity", "Shell.Host"];
 
     private static readonly IReadOnlyList<Assembly> ModuleAssemblies = ModuleLoader.DiscoverAssemblies(AppContext.BaseDirectory);
 
@@ -56,6 +57,14 @@ public class ArchitectureTests
                 $"{contracts.GetName().Name} must not depend on module implementations or shell internals. " +
                 $"Offending types: {string.Join(", ", result.FailingTypeNames ?? [])}");
         }
+    }
+
+    [Fact]
+    public void Shell_core_does_not_depend_on_the_identity_layer()
+    {
+        var result = Types.InAssembly(typeof(ModuleCatalog).Assembly).ShouldNot().HaveDependencyOn("Shell.Identity").GetResult();
+
+        Assert.True(result.IsSuccessful, $"Shell.Core must not use Shell.Identity: {string.Join(", ", result.FailingTypeNames ?? [])}");
     }
 
     // Full type names (not namespaces): NetArchTest matches by prefix, so the namespace

@@ -1,0 +1,17 @@
+@page "/"
+@{
+    ViewData["Title"] = "Account";
+}
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <p>Signed in as <strong>@User.Identity.Name</strong>.</p>
+    <ul>
+        <li><a href="/account/mfa">Two-factor authentication</a></li>
+        <li><a href="/account/logins">Linked logins</a></li>
+    </ul>
+    <form method="post" asp-page="/Account/Logout"><button type="submit">Sign out</button></form>
+}
+else
+{
+    <p><a href="/account/login">Sign in</a> or <a href="/account/register">create an account</a>.</p>
+}

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Modules.Products.Contracts;
 using Modules.Products.Data;
+using Shell.Abstractions.Security;
 
 namespace Modules.Products;
 
@@ -27,7 +28,7 @@ internal static class ProductEndpoints
         TypedResults.Ok(await db.Products
             .AsNoTracking()
             .OrderBy(p => p.Name)
-            .Select(p => new ProductDto(p.Id, p.Name, p.Price))
+            .Select(p => new ProductDto(p.Id, p.Name, p.Price, p.CreatedBy))
             .ToListAsync(ct));
 
     private static async Task<Results<Ok<ProductDto>, NotFound>> GetById(Guid id, ProductsDbContext db, CancellationToken ct)
@@ -37,7 +38,7 @@ internal static class ProductEndpoints
     }
 
     private static async Task<Results<CreatedAtRoute<ProductDto>, ValidationProblem>> Create(
-        CreateProductRequest request, ProductsDbContext db, CancellationToken ct)
+        CreateProductRequest request, ProductsDbContext db, ICurrentUser user, CancellationToken ct)
     {
         var errors = new Dictionary<string, string[]>();
         var name = request.Name?.Trim();
@@ -56,12 +57,12 @@ internal static class ProductEndpoints
             return TypedResults.ValidationProblem(errors);
         }
 
-        var product = new Product { Id = Guid.CreateVersion7(), Name = name!, Price = request.Price };
+        var product = new Product { Id = Guid.CreateVersion7(), Name = name!, Price = request.Price, CreatedBy = user.UserId!.Value };
         db.Products.Add(product);
         await db.SaveChangesAsync(ct);
 
         return TypedResults.CreatedAtRoute(ToDto(product), GetProductRoute, new { id = product.Id });
     }
 
-    private static ProductDto ToDto(Product product) => new(product.Id, product.Name, product.Price);
+    private static ProductDto ToDto(Product product) => new(product.Id, product.Name, product.Price, product.CreatedBy);
 }

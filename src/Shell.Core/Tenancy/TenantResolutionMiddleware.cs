@@ -7,7 +7,8 @@ namespace Shell.Core.Tenancy;
 /// <summary>
 /// Resolves the tenant from the request host (or the <c>X-Tenant-Host</c> header when allowed):
 /// unknown → 404, locked → 403, otherwise stores it in <see cref="TenantContext"/> for the rest of the request.
-/// System routes (<c>/health</c>, <c>/swagger</c>) need no tenant.
+/// System routes (<c>/health</c>, <c>/swagger</c>) and platform hosts (<see cref="TenancyOptions.PlatformHosts"/>, e.g. the
+/// authorization server) need no tenant.
 /// </summary>
 public sealed class TenantResolutionMiddleware(
     RequestDelegate next,
@@ -20,7 +21,7 @@ public sealed class TenantResolutionMiddleware(
 
     public async Task InvokeAsync(HttpContext context, TenantStore store, TenantContext tenantContext)
     {
-        if (SystemPaths.Any(path => context.Request.Path.StartsWithSegments(path)))
+        if (SystemPaths.Any(path => context.Request.Path.StartsWithSegments(path)) || IsPlatformHost(context))
         {
             await next(context);
             return;
@@ -49,6 +50,11 @@ public sealed class TenantResolutionMiddleware(
             await next(context);
         }
     }
+
+    /// <summary>Uses the real host only: the override header must not turn a platform host into a tenant or the reverse.</summary>
+    private bool IsPlatformHost(HttpContext context) =>
+        Normalize(context.Request.Host.Host) is { } host
+        && options.Value.PlatformHosts.Any(platform => string.Equals(platform, host, StringComparison.OrdinalIgnoreCase));
 
     private string? ResolveDomain(HttpContext context)
     {

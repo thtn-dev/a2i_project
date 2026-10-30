@@ -1,0 +1,15 @@
+@page
+@model Shell.Identity.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Create an account";
+}
+@foreach (var error in Model.Errors)
+{
+    <p class="error">@error</p>
+}
+<form method="post">
+    <input type="hidden" asp-for="ReturnUrl" />
+    <label>Email <input asp-for="Email" type="email" autocomplete="username" required /></label>
+    <label>Password <input asp-for="Password" type="password" autocomplete="new-password" required /></label>
+    <button type="submit">Create account</button>
+</form>

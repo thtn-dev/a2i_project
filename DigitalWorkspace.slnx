@@ -1,8 +1,16 @@
 <Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/adr.md" />
+    <File Path="docs/architecture.md" />
+    <File Path="docs/extension-points.md" />
+    <File Path="docs/module-guide.md" />
+    <File Path="docs/README.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Host/Host.csproj" />
     <Project Path="src/Shell.Abstractions/Shell.Abstractions.csproj" />
     <Project Path="src/Shell.Core/Shell.Core.csproj" />
+    <Project Path="src/Shell.Identity/Shell.Identity.csproj" />
   </Folder>
   <Folder Name="/src/Modules/" />
   <Folder Name="/src/Modules/Products.Contracts/">

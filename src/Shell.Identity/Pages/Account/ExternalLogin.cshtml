@@ -1,0 +1,7 @@
+@page "/account/external-login"
+@model Shell.Identity.Pages.Account.ExternalLoginModel
+@{
+    ViewData["Title"] = "Sign in";
+}
+<p class="error">@Model.Error</p>
+<p><a href="/account/login">Back to sign in</a></p>

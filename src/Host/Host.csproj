@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shell.Core\Shell.Core.csproj" />
+    <ProjectReference Include="..\Shell.Identity\Shell.Identity.csproj" />
     <!-- Modules are referenced only so their assemblies are copied to the output; they are discovered by scanning. -->
     <ProjectReference Include="..\Modules\Products\Modules.Products.csproj" />
   </ItemGroup>

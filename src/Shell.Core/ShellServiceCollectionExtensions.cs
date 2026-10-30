@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Routing;
@@ -7,9 +8,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Shell.Abstractions;
+using Shell.Abstractions.Security;
 using Shell.Abstractions.Tenancy;
 using Shell.Core.Data;
 using Shell.Core.Modules;
+using Shell.Core.Security;
 using Shell.Core.Tenancy;
 
 namespace Shell.Core;
@@ -50,6 +53,16 @@ public static class ShellServiceCollectionExtensions
         services.AddScoped<TenantStore>();
         services.AddScoped<DemoTenantSeeder>();
 
+        // Authorization of module endpoints (authentication itself is plugged in by the host, e.g. Shell.Identity).
+        services.AddScoped<CurrentUser>();
+        services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
+        services.AddScoped<IAuthorizationHandler, TenantAccessHandler>();
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy(TenantPolicies.Member, policy => policy.AddRequirements(new TenantAccessRequirement(AdminOnly: false)));
+            options.AddPolicy(TenantPolicies.Admin, policy => policy.AddRequirements(new TenantAccessRequirement(AdminOnly: true)));
+        });
+
         services.AddTransient<MigrationRunner>();
         services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("database", tags: [ReadyTag], timeout: TimeSpan.FromSeconds(5));
@@ -74,13 +87,13 @@ public static class ShellServiceCollectionExtensions
         return endpoints;
     }
 
-    /// <summary>Maps each module's endpoints under <c>/api/{moduleId}</c>.</summary>
+    /// <summary>Maps each module's endpoints under <c>/api/{moduleId}</c>, requiring <see cref="TenantPolicies.Member"/> by default.</summary>
     public static IEndpointRouteBuilder MapModules(this IEndpointRouteBuilder endpoints)
     {
         var catalog = endpoints.ServiceProvider.GetRequiredService<ModuleCatalog>();
         foreach (var module in catalog.Modules)
         {
-            module.MapEndpoints(endpoints.MapGroup($"/api/{module.Id}"));
+            module.MapEndpoints(endpoints.MapGroup($"/api/{module.Id}").RequireAuthorization(TenantPolicies.Member));
         }
 
         return endpoints;

@@ -12,7 +12,7 @@ using Shell.Core.Tenancy;
 namespace Shell.Core.Tenancy.Migrations
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20261030062817_InitialCatalog")]
+    [Migration("20261030105659_InitialCatalog")]
     partial class InitialCatalog
     {
         /// <inheritdoc />

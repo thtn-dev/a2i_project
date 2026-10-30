@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modules.Products.Data.Migrations
 {
     [DbContext(typeof(ProductsDbContext))]
-    [Migration("20261030062820_InitialProducts")]
+    [Migration("20261030105705_InitialProducts")]
     partial class InitialProducts
     {
         /// <inheritdoc />
@@ -32,6 +32,10 @@ namespace Modules.Products.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by");
 
                     b.Property<string>("Name")
                         .IsRequired()

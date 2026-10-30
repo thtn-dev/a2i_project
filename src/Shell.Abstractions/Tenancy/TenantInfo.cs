@@ -7,7 +7,7 @@ public interface IMustHaveTenant
 }
 
 /// <summary>Tenant resolved for the current request.</summary>
-/// <param name="Identifier">Domain the tenant was resolved from (e.g. <c>tenant1.app.com</c>).</param>
+/// <param name="Identifier">Domain the tenant was resolved from (e.g. <c>tenant1.app.com</c>), or its name when looked up by id.</param>
 /// <param name="IsIsolatedDb">True: own database (Silo). False: shared database (Pool).</param>
 /// <param name="ConnectionString">Own database connection string; null for Pool tenants.</param>
 /// <param name="IsActive">False: tenant is locked, requests get 403.</param>

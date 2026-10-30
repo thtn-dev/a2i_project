@@ -1,0 +1,14 @@
+@page "/account/login-recovery"
+@model Shell.Identity.Pages.Account.LoginRecoveryModel
+@{
+    ViewData["Title"] = "Recovery code";
+}
+@if (Model.Error is not null)
+{
+    <p class="error">@Model.Error</p>
+}
+<form method="post">
+    <input type="hidden" asp-for="ReturnUrl" />
+    <label>Recovery code <input asp-for="Code" autocomplete="off" required /></label>
+    <button type="submit">Sign in</button>
+</form>

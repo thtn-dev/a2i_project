@@ -1,0 +1,30 @@
+@page "/invitations/accept"
+@model Shell.Identity.Pages.Invitations.AcceptModel
+@{
+    ViewData["Title"] = "Invitation";
+}
+@if (Model.Error is not null)
+{
+    <p class="error">@Model.Error</p>
+}
+else if (Model.Accepted)
+{
+    <p id="accepted">You are now a member of <strong>@Model.TenantName</strong>. You can open its application.</p>
+}
+else if (Model.TenantName is not null)
+{
+    <p>You are invited to join <strong>@Model.TenantName</strong> as <strong>@Model.Role</strong>.</p>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <form method="post">
+            <input type="hidden" asp-for="Token" />
+            <p>Signed in as @User.Identity.Name.</p>
+            <button type="submit">Accept</button>
+        </form>
+    }
+    else
+    {
+        var back = Uri.EscapeDataString($"/invitations/accept?token={Model.Token}");
+        <p><a href="/account/login?returnUrl=@back">Sign in</a> or <a href="/account/register?returnUrl=@back">create an account</a> with the invited email to accept.</p>
+    }
+}

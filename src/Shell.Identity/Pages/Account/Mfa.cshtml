@@ -1,0 +1,38 @@
+@page "/account/mfa"
+@model Shell.Identity.Pages.Account.MfaModel
+@{
+    ViewData["Title"] = "Two-factor authentication";
+}
+@if (Model.Error is not null)
+{
+    <p class="error">@Model.Error</p>
+}
+@if (Model.RecoveryCodes.Count > 0)
+{
+    <p>Two-factor authentication is on. Store these recovery codes somewhere safe; each works once:</p>
+    <ul id="recovery-codes">
+        @foreach (var rCode in Model.RecoveryCodes)
+        {
+            <li>@rCode</li>
+        }
+    </ul>
+}
+else if (Model.Enabled)
+{
+    <p>Two-factor authentication is <strong>on</strong>.</p>
+    <form method="post" asp-page-handler="Disable">
+        <label>Current code <input asp-for="Code" autocomplete="one-time-code" required /></label>
+        <button type="submit">Turn off</button>
+    </form>
+}
+else
+{
+    <p>Add this key to your authenticator app, then enter the code it shows.</p>
+    <p>Key: <code id="authenticator-key">@Model.SharedKey</code></p>
+    <p><small>@Model.AuthenticatorUri</small></p>
+    <form method="post" asp-page-handler="Enable">
+        <label>Code <input asp-for="Code" autocomplete="one-time-code" required /></label>
+        <button type="submit">Turn on</button>
+    </form>
+}
+<p><a href="/">Back</a></p>

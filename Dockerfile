@@ -14,6 +14,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
+# Mount point of the token certificates (Identity:Keys:Path), writable by the app user when they are auto-generated (demo).
+RUN mkdir /keys && chown $APP_UID /keys
+
 # Built-in non-root user of the official .NET images.
 USER $APP_UID
 ENV ASPNETCORE_HTTP_PORTS=8080

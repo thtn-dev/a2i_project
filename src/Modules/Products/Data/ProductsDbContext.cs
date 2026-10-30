@@ -15,6 +15,9 @@ internal sealed class Product : IMustHaveTenant
 
     public decimal Price { get; set; }
 
+    /// <summary>Stable user id (token <c>sub</c>), never an email.</summary>
+    public Guid CreatedBy { get; set; }
+
     /// <summary>Set by <see cref="TenantDbContext"/> on insert; never set it by hand.</summary>
     public Guid TenantId { get; set; }
 }
@@ -42,6 +45,7 @@ internal sealed class ProductsDbContext(DbContextOptions<ProductsDbContext> opti
             product.Property(p => p.Id).HasColumnName("id");
             product.Property(p => p.Name).HasColumnName("name").HasMaxLength(Product.NameMaxLength);
             product.Property(p => p.Price).HasColumnName("price").HasPrecision(18, 2);
+            product.Property(p => p.CreatedBy).HasColumnName("created_by");
             product.Property(p => p.TenantId).HasColumnName("tenant_id");
             product.HasIndex(p => p.TenantId);
         });
